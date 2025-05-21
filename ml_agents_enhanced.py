@@ -9,6 +9,7 @@ from io import BytesIO
 from typing import Dict, List, Any, Optional, Union, Tuple
 import colorsys
 import uuid
+import traceback
 
 from langchain.tools import StructuredTool
 from langchain_core.tools import Tool

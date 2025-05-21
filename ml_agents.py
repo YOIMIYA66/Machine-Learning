@@ -9,6 +9,7 @@ from io import BytesIO
 from typing import Dict, List, Any, Optional, Union, Tuple
 import colorsys
 import uuid
+import traceback
 
 from langchain.tools import StructuredTool
 from langchain_core.tools import Tool
@@ -2062,7 +2063,7 @@ def create_ml_agent(use_existing_model: bool = True):
     )
 
     prompt = PromptTemplate(
-        input_variables=["input", "agent_scratchpad", "tools", "tool_names"],
+        input_variables=["input", "intermediate_steps", "agent_scratchpad", "tools", "tool_names"],
         template=final_prompt_template
     )
 
