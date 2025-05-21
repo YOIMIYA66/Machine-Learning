@@ -1114,17 +1114,6 @@ def auto_model_selection_endpoint():
         app.logger.error(f"/api/ml/auto_select 接口发生错误: {e}", exc_info=True)
         return jsonify({"error": f"自动选择模型时发生错误: {str(e)}"}), 500
 
-    file_path = data['file_path']
-    if not os.path.exists(file_path):
-        return jsonify({"error": f"文件 {file_path} 不存在"}), 404
-
-    try:
-        ml_query = f"分析数据文件 {file_path} 并提供统计信息和可视化"
-        result = query_ml_agent(ml_query)
-        return jsonify(result), 200
-    except Exception as e:
-        app.logger.error(f"/api/ml/analyze 接口发生错误: {e}", exc_info=True)
-        return jsonify({"error": f"分析数据时发生错误: {str(e)}"}), 500
 
 
 

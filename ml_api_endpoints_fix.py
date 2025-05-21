@@ -78,17 +78,19 @@ def compare_models_api(model_names, test_data_path, target_column):
         }
 
 # 修复后的build_ensemble_model函数
-def build_ensemble_model(base_models, ensemble_type, save_name=None):
+def build_ensemble_model(base_models: List[str], ensemble_type: str, weights: Optional[List[float]] = None, save_name: Optional[str] = None):
     """
     构建集成模型
-    
+
     Args:
-        base_models: 基础模型名称列表
-        ensemble_type: 集成类型 ('voting', 'stacking', 'bagging')
-        save_name: 保存的模型名称
-        
+        base_models (List[str]): 基础模型名称列表
+        ensemble_type (str): 集成类型 ('voting', 'stacking', 'bagging')
+        weights (Optional[List[float]]): 基础模型权重列表，仅用于 'voting' 集成类型。
+                                         如果提供，长度必须与 base_models 相同。
+        save_name (Optional[str]): 保存的模型名称
+
     Returns:
-        包含集成模型信息的字典
+        Dict[str, Any]: 包含集成模型信息的字典
     """
     import datetime
     import logging
@@ -109,6 +111,24 @@ def build_ensemble_model(base_models, ensemble_type, save_name=None):
                 "success": False,
                 "error": f"不支持的集成类型: {ensemble_type}，支持的类型有: voting, stacking, bagging"
             }
+
+        # 验证权重（如果提供）
+        if weights is not None:
+            if ensemble_type != 'voting':
+                return {
+                    "success": False,
+                    "error": "权重参数仅在 'voting' 集成类型中受支持"
+                }
+            if len(weights) != len(base_models):
+                return {
+                    "success": False,
+                    "error": "权重列表的长度必须与基础模型列表的长度相同"
+                }
+            if not all(isinstance(w, (int, float)) for w in weights):
+                return {
+                    "success": False,
+                    "error": "权重列表必须只包含数值"
+                }
         
         # 检查所有基础模型是否存在
         models = list_available_models()
@@ -121,9 +141,16 @@ def build_ensemble_model(base_models, ensemble_type, save_name=None):
                 "error": f"以下模型不存在: {', '.join(missing_models)}"
             }
         
+        # 准备模型列表和权重
+        if weights is not None and ensemble_type == 'voting':
+            model_list_with_weights = list(zip(base_models, weights))
+        else:
+            # 对于非voting类型或未提供权重的情况，默认权重（或由create_ensemble_model内部处理）
+            model_list_with_weights = [(m, 1.0) for m in base_models] # 默认权重为1.0，create_ensemble_model可能会覆盖
+
         # 构建集成模型
         result = create_ensemble_model(
-            model_list=[(m, 1.0) for m in base_models],  # 默认权重为1.0
+            model_list=model_list_with_weights,
             ensemble_type=ensemble_type,
             save_name=save_name
         )
@@ -138,6 +165,7 @@ def build_ensemble_model(base_models, ensemble_type, save_name=None):
                 "type": "ensemble",
                 "ensemble_type": ensemble_type,
                 "base_models": base_models,
+                "weights": weights if ensemble_type == 'voting' else None, # 记录权重信息
                 "created_at": datetime.datetime.now().isoformat(),
                 "description": result.get('metadata', {}).get('description', f"{ensemble_type.capitalize()} 集成模型")
             }

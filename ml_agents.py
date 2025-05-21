@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import base64
 from io import BytesIO
-from typing import Dict, List, Any, Optional, Union, Tuple
+from typing import Dict, List, Any, Optional, Tuple
 import colorsys
 import uuid
 import traceback
@@ -1046,7 +1046,7 @@ def create_ml_tools():
                 "error": str(e)
             })
 
-    def _data_analysis(file_path: str) -> str:
+    def _data_analysis(file_path: str, target_column: Optional[str] = None, analysis_type: Optional[str] = None) -> str:
         """分析数据集并提供统计信息和可视化"""
         try:
             # 检查文件是否存在
@@ -1620,7 +1620,7 @@ def create_ml_tools():
             if ensemble_type == 'voting_classifier':
                 ensemble_type = 'voting'
             
-            result = actual_build_ensemble_model(
+            result = create_ensemble_model(
                 base_models=base_models,
                 ensemble_type=ensemble_type,
                 weights=weights,
@@ -1831,8 +1831,8 @@ def create_ml_tools():
             model, preprocessors, _ = loaded_data
 
             # 保存版本
-            # actual_save_model_version is an alias for save_model_with_version from ml_models
-            version_info = actual_save_model_version(model, model_name, preprocessors, metadata, version)
+            # save_model_with_version is imported from ml_models
+            version_info = save_model_with_version(model, model_name, preprocessors, metadata, version)
 
             # 格式化输出
             version_text = f"✅ 模型版本保存成功!\n\n"
@@ -1863,7 +1863,7 @@ def create_ml_tools():
     def _list_model_versions(model_name: str) -> str:
         """列出模型的所有版本"""
         try:
-            versions = actual_get_model_versions(model_name)
+            versions = list_model_versions(model_name)
 
             if not versions:
                 return json.dumps({
@@ -1987,84 +1987,23 @@ def create_ml_agent(use_existing_model: bool = True):
     # 提取工具名称列表
     # 提示模板，确保包含所有必需变量
     # 注意：`tools`变量将由create_structured_chat_agent用工具的格式化描述填充
-    prompt_template_base = """你是一个专业的机器学习助手，必须严格遵循以下格式要求：
-1. 必须使用严格合规的JSON格式响应（包含且仅包含外层花括号）
-2. 必须包含且仅包含'action'和'action_input'字段
-3. action字段值必须是有效工具名称（当前可用工具：{tool_names}）
-4. action_input字段值必须是完整的参数对象
-5. 如果响应不符合JSON格式，系统将自动记录原始响应并返回解析错误
-6. 所有响应必须包含完整的参数对象，缺少必需参数将被视为无效响应
-
-正确示例：
-{{
-  "action": "visualize_data",
-  "action_input": {{"file_path": "北京市空气质量数据.xlsx", "analysis_type": "correlation"}}
-}}
-
-错误示例及处理：
-✘ 缺少外层花括号：
-  "action": "train_model", ...
-→ 错误原因：响应不是合法JSON对象
-
-✘ 包含额外字段：
-{{
-  "action": "predict",
-  "action_input": {{"model": "linear_regression"}},
-  "comment": "预测结果"
-}}
-→ 错误原因：包含非法字段'comment'
-
-✘ 参数不完整：
-{{
-  "action": "compare_models",
-  "action_input": {{"model_names": ["rf"]}}
-}}
-→ 错误原因：缺少必需字段'test_data_path'
-
-
-你能够帮助用户训练模型、进行预测和分析数据。
-{model_preference_instruction}
-当涉及模型训练时，请考虑数据特征的类型和目标任务，推荐合适的模型。
-对于预测任务，确保用户提供了必要的特征值，并以清晰的格式返回结果。
-在数据分析中，关注数据的质量、分布和潜在的问题。
-
-处理大型数据集时，请注意：
-1. 优先使用数值特征列表和分类特征列表参数，避免处理整个数据集
-2. 对于Excel文件(xlsx)、JSON文件和CSV文件，确保正确指定文件路径
-3. 处理大型数据集时，尽量减少数据预处理步骤
-4. 如果处理时间过长，考虑使用数据采样
-
-常用数据集路径：
-- 北京市空气质量数据: c:\\Users\\86198\\Desktop\\Study\\机器学习\\Machine Learning\\北京市空气质量数据.xlsx
-- 离婚诉讼文本: c:\\Users\\86198\\Desktop\\Study\\机器学习\\Machine Learning\\离婚诉讼文本.json
-- 航空公司客户数据: c:\\Users\\86198\\Desktop\\Study\\机器学习\\Machine Learning\\air_data.csv
-
-以下是可用的工具 (工具描述):
+    prompt_template_base = """
 {tools}
-
-工具名称列表: {tool_names}
-
-用户问题: {input}
-
-请严格按照以下JSON格式输出你的最终回答。回答必须是一个JSON对象，包含'text'字段，如果生成了可视化数据，请包含'visualization_data'字段，如果生成了表格数据，请包含'table_data'字段。不要在JSON对象之外包含任何额外的文本或markdown格式（如```json```）。
-
+Tool Names: {tool_names}
+Input: {input}
 {agent_scratchpad}
 """
     model_preference_text = ""
     if use_existing_model:
         model_preference_text = "\n重要提示：当前设置为优先使用已训练好的模型。除非用户明确要求或没有合适的现有模型，否则请不要重新训练模型。\n"
 
-    final_prompt_template = prompt_template_base.format(
-        tool_names="{tool_names}",
-        tools="{tools}",
-        input="{input}",
-        agent_scratchpad="{agent_scratchpad}",
-        model_preference_instruction=model_preference_text
-    )
+    final_prompt_template = "Test: {test_var}" # Simplified for testing
+    # model_preference_text is not used in this simplified template
 
     prompt = PromptTemplate(
-        input_variables=["input", "intermediate_steps", "agent_scratchpad", "tools", "tool_names"],
-        template=final_prompt_template
+        input_variables=["test_var"],
+        template=final_prompt_template,
+        validate_template=False # Explicitly set to False for this test
     )
 
     # 创建代理
@@ -2079,7 +2018,7 @@ def create_ml_agent(use_existing_model: bool = True):
         agent=agent,
         tools=tools,
         verbose=True,
-        handle_parsing_errors=lambda e: f"JSON解析错误: {str(e)}\n原始响应: {e.response}",
+        handle_parsing_errors=lambda e: f"JSON解析错误: {str(e)}\n原始响应:\n```json\n{e.response.replace('{', '{{').replace('}', '}}')}\n```\n",
         max_iterations=1,  # 减少最大迭代次数以避免超时
         return_intermediate_steps=True,
         max_execution_time=120  # 设置最大执行时间为30秒
