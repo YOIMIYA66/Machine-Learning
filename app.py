@@ -698,8 +698,8 @@ def compare_models_endpoint():
             return jsonify({"success": False, "error": f"缺少必要字段 '{field}'"}), 400
 
     try:
-        # 导入模型比较函数
-        from ml_api_endpoints import compare_models_api
+        # 导入修复后的模型比较函数
+        from ml_api_endpoints_fix import compare_models_api
 
         model_names = data['model_names']
         test_data_path = data['test_data_path']
@@ -733,8 +733,8 @@ def build_ensemble_model_endpoint():
             return jsonify({"success": False, "error": f"缺少必要字段 '{field}'"}), 400
 
     try:
-        # 导入集成模型构建函数
-        from ml_api_endpoints import build_ensemble_model
+        # 导入修复后的集成模型构建函数
+        from ml_api_endpoints_fix import build_ensemble_model
 
         base_models = data['base_models']
         ensemble_type = data['ensemble_type']
