@@ -451,12 +451,105 @@
                     <div class="badge badge-primary badge-outline" id="modelCountBadge" aria-live="polite">已加载 0 个模型</div>
                 </div>
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 model-grid" id="modelGrid" aria-label="可选分析模型列表">
-                    <!-- Fallback static model cards, JS will ideally populate these -->
-                    <div class="model-card h-48 content-card" data-model-name="Linear Regression" tabindex="0" role="button" aria-label="选择 线性回归 模型"> <div class="model-card-inner h-full"> <div class="model-card-front"> <i class="fas fa-chart-line text-4xl mb-2.5" aria-hidden="true"></i> <div class="font-semibold text-base">线性回归</div> <div class="text-xs text-muted mt-1.5">数值预测</div> </div> <div class="model-card-back"> <h4 class="font-semibold text-base mb-1.5">线性回归</h4> <p class="text-xs opacity-80 mb-2.5 px-1">用于预测连续变量，简单快速，易于解释。适合初级分析。</p> <button type="button" class="btn btn-xs btn-outline select-model-btn">选择此模型</button> </div> </div> </div>
-                    <div class="model-card h-48 content-card" data-model-name="Logistic Regression" tabindex="0" role="button" aria-label="选择 逻辑回归 模型"> <div class="model-card-inner h-full"> <div class="model-card-front"> <i class="fas fa-code-branch text-4xl mb-2.5" aria-hidden="true"></i> <div class="font-semibold text-base">逻辑回归</div> <div class="text-xs text-muted mt-1.5">二分类预测</div> </div> <div class="model-card-back"> <h4 class="font-semibold text-base mb-1.5">逻辑回归</h4> <p class="text-xs opacity-80 mb-2.5 px-1">概率分类模型，广泛用于二分类或多分类问题。</p> <button type="button" class="btn btn-xs btn-outline select-model-btn">选择此模型</button> </div> </div> </div>
-                    <div class="model-card h-48 content-card" data-model-name="Decision Tree" tabindex="0" role="button" aria-label="选择 决策树 模型"> <div class="model-card-inner h-full"> <div class="model-card-front"> <i class="fas fa-sitemap text-4xl mb-2.5" aria-hidden="true"></i> <div class="font-semibold text-base">决策树</div> <div class="text-xs text-muted mt-1.5">分类与回归</div> </div> <div class="model-card-back"> <h4 class="font-semibold text-base mb-1.5">决策树</h4> <p class="text-xs opacity-80 mb-2.5 px-1">直观易懂，可解释性强，能有效处理非线性数据。</p> <button type="button" class="btn btn-xs btn-outline select-model-btn">选择此模型</button> </div> </div> </div>
-                    <div class="model-card h-48 content-card" data-model-name="Random Forest" tabindex="0" role="button" aria-label="选择 随机森林 模型"> <div class="model-card-inner h-full"> <div class="model-card-front"> <i class="fas fa-tree text-4xl mb-2.5" aria-hidden="true"></i> <div class="font-semibold text-base">随机森林</div> <div class="text-xs text-muted mt-1.5">集成学习</div> </div> <div class="model-card-back"> <h4 class="font-semibold text-base mb-1.5">随机森林</h4> <p class="text-xs opacity-80 mb-2.5 px-1">高精度集成模型，通过构建多个决策树提高性能，抗过拟合。</p> <button type="button" class="btn btn-xs btn-outline select-model-btn">选择此模型</button> </div> </div> </div>
-                    <div class="col-span-full text-center text-muted p-4 model-grid-placeholder hidden">模型列表加载中或无可用模型...</div>
+                    <!-- 固定的模型卡片列表，使用ml_models.py中的MODEL_DETAILS信息 -->
+                    <div class="model-card h-48 content-card" data-model-name="linear_regression" tabindex="0" role="button" aria-label="选择 线性回归模型 模型"> 
+                        <div class="model-card-inner h-full"> 
+                            <div class="model-card-front"> 
+                                <i class="fas fa-chart-line text-4xl mb-2.5" aria-hidden="true"></i> 
+                                <div class="font-semibold text-base">线性回归模型</div> 
+                                <div class="text-xs text-muted mt-1.5">数值预测</div> 
+                            </div> 
+                            <div class="model-card-back"> 
+                                <h4 class="font-semibold text-base mb-1.5">线性回归模型</h4> 
+                                <p class="text-xs opacity-80 mb-2.5 px-1">线性回归是一种基本的统计模型，用于预测连续型变量。它通过建立自变量与因变量之间的线性关系，找出最佳拟合直线，适用于简单的数值预测任务。</p> 
+                                <button type="button" class="btn btn-xs btn-outline select-model-btn">选择此模型</button> 
+                            </div> 
+                        </div> 
+                    </div>
+                    <div class="model-card h-48 content-card" data-model-name="logistic_regression" tabindex="0" role="button" aria-label="选择 逻辑回归模型 模型"> 
+                        <div class="model-card-inner h-full"> 
+                            <div class="model-card-front"> 
+                                <i class="fas fa-code-branch text-4xl mb-2.5" aria-hidden="true"></i> 
+                                <div class="font-semibold text-base">逻辑回归模型</div> 
+                                <div class="text-xs text-muted mt-1.5">分类预测</div> 
+                            </div> 
+                            <div class="model-card-back"> 
+                                <h4 class="font-semibold text-base mb-1.5">逻辑回归模型</h4> 
+                                <p class="text-xs opacity-80 mb-2.5 px-1">逻辑回归是一种用于二分类问题的统计模型，通过Sigmoid函数将线性模型的输出转换为概率值。它计算效率高，易于实现，适合处理线性可分的分类问题。</p> 
+                                <button type="button" class="btn btn-xs btn-outline select-model-btn">选择此模型</button> 
+                            </div> 
+                        </div> 
+                    </div>
+                    <div class="model-card h-48 content-card" data-model-name="knn_classifier" tabindex="0" role="button" aria-label="选择 K-近邻法预测模型 模型"> 
+                        <div class="model-card-inner h-full"> 
+                            <div class="model-card-front"> 
+                                <i class="fas fa-project-diagram text-4xl mb-2.5" aria-hidden="true"></i> 
+                                <div class="font-semibold text-base">K-近邻法预测模型</div> 
+                                <div class="text-xs text-muted mt-1.5">分类预测</div> 
+                            </div> 
+                            <div class="model-card-back"> 
+                                <h4 class="font-semibold text-base mb-1.5">K-近邻法预测模型(KNN)</h4> 
+                                <p class="text-xs opacity-80 mb-2.5 px-1">K-近邻算法是一种基于实例的学习方法，通过计算新样本与训练集中所有样本的距离，选取最近的K个邻居进行投票或平均，从而进行分类或回归预测。</p> 
+                                <button type="button" class="btn btn-xs btn-outline select-model-btn">选择此模型</button> 
+                            </div> 
+                        </div> 
+                    </div>
+                    <div class="model-card h-48 content-card" data-model-name="decision_tree" tabindex="0" role="button" aria-label="选择 决策树 模型"> 
+                        <div class="model-card-inner h-full"> 
+                            <div class="model-card-front"> 
+                                <i class="fas fa-sitemap text-4xl mb-2.5" aria-hidden="true"></i> 
+                                <div class="font-semibold text-base">决策树</div> 
+                                <div class="text-xs text-muted mt-1.5">分类与回归</div> 
+                            </div> 
+                            <div class="model-card-back"> 
+                                <h4 class="font-semibold text-base mb-1.5">决策树</h4> 
+                                <p class="text-xs opacity-80 mb-2.5 px-1">决策树是一种树形结构的分类模型，通过一系列条件判断将数据划分为不同类别。它直观易懂，可解释性强，能够处理非线性关系，但容易过拟合。</p> 
+                                <button type="button" class="btn btn-xs btn-outline select-model-btn">选择此模型</button> 
+                            </div> 
+                        </div> 
+                    </div>
+                    <div class="model-card h-48 content-card" data-model-name="svm_classifier" tabindex="0" role="button" aria-label="选择 向量机模型 模型"> 
+                        <div class="model-card-inner h-full"> 
+                            <div class="model-card-front"> 
+                                <i class="fas fa-vector-square text-4xl mb-2.5" aria-hidden="true"></i> 
+                                <div class="font-semibold text-base">向量机模型</div> 
+                                <div class="text-xs text-muted mt-1.5">分类预测</div> 
+                            </div> 
+                            <div class="model-card-back"> 
+                                <h4 class="font-semibold text-base mb-1.5">向量机模型</h4> 
+                                <p class="text-xs opacity-80 mb-2.5 px-1">支持向量机(SVM)是一种强大的分类算法，通过寻找最优超平面来区分不同类别的数据点。它在高维空间中表现良好，可以通过核函数处理非线性问题，适合小型复杂数据集。</p> 
+                                <button type="button" class="btn btn-xs btn-outline select-model-btn">选择此模型</button> 
+                            </div> 
+                        </div> 
+                    </div>
+                    <div class="model-card h-48 content-card" data-model-name="naive_bayes" tabindex="0" role="button" aria-label="选择 朴素贝叶斯分类器 模型"> 
+                        <div class="model-card-inner h-full"> 
+                            <div class="model-card-front"> 
+                                <i class="fas fa-percentage text-4xl mb-2.5" aria-hidden="true"></i> 
+                                <div class="font-semibold text-base">朴素贝叶斯分类器</div> 
+                                <div class="text-xs text-muted mt-1.5">分类预测</div> 
+                            </div> 
+                            <div class="model-card-back"> 
+                                <h4 class="font-semibold text-base mb-1.5">朴素贝叶斯分类器</h4> 
+                                <p class="text-xs opacity-80 mb-2.5 px-1">朴素贝叶斯是基于贝叶斯定理的概率分类器，假设特征之间相互独立。它训练速度快，需要较少的训练数据，特别适合文本分类和多分类问题，但对特征相关性较强的数据效果可能不佳。</p> 
+                                <button type="button" class="btn btn-xs btn-outline select-model-btn">选择此模型</button> 
+                            </div> 
+                        </div> 
+                    </div>
+                    <div class="model-card h-48 content-card" data-model-name="kmeans" tabindex="0" role="button" aria-label="选择 K-Means 模型 模型"> 
+                        <div class="model-card-inner h-full"> 
+                            <div class="model-card-front"> 
+                                <i class="fas fa-object-group text-4xl mb-2.5" aria-hidden="true"></i> 
+                                <div class="font-semibold text-base">K-Means 模型</div> 
+                                <div class="text-xs text-muted mt-1.5">聚类分析</div> 
+                            </div> 
+                            <div class="model-card-back"> 
+                                <h4 class="font-semibold text-base mb-1.5">K-Means 模型</h4> 
+                                <p class="text-xs opacity-80 mb-2.5 px-1">K-Means是一种常用的聚类算法，通过迭代优化将数据点分配到K个簇中。它实现简单，计算效率高，适合大规模数据集的无监督学习，但对初始聚类中心敏感，且难以处理非球形簇。</p> 
+                                <button type="button" class="btn btn-xs btn-outline select-model-btn">选择此模型</button> 
+                            </div> 
+                        </div> 
+                    </div>
                 </div>
                 <p id="selectedModelInfo" class="text-center text-sm text-muted mt-6" aria-live="polite">当前未选择模型。请点击模型卡片进行选择。</p>
             </section>

@@ -55,8 +55,46 @@ MODEL_TYPES = {
 MODEL_CATEGORIES = {
     "regression": ["linear_regression"],
     "classification": ["logistic_regression", "knn_classifier", "decision_tree", "svm_classifier", "naive_bayes"],
-    "clustering": ["kmeans"],
-    "ensemble": ["voting_classifier", "voting_regressor", "stacking_classifier", "stacking_regressor", "bagging_classifier", "bagging_regressor"]
+    "clustering": ["kmeans"]
+}
+
+# 模型详细信息，包含图标和描述
+MODEL_DETAILS = {
+    "linear_regression": {
+        "display_name": "线性回归模型",
+        "icon_class": "fa-chart-line",
+        "description": "线性回归是一种基本的统计模型，用于预测连续型变量。它通过建立自变量与因变量之间的线性关系，找出最佳拟合直线，适用于简单的数值预测任务。"
+    },
+    "logistic_regression": {
+        "display_name": "逻辑回归模型",
+        "icon_class": "fa-code-branch",
+        "description": "逻辑回归是一种用于二分类问题的统计模型，通过Sigmoid函数将线性模型的输出转换为概率值。它计算效率高，易于实现，适合处理线性可分的分类问题。"
+    },
+    "knn_classifier": {
+        "display_name": "K-近邻法预测模型(KNN)",
+        "icon_class": "fa-project-diagram",
+        "description": "K-近邻算法是一种基于实例的学习方法，通过计算新样本与训练集中所有样本的距离，选取最近的K个邻居进行投票或平均，从而进行分类或回归预测。"
+    },
+    "decision_tree": {
+        "display_name": "决策树",
+        "icon_class": "fa-sitemap",
+        "description": "决策树是一种树形结构的分类模型，通过一系列条件判断将数据划分为不同类别。它直观易懂，可解释性强，能够处理非线性关系，但容易过拟合。"
+    },
+    "svm_classifier": {
+        "display_name": "向量机模型",
+        "icon_class": "fa-vector-square",
+        "description": "支持向量机(SVM)是一种强大的分类算法，通过寻找最优超平面来区分不同类别的数据点。它在高维空间中表现良好，可以通过核函数处理非线性问题，适合小型复杂数据集。"
+    },
+    "naive_bayes": {
+        "display_name": "朴素贝叶斯分类器",
+        "icon_class": "fa-percentage",
+        "description": "朴素贝叶斯是基于贝叶斯定理的概率分类器，假设特征之间相互独立。它训练速度快，需要较少的训练数据，特别适合文本分类和多分类问题，但对特征相关性较强的数据效果可能不佳。"
+    },
+    "kmeans": {
+        "display_name": "K-Means 模型",
+        "icon_class": "fa-object-group",
+        "description": "K-Means是一种常用的聚类算法，通过迭代优化将数据点分配到K个簇中。它实现简单，计算效率高，适合大规模数据集的无监督学习，但对初始聚类中心敏感，且难以处理非球形簇。"
+    }
 }
 
 # 模型默认参数

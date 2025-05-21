@@ -17,6 +17,9 @@ from ml_models import (
     compare_models
 )
 
+# 导入部署日志相关函数
+from ml_api_endpoints_logs import get_deployment_logs, add_deployment_log
+
 # 配置日志
 logging.basicConfig(
     level=logging.INFO,
@@ -300,6 +303,10 @@ def compare_models_api(model_names: List[str], test_data_path: str, target_colum
         # 比较模型
         comparison_result = compare_models(model_names, test_data_path, target_column)
         
+        # 确保comparison_result中包含model_names字段
+        if 'model_names' not in comparison_result:
+            comparison_result['model_names'] = model_names
+        
         # 格式化返回结果
         return {
             "success": True,
@@ -309,7 +316,8 @@ def compare_models_api(model_names: List[str], test_data_path: str, target_colum
             "comparison_result": comparison_result,
             "best_model": comparison_result.get('best_model', {}),
             "metrics": comparison_result.get('metrics', {}),
-            "visualization_data": comparison_result.get('visualization_data', {})
+            "visualization_data": comparison_result.get('visualization_data', {}),
+            "model_names": model_names  # 添加model_names字段
         }
     except Exception as e:
         logger.error(f"比较模型时出错: {str(e)}")

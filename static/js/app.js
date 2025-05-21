@@ -359,21 +359,55 @@ async function performDataAnalysis(dataPath) {
 
 /**
  * 显示数据预览表格
+ * 优化表格展示，当列数过多时分行展示
  */
 function showDataPreview(previewData, columns) {
     const container = DOM.dataPreview();
     if (!container) return;
     if (previewData && previewData.length > 0 && columns && columns.length > 0) {
-        let tableHTML = `<div class="overflow-x-auto custom-scrollbar"><table class="table table-xs sm:table-sm w-full"><thead><tr>`;
-        columns.forEach(col => tableHTML += `<th>${escapeHtml(col)}</th>`);
-        tableHTML += `</tr></thead><tbody>`;
-        previewData.forEach(row => {
-            tableHTML += `<tr>`;
-            columns.forEach(col => tableHTML += `<td>${escapeHtml(row[col] ?? '')}</td>`);
-            tableHTML += `</tr>`;
-        });
-        tableHTML += `</tbody></table></div>`;
-        container.innerHTML = tableHTML;
+        // 判断列数是否过多，需要分行展示
+        const MAX_COLUMNS_PER_ROW = 6; // 每行最多显示的列数
+        const needMultipleRows = columns.length > MAX_COLUMNS_PER_ROW;
+        
+        if (needMultipleRows) {
+            // 分行展示的表格
+            let tableHTML = '';
+            // 计算需要多少行来展示所有列
+            const rowCount = Math.ceil(columns.length / MAX_COLUMNS_PER_ROW);
+            
+            for (let rowIndex = 0; rowIndex < rowCount; rowIndex++) {
+                // 获取当前行要显示的列
+                const startColIndex = rowIndex * MAX_COLUMNS_PER_ROW;
+                const endColIndex = Math.min(startColIndex + MAX_COLUMNS_PER_ROW, columns.length);
+                const currentRowColumns = columns.slice(startColIndex, endColIndex);
+                
+                tableHTML += `<div class="mb-4"><div class="overflow-x-auto custom-scrollbar"><table class="table table-xs sm:table-sm w-full"><thead><tr>`;
+                currentRowColumns.forEach(col => tableHTML += `<th>${escapeHtml(col)}</th>`);
+                tableHTML += `</tr></thead><tbody>`;
+                
+                previewData.forEach(row => {
+                    tableHTML += `<tr>`;
+                    currentRowColumns.forEach(col => tableHTML += `<td>${escapeHtml(row[col] ?? '')}</td>`);
+                    tableHTML += `</tr>`;
+                });
+                
+                tableHTML += `</tbody></table></div></div>`;
+            }
+            
+            container.innerHTML = tableHTML;
+        } else {
+            // 原始单行表格展示
+            let tableHTML = `<div class="overflow-x-auto custom-scrollbar"><table class="table table-xs sm:table-sm w-full"><thead><tr>`;
+            columns.forEach(col => tableHTML += `<th>${escapeHtml(col)}</th>`);
+            tableHTML += `</tr></thead><tbody>`;
+            previewData.forEach(row => {
+                tableHTML += `<tr>`;
+                columns.forEach(col => tableHTML += `<td>${escapeHtml(row[col] ?? '')}</td>`);
+                tableHTML += `</tr>`;
+            });
+            tableHTML += `</tbody></table></div>`;
+            container.innerHTML = tableHTML;
+        }
     } else {
         container.innerHTML = '<p class="text-muted p-4 text-center">无有效数据可供预览。</p>';
     }
@@ -582,14 +616,34 @@ function updateQueryInputState() {
     const label = DOM.queryInputLabel();
     const btn = DOM.submitQueryButton();
     const info = DOM.modeSpecificInfo();
+    const uploadBtn = DOM.uploadDataShortcutBtn();
     const mode = document.querySelector('input[name="queryMode"]:checked')?.value;
     if (!input || !label || !btn || !info) return;
 
     let placeholder = '请输入您的问题...', labelText = '您想解决什么问题？', disabled = false, infoText = '';
+    
+    // 通用大模型模式
     if (mode === 'general_llm') {
         infoText = '通用模式：可直接提问，无需上传数据或选择模型。';
-    } else {
+        // 禁用数据上传按钮
+        if (uploadBtn) {
+            uploadBtn.disabled = true;
+            uploadBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            uploadBtn.setAttribute('data-tip', '通用大模型模式下不可上传数据');
+        }
+        // 清除数据和模型选择的提示
+        labelText = '您想解决什么问题？';
+    } 
+    // 数据分析模式
+    else {
         infoText = '数据分析模式：将基于您上传的数据和选择的模型进行分析。';
+        // 启用数据上传按钮
+        if (uploadBtn) {
+            uploadBtn.disabled = false;
+            uploadBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            uploadBtn.setAttribute('data-tip', '快速跳转到数据上传');
+        }
+        
         if (!currentData.path) {
             disabled = true; placeholder = '请先上传并分析数据。'; labelText += ' (需上传数据)'; infoText = '请先上传数据。';
         } else if (!currentData.analysisCompleted) {
