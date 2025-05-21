@@ -1,0 +1,38 @@
+[
+  {
+    "id": "dep_9bc1399c",
+    "model_name": "voting_classifier_test",
+    "model_type": "voting_classifier",
+    "environment": "staging",
+    "endpoint": "/deployments/voting-classifier-test/cb34c4d0",
+    "status": "已停止",
+    "created_at": "2025-05-19T16:23:08.080594",
+    "updated_at": "2025-05-19T16:23:16.213123",
+    "metrics": {
+      "requests": 0,
+      "avg_response_time": 0,
+      "last_request": null,
+      "success_count": 0,
+      "error_count": 0
+    },
+    "stop_reason": "用户请求"
+  },
+  {
+    "id": "dep_d64d518f",
+    "model_name": "linear_regression_CO_PM25",
+    "model_type": "linear_regression",
+    "environment": "staging",
+    "endpoint": "/api/predict/linear-regression-co-pm25/63c09ac0",
+    "status": "已停止",
+    "created_at": "2025-05-20T10:57:52.187422",
+    "updated_at": "2025-05-20T10:57:56.768846",
+    "metrics": {
+      "requests": 0,
+      "avg_response_time": 0,
+      "last_request": null,
+      "success_count": 0,
+      "error_count": 0
+    },
+    "stop_reason": "用户请求"
+  }
+]

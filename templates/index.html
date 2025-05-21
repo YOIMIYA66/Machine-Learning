@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <link href="../static/favicon.ico" rel="shortcut icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI机器学习助手 Pro</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- DaisyUI 组件库 -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@3.5.0/dist/full.css" rel="stylesheet">
+    <!-- Font Awesome 图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- 图表库 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    <!-- 动画库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <!-- 粒子效果 -->
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            /* Sky Blue Theme */
+            --primary-hex: #0284C7; /* Tailwind Sky-600 */
+            --primary-focus-hex: #0369A1; /* Tailwind Sky-700 */
+            --primary-content-hex: #FFFFFF;
+
+            --secondary-hex: #06B6D4; /* Tailwind Cyan-500 */
+            --accent-hex: #10B981; /* Tailwind Emerald-500 */
+
+            --neutral-hex: #F0F9FF; /* Lighter Sky-50 for Page BG */
+            --neutral-content-hex: #1F2937; /* Tailwind Gray-800 (Text) */
+
+            --base-100-hex: #FFFFFF; /* Card Background */
+            --base-200-hex: #F3F4F6; /* Tailwind Gray-100 (Subtle BG variant) */
+            --base-300-hex: #E5E7EB; /* Tailwind Gray-200 (Borders, dividers) */
+            --base-content-hex: #111827; /* Tailwind Gray-900 (Stronger Text) */
+
+            /* RGB versions for opacity usage */
+            --primary-rgb: 2, 132, 199;
+            --primary-focus-rgb: 3, 105, 161;
+            --primary-content-rgb: 255, 255, 255;
+
+            --secondary-rgb: 6, 182, 212;
+            --accent-rgb: 16, 185, 129;
+
+            --neutral-rgb: 240, 249, 255;
+            --neutral-content-rgb: 31, 41, 55;
+
+            --base-100-rgb: 255, 255, 255;
+            --base-content-rgb: 17, 24, 39;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: var(--neutral-hex);
+            color: var(--neutral-content-hex);
+            min-height: 100vh;
+            line-height: 1.65;
+        }
+
+        #particles-js-bg { position: fixed; width: 100%; height: 100%; top: 0; left: 0; z-index: -1; }
+
+        .main-container-card {
+            background-color: var(--base-100-hex);
+            border-radius: 1rem;
+            border: 1px solid var(--base-300-hex);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+        }
+        .content-card {
+            background-color: var(--base-100-hex);
+            border-radius: 0.75rem;
+            border: 1px solid var(--base-300-hex);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .content-card:hover:not(.no-hover-effect):not(.selected-model-card) {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        }
+        .selected-model-card {
+            transform: translateY(-3px) scale(1.01);
+            box-shadow: 0 6px 25px rgba(var(--primary-rgb), 0.35);
+            border: 2px solid var(--primary-hex) !important;
+        }
+         .selected-model-card .model-card-front, .selected-model-card .model-card-back {
+             border-color: transparent;
+        }
+
+        .model-card { perspective: 1000px; transition: transform 0.6s; cursor: pointer; }
+        .model-card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s; transform-style: preserve-3d; }
+        .model-card:hover:not(.selected-model-card) .model-card-inner, .model-card.is-flipped .model-card-inner { transform: rotateY(180deg); }
+        .model-card-front, .model-card-back { position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden; border-radius: calc(0.75rem - 2px); display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 1rem; box-sizing: border-box; }
+        .model-card-front { background-color: var(--base-200-hex); border: 1px solid var(--base-300-hex); color: var(--base-content-hex); }
+        .model-card-back { background-color: var(--primary-hex); border: 1px solid var(--primary-focus-hex); color: var(--primary-content-hex); transform: rotateY(180deg); }
+        .model-card-back h4, .model-card-back p { color: var(--primary-content-hex); }
+        .model-card-back .btn-outline { border-color: var(--primary-content-hex); color: var(--primary-content-hex); }
+        .model-card-back .btn-outline:hover { background-color: var(--primary-content-hex); color: var(--primary-hex); }
+
+
+        .styled-input {
+            background-color: var(--base-100-hex);
+            border: 1px solid var(--base-300-hex);
+            border-radius: 0.5rem;
+            color: var(--base-content-hex);
+            padding: 10px 14px;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            caret-color: var(--primary-hex);
+        }
+        .styled-input:focus {
+            border-color: var(--primary-hex);
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.2);
+            outline: none;
+        }
+        .styled-input::placeholder { color: #9CA3AF; } /* Tailwind Gray-400 */
+
+        .shiny-button {
+            position: relative; overflow: hidden; transition: all 0.3s ease;
+            background-color: var(--primary-hex);
+            color: var(--primary-content-hex);
+            border-color: var(--primary-hex);
+        }
+        .shiny-button:hover {
+            background-color: var(--primary-focus-hex);
+            border-color: var(--primary-focus-hex);
+        }
+        .shiny-button::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent); transition: all 0.5s ease; }
+        .shiny-button:hover::before { left: 100%; }
+        .shiny-button.gradient-animate {
+             background: linear-gradient(270deg, var(--primary-hex), var(--secondary-hex), var(--accent-hex), var(--primary-focus-hex));
+             background-size: 300% 300%; animation: gradient-shift 8s ease infinite;
+        }
+        @keyframes gradient-shift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--base-200-hex); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: rgba(var(--primary-rgb), 0.6); border-radius: 4px; border: 2px solid transparent; background-clip: content-box; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(var(--primary-rgb), 0.8); }
+        body { scrollbar-width: thin; scrollbar-color: rgba(var(--primary-rgb), 0.6) var(--base-200-hex); }
+
+        @media (max-width: 768px) { .main-content-container { padding: 1rem; margin: 0.75rem; } .model-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); } .main-tabs .tab { padding-left: 0.75rem; padding-right: 0.75rem; font-size: 0.875rem; } }
+        @media (max-width: 480px) { .model-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); } .main-header h1 { font-size: 1.6rem; } }
+
+        .tabs-boxed {
+            background-color: rgba(var(--primary-rgb), 0.1) !important; /* Light primary tint for tab container */
+            border-radius: 0.5rem;
+            padding: 0.25rem;
+        }
+        .tabs-boxed .tab-active {
+            background-color: var(--primary-hex) !important;
+            color: var(--primary-content-hex) !important;
+            box-shadow: 0 3px 10px rgba(var(--primary-rgb), 0.3);
+            transform: translateY(0);
+            border-radius: 0.375rem;
+        }
+        .tab:not(.tab-active) {
+            color: var(--primary-focus-hex); /* Darker primary for inactive tabs text */
+            transition: all 0.25s ease-in-out;
+            border-radius: 0.375rem;
+        }
+        .tab:not(.tab-active):hover {
+            background-color: rgba(var(--primary-rgb), 0.2); /* Slightly darker primary tint on hover */
+            color: var(--primary-focus-hex);
+        }
+
+        /* DaisyUI Button Overrides for Theme Consistency */
+        .btn { text-transform: none; } /* Prevent uppercase default */
+        .btn-primary { background-color: var(--primary-hex) !important; border-color: var(--primary-hex) !important; color: var(--primary-content-hex) !important; }
+        .btn-primary:hover { background-color: var(--primary-focus-hex) !important; border-color: var(--primary-focus-hex) !important; }
+
+        .btn-outline { color: var(--neutral-content-hex); border-color: var(--base-300-hex); }
+        .btn-outline:hover { background-color: var(--base-200-hex); border-color: var(--base-300-hex); color: var(--base-content-hex); }
+
+        .btn-primary-outline {
+            color: var(--primary-hex) !important;
+            border-color: var(--primary-hex) !important;
+        }
+        .btn-primary-outline:hover {
+            background-color: var(--primary-hex) !important;
+            color: var(--primary-content-hex) !important;
+            border-color: var(--primary-hex) !important;
+        }
+
+
+        /* Prose (AI response text) Customization */
+        .prose { color: var(--neutral-content-hex); }
+        .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose strong { color: var(--base-content-hex); font-weight: 600; }
+        .prose a { color: var(--primary-hex); text-decoration: none; font-weight: 500;}
+        .prose a:hover { color: var(--primary-focus-hex); text-decoration: underline; }
+        .prose code::before, .prose code::after { content: ""; }
+        .prose code {
+            background-color: var(--base-200-hex);
+            color: #B91C1C; /* Tailwind red-700 for code text */
+            padding: 0.2em 0.4em;
+            border-radius: 0.25rem;
+            font-size: 0.875em;
+            border: 1px solid var(--base-300-hex);
+        }
+        .prose pre {
+            background-color: #1F2937; /* Tailwind Gray-800, dark for contrast */
+            color: #E5E7EB; /* Light text on dark code block */
+            border-radius: 0.5rem;
+            border: 1px solid var(--base-300-hex);
+            padding: 1rem !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+        .prose pre code { background-color: transparent !important; border: none !important; padding: 0 !important; font-size: 0.85em !important; color: #D1D5DB; }
+        .prose ul > li::marker { color: var(--primary-hex); }
+        .prose ol > li::marker { color: var(--accent-hex); }
+        .prose blockquote {
+            border-left: 0.25rem solid var(--primary-hex);
+            color: var(--neutral-content-hex);
+            background-color: rgba(var(--primary-rgb), 0.05);
+            padding: 0.75em 1.25em;
+            border-radius: 0 0.375rem 0.375rem 0;
+            margin-left: 0; margin-right: 0;
+        }
+
+        .disabled-tab { pointer-events: none; opacity: 0.5 !important; filter: grayscale(70%); }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: var(--base-200-hex); border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(var(--primary-rgb), 0.5); border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(var(--primary-rgb), 0.7); }
+        .custom-scrollbar { scrollbar-width: thin; scrollbar-color: rgba(var(--primary-rgb), 0.5) var(--base-200-hex); }
+
+        /* Icon enhancements */
+        .btn .fas, .btn .far, .btn .fab { margin-right: 0.5rem; }
+        .btn-circle .fas, .btn-circle .far, .btn-circle .fab { margin-right: 0; } /* No margin for icons in circle buttons */
+        .flex .fas, .flex .far, .flex .fab { transition: transform 0.2s ease-in-out; }
+
+
+        /* Stats custom */
+        .stats { background-color: transparent; color: var(--neutral-content-hex); }
+        .stats .stat { padding: 0.75rem 1rem; }
+        .stats .stat-title { opacity: 0.7; font-size: 0.8rem; color: var(--neutral-content-hex); text-transform: uppercase; letter-spacing: 0.05em;}
+        .stats .stat-value { font-size: 1.35rem; font-weight: 700; color: var(--primary-hex);}
+        .stat-value.text-sm { font-size: 1rem; }
+        .radio-primary { --radio-mark-color: var(--primary-content-hex); }
+        .radio-primary:checked { background-color: var(--primary-hex) !important; border-color: var(--primary-hex) !important; }
+
+
+        /* Page Header */
+        .page-header h1 { color: var(--base-content-hex); }
+        .page-header .fa-brain { color: var(--secondary-hex); }
+
+        /* Text colors for labels etc. */
+        .text-label { color: var(--neutral-content-hex); }
+        .text-muted { color: #6B7280; } /* Tailwind Gray-500 */
+
+        /* Data Upload section */
+        #dataPreview table th, #dataPreview table td { color: var(--neutral-content-hex); border-bottom: 1px solid var(--base-200-hex); }
+        #dataPreview table thead tr { background-color: rgba(var(--primary-rgb), 0.05); }
+        #targetColumnSelector .btn {
+            border-color: var(--base-300-hex);
+            color: var(--neutral-content-hex);
+            background-color: var(--base-100-hex);
+            transition: all 0.2s ease;
+        }
+        #targetColumnSelector .btn:hover,
+        #targetColumnSelector .btn-active {
+            background-color: var(--primary-hex) !important;
+            border-color: var(--primary-hex) !important;
+            color: var(--primary-content-hex) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(var(--primary-rgb), 0.3);
+        }
+        #uploadContainer .content-card { background-color: rgba(var(--base-100-rgb), 0.95); }
+
+        /* Tooltips */
+        .tooltip {
+            --tooltip-color: var(--base-content-hex) !important;
+            --tooltip-text-color: var(--base-100-hex) !important;
+        }
+        .tooltip-primary {
+            --tooltip-color: var(--primary-hex) !important;
+            --tooltip-text-color: var(--primary-content-hex) !important;
+        }
+
+        /* Visualization Panel BG */
+        .viz-content-panel, #compareResultsContainer, #ensembleResultContainer, #deploymentMonitorContainer {
+            background-color: var(--base-100-hex);
+            border: 1px solid var(--base-200-hex);
+        }
+         #confusionMatrixTableContainer table, #resultDataTableContainer table, #deploymentMonitorContainer table {
+            color: var(--neutral-content-hex);
+        }
+        #confusionMatrixTableContainer table th, #resultDataTableContainer table th, #deploymentMonitorContainer table th {
+           background-color: var(--base-200-hex);
+        }
+
+        /* Model card icon colors */
+        .model-card .fa-chart-line { color: var(--primary-hex); }
+        .model-card .fa-code-branch { color: var(--secondary-hex); }
+        .model-card .fa-sitemap { color: var(--accent-hex); }
+        .model-card .fa-tree { color: #22C55E; }
+        .model-card .fa-project-diagram { color: #A855F7; }
+        .model-card .fa-network-wired { color: #EF4444; }
+        .model-card .fa-percentage { color: #6366F1; }
+        .model-card .fa-object-group { color: #EAB308; }
+
+        /* File input theming */
+        .file-input-primary {
+            border-color: var(--primary-hex) !important;
+        }
+        .file-input-primary:focus {
+            border-color: var(--primary-focus-hex) !important;
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.2);
+            outline: none;
+        }
+
+        /* Select dropdown theming */
+        .select-bordered {
+            border-color: var(--base-300-hex);
+        }
+        .select-bordered:focus {
+            border-color: var(--primary-hex);
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.2);
+            outline: none;
+        }
+
+    </style>
+</head>
+<body class="p-3 md:p-6">
+    <div id="particles-js-bg"></div>
+    <div id="toast-container" class="toast toast-top toast-end z-50 p-4"></div>
+
+    <main class="max-w-6xl mx-auto main-container-card p-6 md:p-8 my-6 animate__animated animate__fadeIn main-content-container">
+        <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 page-header">
+            <h1 class="text-2xl md:text-3xl font-bold flex items-center">
+                <i class="fas fa-brain mr-3 text-3xl md:text-4xl" aria-hidden="true"></i>
+                AI机器学习助手 Pro
+            </h1>
+            <nav class="tabs tabs-boxed main-tabs" role="tablist" aria-label="主要导航">
+                <a id="tab-link-dialogue" class="tab tab-active" data-tab="dialogue" role="tab" aria-selected="true" aria-controls="tab-content-dialogue">对话</a>
+                <a id="tab-link-dataUpload" class="tab" data-tab="dataUpload" role="tab" aria-selected="false" aria-controls="tab-content-dataUpload">数据与模型</a>
+                <a id="tab-link-results" class="tab" data-tab="results" role="tab" aria-selected="false" aria-controls="tab-content-results">分析结果</a>
+                <a id="tab-link-tools" class="tab" data-tab="tools" role="tab" aria-selected="false" aria-controls="tab-content-tools">高级工具</a>
+            </nav>
+        </header>
+
+        <div id="tab-content-dialogue" class="tab-content-area" role="tabpanel" aria-labelledby="tab-link-dialogue">
+            <section class="content-card p-6 mb-6 animate__animated animate__fadeInUp">
+                <div class="mb-6">
+                    <p id="queryModeLabel" class="font-medium text-label mb-3 flex items-center text-base">
+                        <i class="fas fa-cogs mr-2.5 text-primary-hex" aria-hidden="true"></i>
+                        选择问答模式:
+                    </p>
+                    <div class="flex flex-wrap gap-x-6 gap-y-3" id="queryModeSelector" role="radiogroup" aria-labelledby="queryModeLabel">
+                        <div class="form-control">
+                            <label class="label cursor-pointer gap-2.5 p-0">
+                                <input type="radio" name="queryMode" class="radio radio-primary radio-sm" value="data_analysis" checked />
+                                <span class="label-text text-label text-sm">数据分析与RAG</span>
+                            </label>
+                        </div>
+                        <div class="form-control">
+                            <label class="label cursor-pointer gap-2.5 p-0">
+                                <input type="radio" name="queryMode" class="radio radio-primary radio-sm" value="general_llm" />
+                                <span class="label-text text-label text-sm">通用大模型问答</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <label for="queryInput" class="font-medium text-label mb-2.5 flex items-center text-base">
+                    <i class="fas fa-question-circle mr-2.5 text-secondary-hex" aria-hidden="true"></i>
+                    <span id="queryInputLabel">您想解决什么问题？(需要先上传数据并选择模型)</span>
+                </label>
+                <textarea id="queryInput" class="styled-input w-full h-36 mb-5 resize-y min-h-[9rem]" placeholder="在上传数据并选择模型后，输入您的问题..." aria-label="输入您的问题"></textarea>
+                <div class="flex flex-wrap gap-3 justify-between items-center">
+                    <div class="flex gap-3">
+                        <button type="button" id="uploadDataShortcutBtn" class="btn btn-sm btn-primary-outline tooltip" data-tip="快速跳转到数据上传">
+                            <i class="fas fa-upload" aria-hidden="true"></i> 上传/选择数据
+                        </button>
+                        <div class="dropdown dropdown-hover dropdown-top sm:dropdown-bottom">
+                            <button type="button" id="exampleQueryBtn" tabindex="0" class="btn btn-sm btn-outline tooltip" data-tip="查看示例问题" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-lightbulb" aria-hidden="true"></i> 示例问题
+                            </button>
+                            <ul id="exampleQueryList" tabindex="-1" class="dropdown-content z-[10] menu p-2 shadow bg-base-100 rounded-box w-72 border border-base-300 max-h-60 overflow-y-auto custom-scrollbar" role="menu">
+                                 <li><a class="text-muted">示例问题加载中...</a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <button type="button" id="submitQueryButton" class="btn btn-primary px-8 shiny-button gradient-animate text-base">
+                        <i id="submitQueryIcon" class="fas fa-paper-plane" aria-hidden="true"></i>
+                        <span id="submitQueryText">提交问题</span>
+                    </button>
+                </div>
+                <p id="modeSpecificInfo" class="text-xs text-muted mt-4" aria-live="polite"></p>
+            </section>
+        </div>
+
+        <div id="tab-content-dataUpload" class="tab-content-area hidden" role="tabpanel" aria-labelledby="tab-link-dataUpload">
+            <section class="mb-6 content-card p-6 animate__animated animate__fadeInUp">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-5 gap-3">
+                    <h3 class="text-lg font-medium text-label flex items-center">
+                        <i class="fas fa-upload mr-2.5 text-primary-hex" aria-hidden="true"></i>
+                        数据上传与预览
+                    </h3>
+                    <button type="button" id="toggleUploadBtn" class="btn btn-sm btn-primary" aria-expanded="false" aria-controls="uploadContainer">
+                        <i class="fas fa-file-upload" aria-hidden="true"></i> 上传新数据
+                    </button>
+                </div>
+
+                <div id="uploadContainer" class="hidden transition-all duration-300 ease-in-out mb-6">
+                    <div class="flex flex-col md:flex-row gap-5 mb-5">
+                        <div class="flex-1 content-card p-4 no-hover-effect">
+                            <h4 class="text-label font-medium mb-2.5">上传数据文件</h4>
+                            <form id="uploadForm">
+                                <label for="dataFile" class="sr-only">选择数据文件 (.csv, .xlsx, .json)</label>
+                                <input type="file" id="dataFile" name="file" accept=".csv,.xlsx,.json" class="file-input file-input-bordered file-input-primary file-input-sm w-full mb-3.5" aria-label="数据文件选择" />
+                                <button type="submit" id="analyzeDataBtn" class="btn btn-sm btn-primary shiny-button w-full">
+                                    <i class="fas fa-cogs"></i>分析数据
+                                </button>
+                            </form>
+                        </div>
+                        <div class="flex-1 content-card p-4 no-hover-effect">
+                            <h4 class="text-label font-medium mb-2.5">数据预览 (前5行)</h4>
+                            <div id="dataPreview" class="text-sm overflow-auto max-h-52 custom-scrollbar" aria-live="polite">
+                                <p class="text-muted p-4 text-center">上传数据文件后将在此显示预览。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                 <div id="dataAnalysisResults" class="hidden content-card p-5 mb-5 no-hover-effect" aria-live="polite">
+                    <h4 class="text-label font-medium mb-3 text-base">数据分析概要</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="stats shadow-none border border-base-200 rounded-lg"> <div class="stat"> <div class="stat-title">行数</div> <div class="stat-value" id="rowCount">-</div> </div> </div>
+                        <div class="stats shadow-none border border-base-200 rounded-lg"> <div class="stat"> <div class="stat-title">列数</div> <div class="stat-value" id="columnCount">-</div> </div> </div>
+                        <div class="stats shadow-none border border-base-200 rounded-lg"> <div class="stat"> <div class="stat-title">推荐模型</div> <div class="stat-value text-sm flex flex-wrap gap-1 items-center" id="recommendedModels">-</div> </div> </div>
+                    </div>
+                    <div class="mt-6">
+                        <h5 id="targetColumnSelectLabel" class="text-label font-medium mb-3 text-base">目标列选择 (用于预测)</h5>
+                        <div class="flex flex-wrap gap-2" id="targetColumnSelector" role="group" aria-labelledby="targetColumnSelectLabel">
+                            <p class="text-muted text-sm p-2 w-full">分析数据后，可选列将在此显示。请选择一个作为预测目标。</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="mb-6 content-card p-6 animate__animated animate__fadeInUp">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-5 gap-3">
+                    <h3 class="text-lg font-medium text-label flex items-center"> <i class="fas fa-robot mr-2.5 text-primary-hex" aria-hidden="true"></i> 选择分析模型 </h3>
+                    <div class="badge badge-primary badge-outline" id="modelCountBadge" aria-live="polite">已加载 0 个模型</div>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 model-grid" id="modelGrid" aria-label="可选分析模型列表">
+                    <!-- Fallback static model cards, JS will ideally populate these -->
+                    <div class="model-card h-48 content-card" data-model-name="Linear Regression" tabindex="0" role="button" aria-label="选择 线性回归 模型"> <div class="model-card-inner h-full"> <div class="model-card-front"> <i class="fas fa-chart-line text-4xl mb-2.5" aria-hidden="true"></i> <div class="font-semibold text-base">线性回归</div> <div class="text-xs text-muted mt-1.5">数值预测</div> </div> <div class="model-card-back"> <h4 class="font-semibold text-base mb-1.5">线性回归</h4> <p class="text-xs opacity-80 mb-2.5 px-1">用于预测连续变量，简单快速，易于解释。适合初级分析。</p> <button type="button" class="btn btn-xs btn-outline select-model-btn">选择此模型</button> </div> </div> </div>
+                    <div class="model-card h-48 content-card" data-model-name="Logistic Regression" tabindex="0" role="button" aria-label="选择 逻辑回归 模型"> <div class="model-card-inner h-full"> <div class="model-card-front"> <i class="fas fa-code-branch text-4xl mb-2.5" aria-hidden="true"></i> <div class="font-semibold text-base">逻辑回归</div> <div class="text-xs text-muted mt-1.5">二分类预测</div> </div> <div class="model-card-back"> <h4 class="font-semibold text-base mb-1.5">逻辑回归</h4> <p class="text-xs opacity-80 mb-2.5 px-1">概率分类模型，广泛用于二分类或多分类问题。</p> <button type="button" class="btn btn-xs btn-outline select-model-btn">选择此模型</button> </div> </div> </div>
+                    <div class="model-card h-48 content-card" data-model-name="Decision Tree" tabindex="0" role="button" aria-label="选择 决策树 模型"> <div class="model-card-inner h-full"> <div class="model-card-front"> <i class="fas fa-sitemap text-4xl mb-2.5" aria-hidden="true"></i> <div class="font-semibold text-base">决策树</div> <div class="text-xs text-muted mt-1.5">分类与回归</div> </div> <div class="model-card-back"> <h4 class="font-semibold text-base mb-1.5">决策树</h4> <p class="text-xs opacity-80 mb-2.5 px-1">直观易懂，可解释性强，能有效处理非线性数据。</p> <button type="button" class="btn btn-xs btn-outline select-model-btn">选择此模型</button> </div> </div> </div>
+                    <div class="model-card h-48 content-card" data-model-name="Random Forest" tabindex="0" role="button" aria-label="选择 随机森林 模型"> <div class="model-card-inner h-full"> <div class="model-card-front"> <i class="fas fa-tree text-4xl mb-2.5" aria-hidden="true"></i> <div class="font-semibold text-base">随机森林</div> <div class="text-xs text-muted mt-1.5">集成学习</div> </div> <div class="model-card-back"> <h4 class="font-semibold text-base mb-1.5">随机森林</h4> <p class="text-xs opacity-80 mb-2.5 px-1">高精度集成模型，通过构建多个决策树提高性能，抗过拟合。</p> <button type="button" class="btn btn-xs btn-outline select-model-btn">选择此模型</button> </div> </div> </div>
+                    <div class="col-span-full text-center text-muted p-4 model-grid-placeholder hidden">模型列表加载中或无可用模型...</div>
+                </div>
+                <p id="selectedModelInfo" class="text-center text-sm text-muted mt-6" aria-live="polite">当前未选择模型。请点击模型卡片进行选择。</p>
+            </section>
+        </div>
+
+        <div id="tab-content-results" class="tab-content-area hidden" role="tabpanel" aria-labelledby="tab-link-results">
+            <div id="loadingSpinnerContainer" class="flex flex-col items-center justify-center py-12 hidden" role="status" aria-live="assertive"> <span class="loading loading-spinner loading-lg text-primary-hex"></span> <p class="text-neutral-content-hex mt-5 text-base">AI思考中，结果生成可能需要一些时间，请耐心等候...</p> </div>
+            <section id="responseSection" class="content-card p-6 mb-6 hidden animate__animated animate__fadeInUp no-hover-effect" aria-live="polite">
+                <h3 class="text-xl font-medium text-label flex items-center mb-5"> <i class="fas fa-lightbulb text-secondary-hex mr-2.5" aria-hidden="true"></i> AI分析结果 </h3>
+                <div id="responseText" class="prose prose-sm sm:prose-base max-w-none"> <p class="text-muted">暂无分析结果，请先在“对话”标签页提交您的问题。</p> </div>
+                <div id="visualizationDisplayArea" class="mt-8 pt-6 border-t border-base-300 hidden">
+                    <h4 class="text-lg font-medium text-label flex items-center mb-5"> <i class="fas fa-chart-bar text-primary-hex mr-2.5" aria-hidden="true"></i> 可视化结果 </h4>
+                    <nav class="tabs tabs-boxed mb-5 result-viz-tabs" role="tablist" aria-label="可视化结果类型">
+                        <a id="viz-tab-mainChart" class="tab tab-active" data-viz="mainChart" role="tab" aria-selected="true" aria-controls="viz-content-mainChart">主图表</a>
+                        <a id="viz-tab-featureImportance" class="tab" data-viz="featureImportance" role="tab" aria-selected="false" aria-controls="viz-content-featureImportance">特征重要性</a>
+                        <a id="viz-tab-modelEvaluation" class="tab" data-viz="modelEvaluation" role="tab" aria-selected="false" aria-controls="viz-content-modelEvaluation">模型评估</a>
+                        <a id="viz-tab-dataTable" class="tab" data-viz="dataTable" role="tab" aria-selected="false" aria-controls="viz-content-dataTable">数据表</a>
+                    </nav>
+                    <div id="viz-content-mainChart" class="viz-content-panel rounded-lg p-5" role="tabpanel" aria-labelledby="viz-tab-mainChart"> <canvas id="mainResultChart" width="400" height="250" aria-label="主要结果图表"></canvas> <p id="mainChartMessage" class="text-muted text-center p-5 hidden">暂无主图表数据。</p> </div>
+                    <div id="viz-content-featureImportance" class="viz-content-panel hidden rounded-lg p-5" role="tabpanel" aria-labelledby="viz-tab-featureImportance"> <canvas id="featureImportanceChart" width="400" height="300" aria-label="特征重要性图表"></canvas> <p id="featureImportanceMessage" class="text-muted text-center p-5 hidden">暂无特征重要性数据。</p> </div>
+                    <div id="viz-content-modelEvaluation" class="viz-content-panel hidden rounded-lg p-5" role="tabpanel" aria-labelledby="viz-tab-modelEvaluation"> <div class="grid grid-cols-1 md:grid-cols-2 gap-5"> <div> <h5 class="text-label font-medium mb-3.5">混淆矩阵</h5> <div id="confusionMatrixTableContainer" class="overflow-x-auto custom-scrollbar"> <p id="confusionMatrixMessage" class="text-muted p-2 text-sm text-center">暂无混淆矩阵数据。</p> </div> </div> <div> <h5 class="text-label font-medium mb-3.5">评估指标</h5> <div id="modelMetricsContainer" class="space-y-2"> <p id="modelMetricsMessage" class="text-muted p-2 text-sm text-center">暂无评估指标数据。</p> </div> </div> </div> <div class="mt-6"> <h5 class="text-label font-medium mb-3.5">ROC曲线 (如适用)</h5> <canvas id="rocCurveChart" width="400" height="200" aria-label="ROC曲线图表"></canvas> <p id="rocCurveMessage" class="text-muted text-center p-5 hidden">暂无ROC曲线数据。</p> </div> </div>
+                    <div id="viz-content-dataTable" class="viz-content-panel hidden rounded-lg p-5" role="tabpanel" aria-labelledby="viz-tab-dataTable"> <h4 class="text-lg font-medium text-label flex items-center mb-5"> <i class="fas fa-table text-accent-hex mr-2.5" aria-hidden="true"></i> 详细数据表 </h4> <div id="resultDataTableContainer" class="overflow-x-auto custom-scrollbar max-h-96"> <p id="resultDataTableMessage" class="text-muted p-5 text-center">暂无详细数据表。</p> </div> </div>
+                </div>
+                <div id="sourceDocumentsArea" class="mt-8 pt-6 border-t border-base-300 hidden" aria-live="polite">
+                    <h4 class="text-lg font-medium text-label flex items-center mb-5"> <i class="fas fa-file-alt text-accent-hex mr-2.5" aria-hidden="true"></i> 参考来源 (RAG) </h4>
+                    <div id="sourceDocumentsList" class="space-y-3"> <p id="sourceDocumentsMessage" class="text-muted">当前查询未引用特定来源文档。</p> </div>
+                </div>
+            </section>
+        </div>
+
+        <div id="tab-content-tools" class="tab-content-area hidden" role="tabpanel" aria-labelledby="tab-link-tools">
+            <section class="content-card p-6 mb-6 animate__animated animate__fadeInUp">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+                    <h3 class="text-lg font-medium text-label flex items-center">
+                        <i class="fas fa-history mr-2.5 text-primary-hex" aria-hidden="true"></i> 模型版本控制
+                    </h3>
+                    <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                        <label for="versionModelSelector" class="sr-only">选择模型以查看版本</label>
+                        <select id="versionModelSelector" class="select select-sm select-bordered bg-base-100 text-neutral-content-hex border-base-300 flex-grow">
+                            <option value="" disabled selected>选择模型查看版本</option>
+                            <!-- JS populates this -->
+                        </select>
+                        <button type="button" id="createVersionBtn" class="btn btn-sm btn-primary-outline tooltip" data-tip="为当前选定模型创建新版本">
+                            <i class="fas fa-plus" aria-hidden="true"></i> 创建新版本
+                        </button>
+                    </div>
+                </div>
+                <div id="versionListContainer" class="mt-4 overflow-x-auto custom-scrollbar">
+                    <table class="table table-sm w-full text-neutral-content-hex" aria-label="模型版本历史">
+                        <thead>
+                            <tr class="border-b border-base-300 bg-base-100">
+                                <th>版本ID</th>
+                                <th>创建时间</th>
+                                <th class="w-1/3">描述</th>
+                                <th>性能指标</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="versionTableBody">
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">请先选择一个模型来查看其版本历史，或创建一个新版本。</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="versionMetadataForm" class="mt-6 hidden p-4 border border-base-200 rounded-lg bg-base-100/50">
+                    <h4 class="text-label font-medium mb-3 text-base">为模型 "<span id="versionFormModelName" class="font-bold text-primary-hex"></span>" 创建新版本</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label py-1" for="versionDescription"><span class="label-text text-label">版本描述 (可选)</span></label>
+                            <input type="text" id="versionDescription" class="styled-input input-sm" placeholder="例如: 调整了超参数alpha=0.1">
+                        </div>
+                        <div class="form-control">
+                            <label class="label py-1" for="versionPerformance"><span class="label-text text-label">性能指标 (可选)</span></label>
+                            <input type="text" id="versionPerformance" class="styled-input input-sm" placeholder="例如: 准确率 0.95, F1 0.92">
+                        </div>
+                    </div>
+                    <div class="flex justify-end mt-4 gap-2">
+                        <button type="button" id="cancelSaveVersionBtn" class="btn btn-sm btn-ghost">取消</button>
+                        <button type="button" id="saveVersionBtn" class="btn btn-sm btn-primary shiny-button"><i class="fas fa-save" aria-hidden="true"></i> 保存版本</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="content-card p-6 mb-6 animate__animated animate__fadeInUp">
+                <h3 class="text-lg font-medium text-label flex items-center mb-4"> <i class="fas fa-balance-scale mr-2.5 text-primary-hex" aria-hidden="true"></i> 模型比较 </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 id="compareModelsLabel" class="text-label font-medium mb-3">选择要比较的模型 (最多3个)</h4>
+                        <div id="compareModelsContainer" class="space-y-3" role="group" aria-labelledby="compareModelsLabel">
+                             <p class="text-muted text-sm compare-model-placeholder p-2 border border-dashed border-base-300 rounded-md">点击右侧 "+" 按钮添加模型进行比较。</p>
+                        </div>
+                         <button type="button" class="btn btn-sm btn-circle btn-outline btn-primary-outline add-compare-model-btn tooltip mt-2" data-tip="添加模型进行比较" aria-label="添加模型进行比较"> <i class="fas fa-plus" aria-hidden="true"></i> </button>
+                        <div class="form-control mt-4">
+                            <label class="label" for="compareTestDataSelect"><span class="label-text text-label">选择测试数据集</span></label>
+                            <select id="compareTestDataSelect" class="select select-bordered select-sm bg-base-100 text-neutral-content-hex border-base-300 w-full">
+                                <option value="" disabled selected>选择数据集</option>
+                                <option value="current_uploaded">当前已上传的数据集</option>
+                                <option value="air_data">航空公司客户数据</option>
+                                <option value="divorce_text">离婚诉讼文本</option>
+                                <option value="air_quality">北京市空气质量数据</option>
+                            </select>
+                        </div>
+                        <div class="form-control mt-4">
+                            <label class="label" for="compareTargetColumnSelect"><span class="label-text text-label">选择目标列</span></label>
+                            <select id="compareTargetColumnSelect" class="select select-bordered select-sm bg-base-100 text-neutral-content-hex border-base-300 w-full">
+                                <option value="" disabled selected>先选择数据集</option>
+                            </select>
+                        </div>
+                        <button type="button" id="startCompareBtn" class="btn btn-primary shiny-button gradient-animate mt-6 w-full"> <i class="fas fa-chart-bar" aria-hidden="true"></i> 开始比较 </button>
+                    </div>
+                    <div id="compareResultsContainer" class="rounded-lg p-4 min-h-[300px] flex items-center justify-center border border-base-300 bg-base-200/50" aria-live="polite">
+                        <p class="text-muted text-center">比较结果将在此处显示。请选择模型、测试数据和目标列后开始比较。</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="content-card p-6 mb-6 animate__animated animate__fadeInUp">
+                <h3 class="text-lg font-medium text-label flex items-center mb-4"> <i class="fas fa-cubes mr-2.5 text-primary-hex" aria-hidden="true"></i> 集成模型构建 </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                     <div>
+                        <h4 id="ensembleModelsLabel" class="text-label font-medium mb-3">选择基础模型 (至少2个)</h4>
+                        <div id="ensembleModelsContainer" class="space-y-3" role="group" aria-labelledby="ensembleModelsLabel">
+                            <p class="text-muted text-sm ensemble-model-placeholder p-2 border border-dashed border-base-300 rounded-md">点击右侧 "+" 按钮添加基础模型。</p>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-circle btn-outline btn-primary-outline add-ensemble-model-btn tooltip mt-2" data-tip="添加基础模型" aria-label="添加基础模型"> <i class="fas fa-plus" aria-hidden="true"></i> </button>
+                        <div class="form-control mt-4">
+                            <label class="label" for="ensembleTypeSelect"><span class="label-text text-label">选择集成类型</span></label>
+                            <select id="ensembleTypeSelect" class="select select-bordered select-sm bg-base-100 text-neutral-content-hex border-base-300 w-full">
+                                <option value="voting_classifier">投票分类器 (Voting Classifier)</option>
+                                <option value="voting_regressor">投票回归器 (Voting Regressor)</option>
+                                <option value="stacking_classifier">堆叠分类器 (Stacking Classifier)</option>
+                                <option value="stacking_regressor">堆叠回归器 (Stacking Regressor)</option>
+                                <option value="bagging_classifier">装袋分类器 (Bagging Classifier)</option>
+                                <option value="bagging_regressor">装袋回归器 (Bagging Regressor)</option>
+                            </select>
+                        </div>
+                        <div class="form-control mt-4">
+                            <label class="label" for="ensembleName"><span class="label-text text-label">集成模型名称</span></label>
+                            <input type="text" id="ensembleName" class="styled-input input-sm" placeholder="例如: my_advanced_ensemble_v1">
+                        </div>
+                        <button type="button" id="buildEnsembleBtn" class="btn btn-primary shiny-button gradient-animate mt-6 w-full"> <i class="fas fa-magic" aria-hidden="true"></i> 构建集成模型 </button>
+                    </div>
+                    <div id="ensembleResultContainer" class="rounded-lg p-4 min-h-[300px] flex items-center justify-center border border-base-300 bg-base-200/50" aria-live="polite">
+                        <p class="text-muted text-center">集成模型构建结果将在此处显示。</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="content-card p-6 mb-6 animate__animated animate__fadeInUp">
+                <h3 class="text-lg font-medium text-label flex items-center mb-4"> <i class="fas fa-rocket mr-2.5 text-primary-hex" aria-hidden="true"></i> 模型部署与监控 </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="stats shadow-sm border border-base-200 rounded-lg"> <div class="stat"> <div class="stat-title">已部署模型</div> <div class="stat-value" id="deployedModelCount">0</div> </div> </div>
+                    <div class="stats shadow-sm border border-base-200 rounded-lg"> <div class="stat"> <div class="stat-title">平均响应(ms)</div> <div class="stat-value" id="avgResponseTime">N/A</div> </div> </div>
+                    <div class="stats shadow-sm border border-base-200 rounded-lg"> <div class="stat"> <div class="stat-title">总预测请求</div> <div class="stat-value" id="predictionRequests">0</div> </div> </div>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="text-label font-medium mb-3">部署新模型</h4>
+                        <div class="form-control">
+                            <label class="label" for="deployModelSelect"><span class="label-text text-label">选择要部署的模型</span></label>
+                            <select id="deployModelSelect" class="select select-bordered select-sm bg-base-100 text-neutral-content-hex border-base-300 w-full">
+                                <option value="" disabled selected>选择一个模型</option>
+                            </select>
+                        </div>
+                        <div class="form-control mt-4">
+                            <label class="label" for="deployEnvironmentSelect"><span class="label-text text-label">选择部署环境</span></label>
+                            <select id="deployEnvironmentSelect" class="select select-bordered select-sm bg-base-100 text-neutral-content-hex border-base-300 w-full">
+                                <option value="local_dev">本地开发 (Local Dev)</option>
+                                <option value="staging">预发布环境 (Staging)</option>
+                                <option value="production">生产环境 (Production)</option>
+                            </select>
+                        </div>
+                        <div class="form-control mt-4">
+                            <label class="label" for="deployEndpoint"><span class="label-text text-label">API端点名称</span></label>
+                            <input type="text" id="deployEndpoint" class="styled-input input-sm" placeholder="例如: /predict/customer_churn_v1.2">
+                        </div>
+                        <button type="button" id="deployModelBtn" class="btn btn-primary shiny-button gradient-animate mt-6 w-full tooltip" data-tip="将选定模型部署到指定环境的API端点"> <i class="fas fa-cloud-upload-alt" aria-hidden="true"></i> 部署模型 </button>
+                    </div>
+                     <div id="deploymentMonitorContainer" class="rounded-lg p-4 min-h-[300px] overflow-auto custom-scrollbar border border-base-300 bg-base-100/50">
+                        <div class="flex justify-between items-center mb-3">
+                            <h4 class="text-label font-medium">已部署模型监控</h4>
+                            <button type="button" id="refreshMonitorBtn" class="btn btn-sm btn-outline btn-primary-outline tooltip" data-tip="刷新监控列表和状态"> <i class="fas fa-sync-alt" aria-hidden="true"></i> 刷新 </button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="table table-sm w-full text-neutral-content-hex" aria-label="已部署模型监控列表">
+                                <thead> <tr class="border-b border-base-300 bg-base-100"> <th>模型名称</th> <th>环境</th> <th>API端点</th> <th>状态</th> <th>操作</th> </tr> </thead>
+                                <tbody id="deploymentTableBody"> <tr> <td colspan="5" class="text-center text-muted py-4">暂无已部署模型。部署模型后，将在此处监控。</td> </tr> </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="text-center py-8 text-muted text-sm">
+        <p>© <span id="currentYear">2024</span> AI机器学习助手 Pro. 保留所有权利.</p>
+        <p class="mt-1 opacity-80">技术栈: Vanilla JS, Tailwind CSS, DaisyUI, Chart.js, Particles.js</p>
+        <p class="mt-2 text-xs opacity-60">精心设计，智能驱动未来</p>
+    </footer>
+
+    <script>
+        // Simple script to set current year
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+    </script>
+    <script src="../static/js/app.js" defer></script>
+</body>
+</html>

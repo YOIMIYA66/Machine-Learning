@@ -1,0 +1,973 @@
+2025-05-19 13:04:18,130 - ml_api - INFO - ÇëÇó²»´æÔÚÄ£ÐÍµÄ°æ±¾ÁÐ±í: kmeans_customer_segmentation
+2025-05-19 13:04:18,133 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 13:04:18] "GET /api/ml/model_versions/kmeans_customer_segmentation HTTP/1.1" 200 -
+2025-05-19 16:20:46,246 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-19 16:20:46,248 - ml_api_endpoints - INFO - ´´½¨ÐÂµÄ²¿ÊðÎÄ¼þ
+2025-05-19 16:20:46,249 - ml_api_endpoints - INFO - ÕÒµ½ 0 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-19 16:20:46,250 - werkzeug - INFO - 10.138.7.132 - - [19/May/2025 16:20:46] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-19 16:20:46,269 - werkzeug - INFO - 10.138.7.132 - - [19/May/2025 16:20:46] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-19 16:22:20,535 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 16:22:20] "GET / HTTP/1.1" 200 -
+2025-05-19 16:22:21,310 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 16:22:21] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-19 16:22:21,737 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-19 16:22:21,738 - ml_api_endpoints - INFO - ÕÒµ½ 0 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-19 16:22:21,738 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 16:22:21] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-19 16:22:21,768 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 16:22:21] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-19 16:22:41,711 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-19 16:22:41,711 - ml_api_endpoints - INFO - ÕÒµ½ 0 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-19 16:22:41,714 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 16:22:41] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-19 16:22:43,456 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-19 16:22:43,456 - ml_api_endpoints - INFO - ÕÒµ½ 0 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-19 16:22:43,456 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 16:22:43] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-19 16:23:00,201 - app - INFO - ÎªÄ£ÐÍ 'voting_classifier_test' ÔÚ»·¾³ 'local_dev' Éú³ÉµÄ²¿Êð¶Ëµã: /deployments/voting-classifier-test/37bc19da
+2025-05-19 16:23:00,201 - ml_api_endpoints - INFO - ¿ªÊ¼²¿ÊðÄ£ÐÍ 'voting_classifier_test' µ½ local_dev »·¾³
+2025-05-19 16:23:00,201 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 16:23:00] "[31m[1mPOST /api/ml/deploy HTTP/1.1[0m" 400 -
+2025-05-19 16:23:08,043 - app - INFO - ÎªÄ£ÐÍ 'voting_classifier_test' ÔÚ»·¾³ 'staging' Éú³ÉµÄ²¿Êð¶Ëµã: /deployments/voting-classifier-test/cb34c4d0
+2025-05-19 16:23:08,043 - ml_api_endpoints - INFO - ¿ªÊ¼²¿ÊðÄ£ÐÍ 'voting_classifier_test' µ½ staging »·¾³
+2025-05-19 16:23:08,080 - ml_api_endpoints - INFO - ÒÑ´´½¨²¿ÊðÎÄ¼þ±¸·Ý
+2025-05-19 16:23:08,083 - ml_api_endpoints - INFO - ÒÑ±£´æ1¸ö²¿ÊðÐÅÏ¢
+2025-05-19 16:23:08,083 - ml_api_endpoints - INFO - Ä£ÐÍ 'voting_classifier_test' ÒÑ³É¹¦²¿Êðµ½ staging »·¾³µÄ /deployments/voting-classifier-test/cb34c4d0 ¶Ëµã
+2025-05-19 16:23:08,083 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 16:23:08] "[35m[1mPOST /api/ml/deploy HTTP/1.1[0m" 201 -
+2025-05-19 16:23:08,289 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-19 16:23:08,289 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 1 ¸öÕýÔÚÔËÐÐ
+2025-05-19 16:23:08,292 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 16:23:08] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-19 16:23:13,231 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-19 16:23:13,231 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 1 ¸öÕýÔÚÔËÐÐ
+2025-05-19 16:23:13,231 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 16:23:13] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-19 16:23:16,213 - ml_api_endpoints - INFO - ÇëÇóÍ£Ö¹²¿ÊðÄ£ÐÍ£¬²¿ÊðID: dep_9bc1399c
+2025-05-19 16:23:16,216 - ml_api_endpoints - INFO - ÒÑ´´½¨²¿ÊðÎÄ¼þ±¸·Ý
+2025-05-19 16:23:16,216 - ml_api_endpoints - INFO - ÒÑ±£´æ1¸ö²¿ÊðÐÅÏ¢
+2025-05-19 16:23:16,216 - ml_api_endpoints - INFO - ÒÑ³É¹¦Í£Ö¹²¿Êð£¬ID: dep_9bc1399c, Ä£ÐÍ: voting_classifier_test, »·¾³: staging
+2025-05-19 16:23:16,216 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 16:23:16] "POST /api/ml/undeploy/dep_9bc1399c HTTP/1.1" 200 -
+2025-05-19 16:23:16,453 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-19 16:23:16,455 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-19 16:23:16,455 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 16:23:16] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-19 16:23:22,298 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 16:23:22] "GET / HTTP/1.1" 200 -
+2025-05-19 16:23:22,646 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 16:23:22] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2025-05-19 16:23:22,939 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 16:23:22] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-19 16:23:22,965 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-19 16:23:22,965 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-19 16:23:22,965 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 16:23:22] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-19 16:23:28,173 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-19 16:23:28,173 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-19 16:23:28,173 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 16:23:28] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-19 16:23:29,229 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-19 16:23:29,231 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-19 16:23:29,231 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 16:23:29] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-19 17:12:44,697 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-19 17:12:44,697 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-19 17:12:44,697 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 17:12:44] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-19 17:12:44,740 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 17:12:44] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-19 17:12:50,105 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 17:12:50] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-19 17:12:50,123 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 17:12:50] "POST /api/ml/analyze HTTP/1.1" 200 -
+2025-05-19 17:12:59,293 - app - INFO - API½ÓÊÕµ½²éÑ¯: 'Ê¹ÓÃLinear Regression CO SO2 PM25¶ÔÊý¾Ý½øÐÐÔ¤²â£¬²¢ÆÀ¹ÀÆäÐÔÄÜ¡£'
+2025-05-19 17:12:59,293 - app - INFO - ¼ì²âµ½»úÆ÷Ñ§Ï°²Ù×÷Àà²éÑ¯£¬½«Ê¹ÓÃML Agent´¦Àí
+2025-05-19 17:13:12,195 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-19 17:13:12,210 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 17:13:12] "POST /api/chat HTTP/1.1" 200 -
+2025-05-19 17:50:29,346 - app - INFO - API½ÓÊÕµ½²éÑ¯: 'Ê¹ÓÃLinear Regression CO SO2 PM25¶ÔÊý¾Ý½øÐÐÔ¤²â£¬²¢ÆÀ¹ÀÆäÐÔÄÜ¡£'
+2025-05-19 17:50:29,346 - app - INFO - ¼ì²âµ½»úÆ÷Ñ§Ï°²Ù×÷Àà²éÑ¯£¬½«Ê¹ÓÃML Agent´¦Àí
+2025-05-19 17:50:43,206 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-19 17:50:43,220 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 17:50:43] "POST /api/chat HTTP/1.1" 200 -
+2025-05-19 17:53:29,962 - app - INFO - API½ÓÊÕµ½²éÑ¯: 'Ê¹ÓÃLinear Regression CO SO2 PM25¶ÔÊý¾Ý½øÐÐÔ¤²â£¬²¢ÆÀ¹ÀÆäÐÔÄÜ¡£'
+2025-05-19 17:53:29,962 - app - INFO - ¼ì²âµ½»úÆ÷Ñ§Ï°²Ù×÷Àà²éÑ¯£¬½«Ê¹ÓÃML Agent´¦Àí
+2025-05-19 17:53:42,701 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-19 17:53:42,741 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 17:53:42] "POST /api/chat HTTP/1.1" 200 -
+2025-05-19 18:04:07,964 - app - INFO - API½ÓÊÕµ½²éÑ¯: 'Ê¹ÓÃLinear Regression CO SO2 PM25¶ÔÊý¾Ý½øÐÐÔ¤²â£¬²¢ÆÀ¹ÀÆäÐÔÄÜ¡£'
+2025-05-19 18:04:07,967 - app - INFO - ¼ì²âµ½»úÆ÷Ñ§Ï°²Ù×÷Àà²éÑ¯£¬½«Ê¹ÓÃML Agent´¦Àí
+2025-05-19 18:04:21,534 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-19 18:04:21,552 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 18:04:21] "POST /api/chat HTTP/1.1" 200 -
+2025-05-19 19:18:10,509 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-19 19:18:10,511 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-19 19:18:10,511 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:18:10] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-19 19:19:04,578 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:19:04] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-19 19:19:04,597 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:19:04] "POST /api/ml/analyze HTTP/1.1" 200 -
+2025-05-19 19:19:24,438 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-19 19:19:24,439 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-19 19:19:24,439 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:19:24] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-19 19:25:13,443 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:25:13] "GET / HTTP/1.1" 200 -
+2025-05-19 19:25:13,630 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:25:13] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-19 19:26:01,605 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-19 19:26:01,606 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-19 19:26:01,606 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:26:01] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-19 19:26:01,661 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:26:01] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-19 19:28:40,349 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:28:40] "GET / HTTP/1.1" 200 -
+2025-05-19 19:28:40,538 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:28:40] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-19 19:28:40,634 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-19 19:28:40,635 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-19 19:28:40,635 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:28:40] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-19 19:28:40,666 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:28:40] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-19 19:28:56,745 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-19 19:28:56,745 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-19 19:28:56,745 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:28:56] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-19 19:33:41,055 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:33:41] "GET / HTTP/1.1" 200 -
+2025-05-19 19:33:41,091 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:33:41] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-19 19:33:41,353 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:33:41] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-19 19:33:46,164 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:33:46] "GET / HTTP/1.1" 200 -
+2025-05-19 19:33:46,208 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:33:46] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2025-05-19 19:33:46,391 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:33:46] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-19 19:35:14,172 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:35:14] "GET / HTTP/1.1" 200 -
+2025-05-19 19:35:14,200 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:35:14] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2025-05-19 19:35:14,418 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:35:14] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-19 19:42:20,874 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:42:20] "GET /api/ml/model_versions/decision_tree_air_quality HTTP/1.1" 200 -
+2025-05-19 19:42:23,284 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:42:23] "GET /api/ml/model_versions/linear_regression_CO_PM25 HTTP/1.1" 200 -
+2025-05-19 19:42:24,894 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:42:24] "GET /api/ml/model_versions/kmeans_customer_segmentation HTTP/1.1" 200 -
+2025-05-19 19:42:26,120 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:42:26] "GET /api/ml/model_versions/linear_regression_CO_SO2_PM25 HTTP/1.1" 200 -
+2025-05-19 19:42:27,428 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:42:27] "GET /api/ml/model_versions/decision_tree_air_quality HTTP/1.1" 200 -
+2025-05-19 19:42:31,307 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:42:31] "GET /api/ml/model_versions/kmeans_customer_segmentation HTTP/1.1" 200 -
+2025-05-19 19:42:39,750 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:42:39] "GET / HTTP/1.1" 200 -
+2025-05-19 19:42:39,944 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:42:39] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-19 19:42:40,063 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:42:40] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-19 19:44:36,158 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:44:36] "GET / HTTP/1.1" 200 -
+2025-05-19 19:44:36,928 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:44:36] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-19 19:44:37,129 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-19 19:44:37,131 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-19 19:44:37,131 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:44:37] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-19 19:44:37,167 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:44:37] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-19 19:45:12,022 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:45:12] "GET / HTTP/1.1" 200 -
+2025-05-19 19:45:12,394 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:45:12] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-19 19:45:12,572 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-19 19:45:12,573 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-19 19:45:12,573 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:45:12] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-19 19:45:12,608 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:45:12] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-19 19:46:14,521 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:46:14] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-19 19:46:14,543 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:46:14] "POST /api/ml/analyze HTTP/1.1" 200 -
+2025-05-19 19:46:42,989 - app - INFO - API½ÓÊÕµ½²éÑ¯: 'Ê¹ÓÃLinear Regression CO SO2 PM25¶ÔÊý¾Ý½øÐÐÔ¤²â£¬²¢ÆÀ¹ÀÆäÐÔÄÜ¡£'
+2025-05-19 19:46:42,994 - app - INFO - ¼ì²âµ½»úÆ÷Ñ§Ï°²Ù×÷Àà²éÑ¯£¬½«Ê¹ÓÃML Agent´¦Àí
+2025-05-19 19:46:48,843 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-19 19:46:48,848 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:46:48] "POST /api/chat HTTP/1.1" 200 -
+2025-05-19 19:46:57,671 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:46:57] "GET / HTTP/1.1" 200 -
+2025-05-19 19:46:58,185 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:46:58] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-19 19:46:58,435 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-19 19:46:58,435 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-19 19:46:58,436 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:46:58] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-19 19:46:58,475 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:46:58] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-19 19:49:34,108 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:49:34] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-19 19:49:34,165 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:49:34] "POST /api/ml/analyze HTTP/1.1" 200 -
+2025-05-19 19:49:42,801 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:49:42] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-19 19:49:50,442 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:49:50] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-19 19:51:25,778 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:51:25] "GET / HTTP/1.1" 200 -
+2025-05-19 19:51:26,576 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:51:26] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-19 19:51:31,891 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:51:31] "GET / HTTP/1.1" 200 -
+2025-05-19 19:51:32,490 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:51:32] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-19 19:52:31,508 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:52:31] "GET / HTTP/1.1" 200 -
+2025-05-19 19:52:32,436 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:52:32] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-19 19:52:32,621 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-19 19:52:32,622 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-19 19:52:32,622 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:52:32] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-19 19:52:32,658 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:52:32] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-19 19:52:46,040 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:52:46] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-19 19:52:58,490 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:52:58] "[31m[1mPOST /api/ml/upload HTTP/1.1[0m" 400 -
+2025-05-19 19:53:11,963 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:53:11] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-19 19:53:11,985 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:53:11] "POST /api/ml/analyze HTTP/1.1" 200 -
+2025-05-19 19:53:26,486 - app - INFO - API½ÓÊÕµ½²éÑ¯: 'Ê¹ÓÃLinear Regression CO PM25¶ÔÊý¾Ý½øÐÐÔ¤²â£¬²¢ÆÀ¹ÀÆäÐÔÄÜ¡£'
+2025-05-19 19:53:26,487 - app - INFO - ¼ì²âµ½»úÆ÷Ñ§Ï°²Ù×÷Àà²éÑ¯£¬½«Ê¹ÓÃML Agent´¦Àí
+2025-05-19 19:53:33,041 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-19 19:53:33,049 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:53:33] "POST /api/chat HTTP/1.1" 200 -
+2025-05-19 19:54:13,480 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:54:13] "GET / HTTP/1.1" 200 -
+2025-05-19 19:54:14,208 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:54:14] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-19 19:54:14,308 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-19 19:54:14,309 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-19 19:54:14,309 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:54:14] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-19 19:54:14,347 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:54:14] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-19 19:54:21,218 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:54:21] "[31m[1mPOST /api/ml/upload HTTP/1.1[0m" 400 -
+2025-05-19 19:54:27,728 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:54:27] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-19 19:54:32,778 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:54:32] "GET / HTTP/1.1" 200 -
+2025-05-19 19:54:33,230 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:54:33] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-19 19:54:33,437 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-19 19:54:33,438 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-19 19:54:33,438 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:54:33] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-19 19:54:33,469 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:54:33] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-19 19:54:42,648 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:54:42] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-19 19:56:23,642 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:56:23] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-19 19:56:25,160 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:56:25] "GET / HTTP/1.1" 200 -
+2025-05-19 19:56:25,530 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:56:25] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-19 19:56:25,713 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-19 19:56:25,713 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-19 19:56:25,714 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:56:25] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-19 19:56:25,748 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:56:25] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-19 19:56:32,882 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 19:56:32] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-19 20:05:58,797 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 20:05:58] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-19 20:20:46,256 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 20:20:46] "GET / HTTP/1.1" 200 -
+2025-05-19 20:20:47,431 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 20:20:47] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-19 20:20:47,637 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-19 20:20:47,638 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-19 20:20:47,638 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 20:20:47] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-19 20:20:47,685 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 20:20:47] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-19 20:20:48,508 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 20:20:48] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-05-19 20:30:42,703 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-19 20:30:42,703 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-19 20:30:42,704 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 20:30:42] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-19 20:30:42,756 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 20:30:42] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-19 20:30:49,542 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 20:30:49] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-19 20:30:49,565 - app - ERROR - /api/ml/analyze ½Ó¿Ú·¢Éú´íÎó: name 'np' is not defined
+Traceback (most recent call last):
+  File "C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\app.py", line 470, in analyze_data_endpoint
+    correlation = json_compatible_result(corr_matrix.to_dict())
+  File "C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\app.py", line 394, in json_compatible_result
+    return {k: json_compatible_result(v) for k, v in data.items()}
+  File "C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\app.py", line 394, in <dictcomp>
+    return {k: json_compatible_result(v) for k, v in data.items()}
+  File "C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\app.py", line 394, in json_compatible_result
+    return {k: json_compatible_result(v) for k, v in data.items()}
+  File "C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\app.py", line 394, in <dictcomp>
+    return {k: json_compatible_result(v) for k, v in data.items()}
+  File "C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\app.py", line 398, in json_compatible_result
+    if np.isnan(data) or np.isinf(data):
+NameError: name 'np' is not defined
+2025-05-19 20:30:49,631 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 20:30:49] "[35m[1mPOST /api/ml/analyze HTTP/1.1[0m" 500 -
+2025-05-19 20:31:05,724 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 20:31:05] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-19 20:33:50,794 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-19 20:33:50,795 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-19 20:33:50,796 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 20:33:50] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-19 20:33:50,830 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 20:33:50] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-19 20:33:57,646 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 20:33:57] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-19 20:33:57,667 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 20:33:57] "POST /api/ml/analyze HTTP/1.1" 200 -
+2025-05-19 20:34:06,530 - app - INFO - API½ÓÊÕµ½²éÑ¯: 'Ê¹ÓÃKnn Air Quality¶ÔÊý¾Ý½øÐÐÔ¤²â£¬²¢ÆÀ¹ÀÆäÐÔÄÜ¡£'
+2025-05-19 20:34:06,530 - app - INFO - ¼ì²âµ½»úÆ÷Ñ§Ï°²Ù×÷Àà²éÑ¯£¬½«Ê¹ÓÃML Agent´¦Àí
+2025-05-19 20:34:12,420 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-19 20:34:12,570 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 20:34:12] "POST /api/chat HTTP/1.1" 200 -
+2025-05-19 20:34:28,298 - app - INFO - API½ÓÊÕµ½²éÑ¯: 'Ê¹ÓÃKnn Air Quality¶ÔÊý¾Ý½øÐÐÔ¤²â£¬²¢ÆÀ¹ÀÆäÐÔÄÜ¡£'
+2025-05-19 20:34:28,298 - app - INFO - ¼ì²âµ½»úÆ÷Ñ§Ï°²Ù×÷Àà²éÑ¯£¬½«Ê¹ÓÃML Agent´¦Àí
+2025-05-19 20:34:33,451 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-19 20:34:33,596 - werkzeug - INFO - 127.0.0.1 - - [19/May/2025 20:34:33] "POST /api/chat HTTP/1.1" 200 -
+2025-05-20 08:09:16,935 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-20 08:09:16,937 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-20 08:09:16,938 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 08:09:16] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-20 08:09:16,991 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 08:09:16] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 08:09:17,247 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 08:09:17] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-05-20 08:09:24,645 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 08:09:24] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-20 08:09:24,689 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 08:09:24] "POST /api/ml/analyze HTTP/1.1" 200 -
+2025-05-20 08:09:33,991 - app - INFO - API½ÓÊÕµ½²éÑ¯: 'Ê¹ÓÃLinear Regression CO SO2 PM25¶ÔÊý¾Ý½øÐÐÔ¤²â£¬²¢ÆÀ¹ÀÆäÐÔÄÜ¡£'
+2025-05-20 08:09:33,991 - app - INFO - ¼ì²âµ½»úÆ÷Ñ§Ï°²Ù×÷Àà²éÑ¯£¬½«Ê¹ÓÃML Agent´¦Àí
+2025-05-20 08:09:39,807 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-20 08:09:40,091 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 08:09:40] "POST /api/chat HTTP/1.1" 200 -
+2025-05-20 08:10:09,847 - app - INFO - API½ÓÊÕµ½²éÑ¯: 'Ê¹ÓÃLinear Regression CO SO2 PM25¶ÔÊý¾Ý½øÐÐÔ¤²â£¬²¢ÆÀ¹ÀÆäÐÔÄÜ¡£'
+2025-05-20 08:10:09,847 - app - INFO - ¼ì²âµ½»úÆ÷Ñ§Ï°²Ù×÷Àà²éÑ¯£¬½«Ê¹ÓÃML Agent´¦Àí
+2025-05-20 08:10:15,229 - app - INFO - API½ÓÊÕµ½²éÑ¯: 'Ê¹ÓÃKnn Air Quality¶ÔÊý¾Ý½øÐÐÔ¤²â£¬²¢ÆÀ¹ÀÆäÐÔÄÜ¡£'
+2025-05-20 08:10:15,229 - app - INFO - ¼ì²âµ½»úÆ÷Ñ§Ï°²Ù×÷Àà²éÑ¯£¬½«Ê¹ÓÃML Agent´¦Àí
+2025-05-20 08:10:16,053 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-20 08:10:16,320 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 08:10:16] "POST /api/chat HTTP/1.1" 200 -
+2025-05-20 08:10:20,674 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-20 08:10:20,976 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 08:10:20] "POST /api/chat HTTP/1.1" 200 -
+2025-05-20 08:10:42,463 - app - INFO - API½ÓÊÕµ½²éÑ¯: 'Ê¹ÓÃLinear Regression CO PM25¶ÔÊý¾Ý½øÐÐÔ¤²â£¬²¢ÆÀ¹ÀÆäÐÔÄÜ¡£'
+2025-05-20 08:10:42,464 - app - INFO - ¼ì²âµ½»úÆ÷Ñ§Ï°²Ù×÷Àà²éÑ¯£¬½«Ê¹ÓÃML Agent´¦Àí
+2025-05-20 08:10:47,831 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-20 08:10:48,101 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 08:10:48] "POST /api/chat HTTP/1.1" 200 -
+2025-05-20 08:11:10,650 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 08:11:10] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-20 08:11:10,674 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 08:11:10] "POST /api/ml/analyze HTTP/1.1" 200 -
+2025-05-20 08:11:22,878 - app - INFO - API½ÓÊÕµ½²éÑ¯: 'Ê¹ÓÃKnn Air Quality¶ÔÊý¾Ý½øÐÐÔ¤²â£¬²¢ÆÀ¹ÀÆäÐÔÄÜ¡£'
+2025-05-20 08:11:22,878 - app - INFO - ¼ì²âµ½»úÆ÷Ñ§Ï°²Ù×÷Àà²éÑ¯£¬½«Ê¹ÓÃML Agent´¦Àí
+2025-05-20 08:11:28,718 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-20 08:11:28,956 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 08:11:28] "POST /api/chat HTTP/1.1" 200 -
+2025-05-20 08:38:34,693 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-20 08:38:34,694 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-20 08:38:34,694 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 08:38:34] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-20 08:38:34,764 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 08:38:34] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 08:38:34,843 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 08:38:34] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-05-20 08:38:45,574 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 08:38:45] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-20 08:38:45,605 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 08:38:45] "POST /api/ml/analyze HTTP/1.1" 200 -
+2025-05-20 08:39:03,342 - app - INFO - API½ÓÊÕµ½²éÑ¯: 'Ê¹ÓÃVoting Regressor Test¶ÔÊý¾Ý½øÐÐÔ¤²â£¬²¢ÆÀ¹ÀÆäÐÔÄÜ¡£'
+2025-05-20 08:39:03,342 - app - INFO - ¼ì²âµ½»úÆ÷Ñ§Ï°²Ù×÷Àà²éÑ¯£¬½«Ê¹ÓÃML Agent´¦Àí
+2025-05-20 08:39:10,338 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-20 08:39:10,623 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 08:39:10] "POST /api/chat HTTP/1.1" 200 -
+2025-05-20 08:39:56,143 - app - INFO - API½ÓÊÕµ½²éÑ¯: 'Ê¹ÓÃLinear Regression CO SO2 PM25¶ÔÊý¾Ý½øÐÐÔ¤²â£¬²¢ÆÀ¹ÀÆäÐÔÄÜ¡£'
+2025-05-20 08:39:56,144 - app - INFO - ¼ì²âµ½»úÆ÷Ñ§Ï°²Ù×÷Àà²éÑ¯£¬½«Ê¹ÓÃML Agent´¦Àí
+2025-05-20 08:40:01,495 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-20 08:40:01,737 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 08:40:01] "POST /api/chat HTTP/1.1" 200 -
+2025-05-20 08:40:09,554 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 08:40:09] "[31m[1mGET /api/ml/analyze?file_path=±±¾©ÊÐ¿ÕÆøÖÊÁ¿Êý¾Ý.xlsx HTTP/1.1[0m" 405 -
+2025-05-20 08:40:50,125 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 08:40:50] "[31m[1mGET /api/ml/analyze?file_path=Àë»éËßËÏÎÄ±¾.json HTTP/1.1[0m" 405 -
+2025-05-20 08:40:56,352 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 08:40:56] "GET / HTTP/1.1" 200 -
+2025-05-20 08:40:57,435 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 08:40:57] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-20 08:40:57,898 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-20 08:40:57,899 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-20 08:40:57,900 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 08:40:57] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-20 08:40:57,987 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 08:40:57] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 08:40:57,988 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 08:40:57] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 08:41:04,822 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 08:41:04] "[31m[1mGET /api/ml/analyze?file_path=±±¾©ÊÐ¿ÕÆøÖÊÁ¿Êý¾Ý.xlsx HTTP/1.1[0m" 405 -
+2025-05-20 08:42:21,430 - app - INFO - API½ÓÊÕµ½²éÑ¯: 'knnÊÇÊ²Ã´'
+2025-05-20 08:42:21,431 - app - INFO - Ê¹ÓÃRAGÏµÍ³´¦Àí³£¹æ/ÖªÊ¶Àà²éÑ¯
+2025-05-20 08:42:22,037 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/embeddings "HTTP/1.1 200 OK"
+2025-05-20 08:42:25,467 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-20 08:42:25,753 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/embeddings "HTTP/1.1 200 OK"
+2025-05-20 08:42:25,785 - app - INFO - RAG½á¹ûÖÊÁ¿²»¼Ñ£¬ÇÐ»»µ½Ö±½Ó´óÄ£ÐÍ»Ø´ð
+2025-05-20 08:42:27,709 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-20 08:42:27,711 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 08:42:27] "POST /api/chat HTTP/1.1" 200 -
+2025-05-20 08:53:51,461 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 08:53:51] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-20 08:53:51,481 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 08:53:51] "POST /api/ml/analyze HTTP/1.1" 200 -
+2025-05-20 08:55:11,816 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 08:55:11] "[31m[1mGET /api/ml/analyze?file_path=Àë»éËßËÏÎÄ±¾.json HTTP/1.1[0m" 405 -
+2025-05-20 08:55:13,272 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 08:55:13] "[31m[1mGET /api/ml/analyze?file_path=±±¾©ÊÐ¿ÕÆøÖÊÁ¿Êý¾Ý.xlsx HTTP/1.1[0m" 405 -
+2025-05-20 08:55:15,258 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 08:55:15] "[31m[1mGET /api/ml/analyze?file_path=air_data.csv HTTP/1.1[0m" 405 -
+2025-05-20 08:55:47,010 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 08:55:47] "[31m[1mGET /api/ml/analyze?file_path=±±¾©ÊÐ¿ÕÆøÖÊÁ¿Êý¾Ý.xlsx HTTP/1.1[0m" 405 -
+2025-05-20 08:58:33,827 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 08:58:33] "[31m[1mGET /api/ml/analyze?file_path=±±¾©ÊÐ¿ÕÆøÖÊÁ¿Êý¾Ý.xlsx HTTP/1.1[0m" 405 -
+2025-05-20 09:17:01,388 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:17:01] "GET / HTTP/1.1" 200 -
+2025-05-20 09:17:01,656 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:17:01] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-20 09:17:07,273 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:17:07] "GET / HTTP/1.1" 200 -
+2025-05-20 09:17:07,606 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:17:07] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2025-05-20 09:17:22,162 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:17:22] "GET / HTTP/1.1" 200 -
+2025-05-20 09:17:22,495 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:17:22] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2025-05-20 09:17:36,181 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:17:36] "GET / HTTP/1.1" 200 -
+2025-05-20 09:17:36,436 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:17:36] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2025-05-20 09:17:36,750 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:17:36] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-05-20 09:17:37,057 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:17:37] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-05-20 09:18:05,983 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:18:05] "GET / HTTP/1.1" 200 -
+2025-05-20 09:18:06,221 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:18:06] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-20 09:18:22,082 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:18:22] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-05-20 09:18:24,589 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:18:24] "GET / HTTP/1.1" 200 -
+2025-05-20 09:18:24,840 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:18:24] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-20 09:26:54,224 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-20 09:26:54,226 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-20 09:26:54,228 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:26:54] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-20 09:26:54,322 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:26:54] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 09:26:54,323 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:26:54] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 09:33:04,204 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:33:04] "GET / HTTP/1.1" 200 -
+2025-05-20 09:33:04,835 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:33:04] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-20 09:33:57,810 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:33:57] "GET / HTTP/1.1" 200 -
+2025-05-20 09:33:58,284 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:33:58] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-20 09:34:18,964 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:34:18] "GET / HTTP/1.1" 200 -
+2025-05-20 09:34:19,451 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:34:19] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-20 09:34:19,669 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-20 09:34:19,674 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-20 09:34:19,675 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:34:19] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-20 09:34:19,796 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:34:19] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 09:34:19,803 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:34:19] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 09:35:21,868 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:35:21] "GET / HTTP/1.1" 200 -
+2025-05-20 09:35:22,436 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:35:22] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-20 09:35:22,634 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-20 09:35:22,636 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-20 09:35:22,636 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:35:22] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-20 09:35:22,724 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:35:22] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 09:35:22,729 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:35:22] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 09:35:37,512 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:35:37] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-20 09:35:37,543 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:35:37] "POST /api/ml/analyze HTTP/1.1" 200 -
+2025-05-20 09:35:48,489 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:35:48] "GET / HTTP/1.1" 200 -
+2025-05-20 09:35:48,918 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:35:48] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-20 09:35:49,426 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-20 09:35:49,427 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-20 09:35:49,428 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:35:49] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-20 09:35:49,513 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:35:49] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 09:35:49,514 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:35:49] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 09:35:57,578 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:35:57] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-20 09:35:57,606 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:35:57] "POST /api/ml/analyze HTTP/1.1" 200 -
+2025-05-20 09:37:36,286 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:37:36] "GET / HTTP/1.1" 200 -
+2025-05-20 09:37:36,811 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:37:36] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-20 09:37:37,035 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-20 09:37:37,036 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-20 09:37:37,037 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:37:37] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-20 09:37:37,121 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:37:37] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 09:37:37,123 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:37:37] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 09:37:37,757 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:37:37] "GET /static/favicon.ico HTTP/1.1" 200 -
+2025-05-20 09:42:40,498 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-20 09:42:40,499 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-20 09:42:40,499 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:42:40] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-20 09:42:40,589 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:42:40] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 09:42:40,591 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:42:40] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 09:42:40,591 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:42:40] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 09:42:41,613 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:42:41] "GET /static/favicon.ico HTTP/1.1" 200 -
+2025-05-20 09:45:41,739 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:45:41] "GET / HTTP/1.1" 200 -
+2025-05-20 09:45:42,073 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:45:42] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-20 09:45:42,237 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-20 09:45:42,238 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-20 09:45:42,238 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:45:42] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-20 09:45:42,317 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:45:42] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 09:45:42,327 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:45:42] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 09:45:42,332 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:45:42] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 09:45:42,666 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:45:42] "GET /static/favicon.ico HTTP/1.1" 200 -
+2025-05-20 09:47:30,864 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:47:30] "GET / HTTP/1.1" 200 -
+2025-05-20 09:47:31,416 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:47:31] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-20 09:47:31,613 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-20 09:47:31,614 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-20 09:47:31,614 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:47:31] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-20 09:47:31,713 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:47:31] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 09:47:31,716 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:47:31] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 09:47:31,721 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:47:31] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 09:47:32,257 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:47:32] "GET /static/favicon.ico HTTP/1.1" 200 -
+2025-05-20 09:52:09,420 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:52:09] "GET / HTTP/1.1" 200 -
+2025-05-20 09:52:09,991 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:52:09] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-20 09:52:12,736 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:52:12] "GET /static/favicon.ico HTTP/1.1" 200 -
+2025-05-20 09:54:40,321 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:54:40] "GET / HTTP/1.1" 200 -
+2025-05-20 09:54:41,084 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:54:41] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-20 09:54:41,428 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-20 09:54:41,428 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-20 09:54:41,430 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:54:41] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-20 09:54:41,535 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:54:41] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 09:54:41,552 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:54:41] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 09:54:41,555 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:54:41] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 09:54:42,274 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:54:42] "GET /static/favicon.ico HTTP/1.1" 200 -
+2025-05-20 09:57:30,194 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:57:30] "GET / HTTP/1.1" 200 -
+2025-05-20 09:57:31,033 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:57:31] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-20 09:57:31,212 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-20 09:57:31,217 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-20 09:57:31,219 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:57:31] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-20 09:57:31,335 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:57:31] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 09:57:31,344 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:57:31] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 09:57:31,347 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:57:31] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 09:57:31,528 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:57:31] "GET /static/favicon.ico HTTP/1.1" 200 -
+2025-05-20 09:58:36,715 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:58:36] "GET / HTTP/1.1" 200 -
+2025-05-20 09:58:37,199 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:58:37] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-20 09:58:37,365 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-20 09:58:37,369 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-20 09:58:37,369 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:58:37] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-20 09:58:37,467 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:58:37] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 09:58:37,488 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:58:37] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 09:58:37,493 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:58:37] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 09:58:37,868 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 09:58:37] "GET /static/favicon.ico HTTP/1.1" 200 -
+2025-05-20 10:01:45,861 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:01:45] "GET /?ide_webview_request_time=1747706505549 HTTP/1.1" 200 -
+2025-05-20 10:01:47,212 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:01:47] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-20 10:01:47,716 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-20 10:01:47,718 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-20 10:01:47,719 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:01:47] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-20 10:01:47,774 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:01:47] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 10:01:47,998 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:01:47] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 10:01:48,132 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:01:48] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 10:14:49,035 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:14:49] "GET / HTTP/1.1" 200 -
+2025-05-20 10:14:50,598 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:14:50] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-20 10:14:50,803 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:14:50] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 10:14:50,837 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-20 10:14:50,838 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-20 10:14:50,839 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:14:50] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-20 10:14:52,257 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:14:52] "GET /static/favicon.ico HTTP/1.1" 200 -
+2025-05-20 10:17:33,933 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:17:33] "[31m[1mPOST /api/ml/ensemble HTTP/1.1[0m" 400 -
+2025-05-20 10:17:43,707 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:17:43] "[31m[1mPOST /api/ml/ensemble HTTP/1.1[0m" 400 -
+2025-05-20 10:17:47,429 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:17:47] "[31m[1mPOST /api/ml/ensemble HTTP/1.1[0m" 400 -
+2025-05-20 10:17:49,753 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:17:49] "[31m[1mPOST /api/ml/ensemble HTTP/1.1[0m" 400 -
+2025-05-20 10:17:51,404 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:17:51] "[31m[1mPOST /api/ml/ensemble HTTP/1.1[0m" 400 -
+2025-05-20 10:17:59,644 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:17:59] "[31m[1mPOST /api/ml/ensemble HTTP/1.1[0m" 400 -
+2025-05-20 10:18:02,338 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:18:02] "[31m[1mPOST /api/ml/ensemble HTTP/1.1[0m" 400 -
+2025-05-20 10:18:04,037 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:18:04] "[31m[1mPOST /api/ml/ensemble HTTP/1.1[0m" 400 -
+2025-05-20 10:18:13,103 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:18:13] "[31m[1mPOST /api/ml/ensemble HTTP/1.1[0m" 400 -
+2025-05-20 10:18:18,633 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:18:18] "[31m[1mPOST /api/ml/ensemble HTTP/1.1[0m" 400 -
+2025-05-20 10:22:45,714 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:22:45] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-20 10:22:45,742 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:22:45] "POST /api/ml/analyze HTTP/1.1" 200 -
+2025-05-20 10:22:55,713 - app - INFO - API½ÓÊÕµ½²éÑ¯: 'Ê¹ÓÃKnn Air Quality¶ÔÊý¾Ý½øÐÐÔ¤²â£¬²¢ÆÀ¹ÀÆäÐÔÄÜ¡£'
+2025-05-20 10:22:55,719 - app - INFO - ¼ì²âµ½»úÆ÷Ñ§Ï°²Ù×÷Àà²éÑ¯£¬½«Ê¹ÓÃML Agent´¦Àí
+2025-05-20 10:23:02,199 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-20 10:23:02,748 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:23:02] "POST /api/chat HTTP/1.1" 200 -
+2025-05-20 10:23:34,507 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:23:34] "[31m[1mPOST /api/ml/compare_models HTTP/1.1[0m" 400 -
+2025-05-20 10:23:47,444 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-20 10:23:47,444 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-20 10:23:47,445 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:23:47] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-20 10:24:14,117 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-20 10:24:14,117 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-20 10:24:14,117 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:24:14] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-20 10:29:14,184 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:29:14] "GET / HTTP/1.1" 200 -
+2025-05-20 10:29:14,364 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:29:14] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2025-05-20 10:29:14,530 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:29:14] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 10:29:14,600 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-20 10:29:14,600 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-20 10:29:14,601 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:29:14] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-20 10:29:14,618 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:29:14] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -
+2025-05-20 10:30:59,333 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:30:59] "GET / HTTP/1.1" 200 -
+2025-05-20 10:30:59,364 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:30:59] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-20 10:30:59,641 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:30:59] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 10:30:59,653 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:30:59] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -
+2025-05-20 10:30:59,657 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-20 10:30:59,659 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-20 10:30:59,659 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:30:59] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-20 10:36:36,264 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:36:36] "GET / HTTP/1.1" 200 -
+2025-05-20 10:36:36,294 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:36:36] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-20 10:36:36,590 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:36:36] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 10:36:36,667 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:36:36] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -
+2025-05-20 10:36:36,671 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-20 10:36:36,671 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-20 10:36:36,672 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:36:36] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-20 10:36:59,432 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:36:59] "GET / HTTP/1.1" 200 -
+2025-05-20 10:36:59,546 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:36:59] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2025-05-20 10:36:59,679 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:36:59] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 10:36:59,745 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:36:59] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -
+2025-05-20 10:36:59,745 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-20 10:36:59,745 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-20 10:36:59,745 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:36:59] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-20 10:38:27,185 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:38:27] "GET / HTTP/1.1" 200 -
+2025-05-20 10:38:27,215 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:38:27] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-20 10:38:27,453 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:38:27] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 10:38:27,462 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:38:27] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -
+2025-05-20 10:38:27,475 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-20 10:38:27,476 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-20 10:38:27,476 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:38:27] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-20 10:52:38,644 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-20 10:52:38,644 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-20 10:52:38,645 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:52:38] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-20 10:52:39,067 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:52:39] "GET /static/favicon.ico HTTP/1.1" 200 -
+2025-05-20 10:52:48,238 - app - INFO - API½ÓÊÕµ½²éÑ¯: 'Ê²Ã´ÊÇ»úÆ÷Ñ§Ï°°¡'
+2025-05-20 10:52:48,238 - app - INFO - Ê¹ÓÃRAGÏµÍ³´¦Àí³£¹æ/ÖªÊ¶Àà²éÑ¯
+2025-05-20 10:52:48,547 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/embeddings "HTTP/1.1 200 OK"
+2025-05-20 10:52:51,476 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-20 10:52:51,737 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/embeddings "HTTP/1.1 200 OK"
+2025-05-20 10:52:51,766 - app - INFO - RAG½á¹ûÖÊÁ¿²»¼Ñ£¬ÇÐ»»µ½Ö±½Ó´óÄ£ÐÍ»Ø´ð
+2025-05-20 10:52:52,938 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-20 10:52:52,941 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:52:52] "POST /api/chat HTTP/1.1" 200 -
+2025-05-20 10:53:16,733 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:53:16] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-20 10:53:17,075 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:53:17] "POST /api/ml/analyze HTTP/1.1" 200 -
+2025-05-20 10:54:11,141 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:54:11] "GET / HTTP/1.1" 200 -
+2025-05-20 10:54:11,477 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:54:11] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2025-05-20 10:54:11,767 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:54:11] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 10:54:11,795 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:54:11] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -
+2025-05-20 10:54:11,846 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-20 10:54:11,846 - ml_api_endpoints - INFO - ÕÒµ½ 1 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-20 10:54:11,847 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:54:11] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-20 10:54:15,809 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:54:15] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-20 10:54:16,137 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:54:16] "POST /api/ml/analyze HTTP/1.1" 200 -
+2025-05-20 10:54:40,814 - app - INFO - API½ÓÊÕµ½²éÑ¯: 'Õâ·ÝÊý¾ÝµÄ»ù±¾Í³¼ÆÌØÐÔÊÇÊ²Ã´£¿'
+2025-05-20 10:54:40,815 - app - INFO - Ê¹ÓÃRAGÏµÍ³´¦Àí³£¹æ/ÖªÊ¶Àà²éÑ¯
+2025-05-20 10:54:41,178 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/embeddings "HTTP/1.1 200 OK"
+2025-05-20 10:54:43,302 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-20 10:54:43,555 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/embeddings "HTTP/1.1 200 OK"
+2025-05-20 10:54:43,568 - app - INFO - RAG½á¹ûÖÊÁ¿²»¼Ñ£¬ÇÐ»»µ½Ö±½Ó´óÄ£ÐÍ»Ø´ð
+2025-05-20 10:54:44,758 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-20 10:54:44,759 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:54:44] "POST /api/chat HTTP/1.1" 200 -
+2025-05-20 10:54:58,486 - app - INFO - API½ÓÊÕµ½²éÑ¯: 'ÄÄÐ©ÌØÕ÷ÓëÄ¿±ê±äÁ¿×îÎªÏà¹Ø£¿'
+2025-05-20 10:54:58,487 - app - INFO - Ê¹ÓÃRAGÏµÍ³´¦Àí³£¹æ/ÖªÊ¶Àà²éÑ¯
+2025-05-20 10:54:58,916 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/embeddings "HTTP/1.1 200 OK"
+2025-05-20 10:54:59,992 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-20 10:55:00,199 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/embeddings "HTTP/1.1 200 OK"
+2025-05-20 10:55:00,337 - app - INFO - RAG½á¹ûÖÊÁ¿²»¼Ñ£¬ÇÐ»»µ½Ö±½Ó´óÄ£ÐÍ»Ø´ð
+2025-05-20 10:55:01,552 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-20 10:55:01,553 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:55:01] "POST /api/chat HTTP/1.1" 200 -
+2025-05-20 10:55:18,239 - app - INFO - API½ÓÊÕµ½²éÑ¯: 'Ê¹ÓÃLinear Regression CO PM25¶ÔÊý¾Ý½øÐÐÔ¤²â£¬²¢ÆÀ¹ÀÆäÐÔÄÜ¡£'
+2025-05-20 10:55:18,240 - app - INFO - ¼ì²âµ½»úÆ÷Ñ§Ï°²Ù×÷Àà²éÑ¯£¬½«Ê¹ÓÃML Agent´¦Àí
+2025-05-20 10:55:23,903 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-20 10:55:24,146 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:55:24] "POST /api/chat HTTP/1.1" 200 -
+2025-05-20 10:55:37,639 - app - INFO - API½ÓÊÕµ½²éÑ¯: '½âÊÍÒ»ÏÂÊ²Ã´ÊÇK¾ùÖµ¾ÛÀàËã·¨¡£'
+2025-05-20 10:55:37,639 - app - INFO - Ê¹ÓÃRAGÏµÍ³´¦Àí³£¹æ/ÖªÊ¶Àà²éÑ¯
+2025-05-20 10:55:38,036 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/embeddings "HTTP/1.1 200 OK"
+2025-05-20 10:55:50,709 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-20 10:55:50,963 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/embeddings "HTTP/1.1 200 OK"
+2025-05-20 10:55:50,996 - app - INFO - RAG½á¹ûÖÊÁ¿²»¼Ñ£¬ÇÐ»»µ½Ö±½Ó´óÄ£ÐÍ»Ø´ð
+2025-05-20 10:55:53,002 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-20 10:55:53,007 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:55:53] "POST /api/chat HTTP/1.1" 200 -
+2025-05-20 10:56:27,286 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:56:27] "GET /api/ml/model_versions/decision_tree_air_quality HTTP/1.1" 200 -
+2025-05-20 10:56:29,740 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:56:29] "GET /api/ml/model_versions/knn_air_quality HTTP/1.1" 200 -
+2025-05-20 10:56:43,953 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:56:43] "[31m[1mPOST /api/ml/model_versions HTTP/1.1[0m" 400 -
+2025-05-20 10:56:49,929 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:56:49] "[31m[1mPOST /api/ml/model_versions HTTP/1.1[0m" 400 -
+2025-05-20 10:57:09,768 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:57:09] "[31m[1mPOST /api/ml/compare_models HTTP/1.1[0m" 400 -
+2025-05-20 10:57:29,372 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:57:29] "[31m[1mPOST /api/ml/ensemble HTTP/1.1[0m" 400 -
+2025-05-20 10:57:52,160 - app - INFO - ÎªÄ£ÐÍ 'linear_regression_CO_PM25' ÔÚ»·¾³ 'staging' Éú³ÉµÄ²¿Êð¶Ëµã: /api/predict/linear-regression-co-pm25/63c09ac0
+2025-05-20 10:57:52,160 - ml_api_endpoints - INFO - ¿ªÊ¼²¿ÊðÄ£ÐÍ 'linear_regression_CO_PM25' µ½ staging »·¾³
+2025-05-20 10:57:52,188 - ml_api_endpoints - INFO - ÒÑ´´½¨²¿ÊðÎÄ¼þ±¸·Ý
+2025-05-20 10:57:52,189 - ml_api_endpoints - INFO - ÒÑ±£´æ2¸ö²¿ÊðÐÅÏ¢
+2025-05-20 10:57:52,189 - ml_api_endpoints - INFO - Ä£ÐÍ 'linear_regression_CO_PM25' ÒÑ³É¹¦²¿Êðµ½ staging »·¾³µÄ /api/predict/linear-regression-co-pm25/63c09ac0 ¶Ëµã
+2025-05-20 10:57:52,189 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:57:52] "[35m[1mPOST /api/ml/deploy HTTP/1.1[0m" 201 -
+2025-05-20 10:57:52,508 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-20 10:57:52,509 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 1 ¸öÕýÔÚÔËÐÐ
+2025-05-20 10:57:52,509 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:57:52] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-20 10:57:56,767 - ml_api_endpoints - INFO - ÇëÇóÍ£Ö¹²¿ÊðÄ£ÐÍ£¬²¿ÊðID: dep_d64d518f
+2025-05-20 10:57:56,771 - ml_api_endpoints - INFO - ÒÑ´´½¨²¿ÊðÎÄ¼þ±¸·Ý
+2025-05-20 10:57:56,771 - ml_api_endpoints - INFO - ÒÑ±£´æ2¸ö²¿ÊðÐÅÏ¢
+2025-05-20 10:57:56,771 - ml_api_endpoints - INFO - ÒÑ³É¹¦Í£Ö¹²¿Êð£¬ID: dep_d64d518f, Ä£ÐÍ: linear_regression_CO_PM25, »·¾³: staging
+2025-05-20 10:57:56,772 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:57:56] "POST /api/ml/undeploy/dep_d64d518f HTTP/1.1" 200 -
+2025-05-20 10:57:57,110 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-20 10:57:57,111 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-20 10:57:57,111 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:57:57] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-20 10:57:58,470 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-20 10:57:58,471 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-20 10:57:58,471 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 10:57:58] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-20 11:00:17,991 - app - INFO - API½ÓÊÕµ½²éÑ¯: 'Ê¹ÓÃLinear Regression CO PM25¶ÔÊý¾Ý½øÐÐÔ¤²â£¬²¢ÆÀ¹ÀÆäÐÔÄÜ¡£'
+2025-05-20 11:00:17,991 - app - INFO - ¼ì²âµ½»úÆ÷Ñ§Ï°²Ù×÷Àà²éÑ¯£¬½«Ê¹ÓÃML Agent´¦Àí
+2025-05-20 11:00:25,560 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-20 11:00:25,722 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 11:00:25] "POST /api/chat HTTP/1.1" 200 -
+2025-05-20 11:22:41,167 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-20 11:22:41,168 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-20 11:22:41,168 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 11:22:41] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-20 13:17:27,265 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 13:17:27] "GET /api/ml/model_versions/decision_tree_air_quality HTTP/1.1" 200 -
+2025-05-20 13:17:28,411 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 13:17:28] "GET /api/ml/model_versions/kmeans_customer_segmentation HTTP/1.1" 200 -
+2025-05-20 13:17:36,830 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 13:17:36] "[31m[1mPOST /api/ml/model_versions HTTP/1.1[0m" 400 -
+2025-05-20 13:17:58,668 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 13:17:58] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-20 13:17:59,012 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 13:17:59] "POST /api/ml/analyze HTTP/1.1" 200 -
+2025-05-20 13:18:34,735 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 13:18:34] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-20 13:18:35,075 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 13:18:35] "POST /api/ml/analyze HTTP/1.1" 200 -
+2025-05-20 13:18:51,607 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 13:18:51] "[31m[1mPOST /api/ml/ensemble HTTP/1.1[0m" 400 -
+2025-05-20 13:18:57,953 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 13:18:57] "GET / HTTP/1.1" 200 -
+2025-05-20 13:18:58,210 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 13:18:58] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-20 13:18:58,785 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 13:18:58] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-20 13:18:59,153 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-20 13:18:59,154 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-20 13:18:59,155 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 13:18:59] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-20 13:18:59,165 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 13:18:59] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -
+2025-05-20 22:34:25,938 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-20 22:34:25,941 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-20 22:34:25,942 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 22:34:25] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-20 22:34:32,214 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 22:34:32] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-20 22:34:32,255 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 22:34:32] "POST /api/ml/analyze HTTP/1.1" 200 -
+2025-05-20 22:34:41,677 - app - INFO - API½ÓÊÕµ½²éÑ¯: 'Õâ·ÝÊý¾ÝµÄ»ù±¾Í³¼ÆÌØÐÔÊÇÊ²Ã´£¿'
+2025-05-20 22:34:41,682 - app - INFO - Ê¹ÓÃÔöÇ¿°æRAGÏµÍ³´¦Àí³£¹æ/ÖªÊ¶Àà²éÑ¯
+2025-05-20 22:34:41,985 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/embeddings "HTTP/1.1 200 OK"
+2025-05-20 22:34:45,192 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-20 22:34:45,467 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/embeddings "HTTP/1.1 200 OK"
+2025-05-20 22:34:45,491 - app - INFO - RAG½á¹ûÖÊÁ¿²»¼Ñ£¬ÇÐ»»µ½Ö±½Ó´óÄ£ÐÍ»Ø´ð
+2025-05-20 22:35:11,537 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-20 22:35:11,538 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 22:35:11] "POST /api/chat HTTP/1.1" 200 -
+2025-05-20 22:35:25,881 - app - INFO - API½ÓÊÕµ½²éÑ¯: 'Ê¹ÓÃLinear Regression CO PM25¶ÔÊý¾Ý½øÐÐÊ¹ÓÃÒÑÓÐÄ£ÐÍÔ¤²â£¬²¢ÆÀ¹ÀÆäÐÔÄÜ¡£'
+2025-05-20 22:35:25,885 - app - INFO - ¼ì²âµ½»úÆ÷Ñ§Ï°²Ù×÷Àà²éÑ¯£¬½«Ê¹ÓÃÔöÇ¿°æML Agent´¦Àí
+2025-05-20 22:35:25,933 - app - WARNING - ÔöÇ¿°æML´úÀí´¦ÀíÊ§°Ü£¬»ØÍËµ½±ê×¼ML´úÀí: name 'traceback' is not defined
+2025-05-20 22:35:25,961 - app - ERROR - /api/chat ½Ó¿Ú·¢Éú´íÎó: name 'traceback' is not defined
+Traceback (most recent call last):
+  File "C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\ml_agents.py", line 2111, in query_ml_agent
+    response = agent.invoke({"input": question})
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\chains\base.py", line 163, in invoke
+    raise e
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\chains\base.py", line 153, in invoke
+    self._call(inputs, run_manager=run_manager)
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\agents\agent.py", line 1432, in _call
+    next_step_output = self._take_next_step(
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\agents\agent.py", line 1138, in _take_next_step
+    [
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\agents\agent.py", line 1138, in <listcomp>
+    [
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\agents\agent.py", line 1166, in _iter_next_step
+    output = self.agent.plan(
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\agents\agent.py", line 397, in plan
+    for chunk in self.runnable.stream(inputs, config={"callbacks": callbacks}):
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 2875, in stream
+    yield from self.transform(iter([input]), config, **kwargs)
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 2862, in transform
+    yield from self._transform_stream_with_config(
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 1881, in _transform_stream_with_config
+    chunk: Output = context.run(next, iterator)  # type: ignore
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 2826, in _transform
+    for output in final_pipeline:
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 1282, in transform
+    for ichunk in input:
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 4736, in transform
+    yield from self.bound.transform(
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 1282, in transform
+    for ichunk in input:
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 1300, in transform
+    yield from self.stream(final, config, **kwargs)
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 807, in stream
+    yield self.invoke(input, config, **kwargs)
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\prompts\base.py", line 128, in invoke
+    return self._call_with_config(
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 1626, in _call_with_config
+    context.run(
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\config.py", line 347, in call_func_with_variable_args
+    return func(input, **kwargs)  # type: ignore[call-arg]
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\prompts\base.py", line 111, in _format_prompt_with_error_handling
+    _inner_input = self._validate_input(inner_input)
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\prompts\base.py", line 103, in _validate_input
+    raise KeyError(
+KeyError: 'Input to PromptTemplate is missing variables {\'\\n  "action"\'}.  Expected: [\'\\n  "action"\', \'agent_scratchpad\', \'input\'] Received: [\'input\', \'intermediate_steps\', \'agent_scratchpad\']'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\app.py", line 181, in chat_endpoint
+    result = enhanced_query_ml_agent(user_query, use_existing_model=use_existing_model)
+  File "C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\ml_agents_enhanced.py", line 147, in enhanced_query_ml_agent
+    result = query_ml_agent(query, use_existing_model)
+  File "C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\ml_agents.py", line 2174, in query_ml_agent
+    error_msg_detail = f"´¦Àí»úÆ÷Ñ§Ï°²éÑ¯Ê±·¢Éú´íÎó: {str(e_outer)}\n{traceback.format_exc()}\n"
+NameError: name 'traceback' is not defined
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\ml_agents.py", line 2111, in query_ml_agent
+    response = agent.invoke({"input": question})
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\chains\base.py", line 163, in invoke
+    raise e
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\chains\base.py", line 153, in invoke
+    self._call(inputs, run_manager=run_manager)
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\agents\agent.py", line 1432, in _call
+    next_step_output = self._take_next_step(
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\agents\agent.py", line 1138, in _take_next_step
+    [
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\agents\agent.py", line 1138, in <listcomp>
+    [
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\agents\agent.py", line 1166, in _iter_next_step
+    output = self.agent.plan(
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\agents\agent.py", line 397, in plan
+    for chunk in self.runnable.stream(inputs, config={"callbacks": callbacks}):
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 2875, in stream
+    yield from self.transform(iter([input]), config, **kwargs)
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 2862, in transform
+    yield from self._transform_stream_with_config(
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 1881, in _transform_stream_with_config
+    chunk: Output = context.run(next, iterator)  # type: ignore
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 2826, in _transform
+    for output in final_pipeline:
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 1282, in transform
+    for ichunk in input:
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 4736, in transform
+    yield from self.bound.transform(
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 1282, in transform
+    for ichunk in input:
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 1300, in transform
+    yield from self.stream(final, config, **kwargs)
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 807, in stream
+    yield self.invoke(input, config, **kwargs)
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\prompts\base.py", line 128, in invoke
+    return self._call_with_config(
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 1626, in _call_with_config
+    context.run(
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\config.py", line 347, in call_func_with_variable_args
+    return func(input, **kwargs)  # type: ignore[call-arg]
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\prompts\base.py", line 111, in _format_prompt_with_error_handling
+    _inner_input = self._validate_input(inner_input)
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\prompts\base.py", line 103, in _validate_input
+    raise KeyError(
+KeyError: 'Input to PromptTemplate is missing variables {\'\\n  "action"\'}.  Expected: [\'\\n  "action"\', \'agent_scratchpad\', \'input\'] Received: [\'input\', \'intermediate_steps\', \'agent_scratchpad\']'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\app.py", line 185, in chat_endpoint
+    result = query_ml_agent(user_query, use_existing_model=use_existing_model)
+  File "C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\ml_agents.py", line 2174, in query_ml_agent
+    error_msg_detail = f"´¦Àí»úÆ÷Ñ§Ï°²éÑ¯Ê±·¢Éú´íÎó: {str(e_outer)}\n{traceback.format_exc()}\n"
+NameError: name 'traceback' is not defined
+2025-05-20 22:35:25,976 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 22:35:25] "[35m[1mPOST /api/chat HTTP/1.1[0m" 500 -
+2025-05-20 22:35:28,960 - app - INFO - API½ÓÊÕµ½²éÑ¯: 'Ê¹ÓÃLinear Regression CO PM25¶ÔÊý¾Ý½øÐÐÊ¹ÓÃÒÑÓÐÄ£ÐÍÔ¤²â£¬²¢ÆÀ¹ÀÆäÐÔÄÜ¡£'
+2025-05-20 22:35:28,961 - app - INFO - ¼ì²âµ½»úÆ÷Ñ§Ï°²Ù×÷Àà²éÑ¯£¬½«Ê¹ÓÃÔöÇ¿°æML Agent´¦Àí
+2025-05-20 22:35:29,000 - app - WARNING - ÔöÇ¿°æML´úÀí´¦ÀíÊ§°Ü£¬»ØÍËµ½±ê×¼ML´úÀí: name 'traceback' is not defined
+2025-05-20 22:35:29,030 - app - ERROR - /api/chat ½Ó¿Ú·¢Éú´íÎó: name 'traceback' is not defined
+Traceback (most recent call last):
+  File "C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\ml_agents.py", line 2111, in query_ml_agent
+    response = agent.invoke({"input": question})
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\chains\base.py", line 163, in invoke
+    raise e
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\chains\base.py", line 153, in invoke
+    self._call(inputs, run_manager=run_manager)
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\agents\agent.py", line 1432, in _call
+    next_step_output = self._take_next_step(
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\agents\agent.py", line 1138, in _take_next_step
+    [
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\agents\agent.py", line 1138, in <listcomp>
+    [
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\agents\agent.py", line 1166, in _iter_next_step
+    output = self.agent.plan(
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\agents\agent.py", line 397, in plan
+    for chunk in self.runnable.stream(inputs, config={"callbacks": callbacks}):
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 2875, in stream
+    yield from self.transform(iter([input]), config, **kwargs)
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 2862, in transform
+    yield from self._transform_stream_with_config(
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 1881, in _transform_stream_with_config
+    chunk: Output = context.run(next, iterator)  # type: ignore
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 2826, in _transform
+    for output in final_pipeline:
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 1282, in transform
+    for ichunk in input:
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 4736, in transform
+    yield from self.bound.transform(
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 1282, in transform
+    for ichunk in input:
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 1300, in transform
+    yield from self.stream(final, config, **kwargs)
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 807, in stream
+    yield self.invoke(input, config, **kwargs)
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\prompts\base.py", line 128, in invoke
+    return self._call_with_config(
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 1626, in _call_with_config
+    context.run(
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\config.py", line 347, in call_func_with_variable_args
+    return func(input, **kwargs)  # type: ignore[call-arg]
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\prompts\base.py", line 111, in _format_prompt_with_error_handling
+    _inner_input = self._validate_input(inner_input)
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\prompts\base.py", line 103, in _validate_input
+    raise KeyError(
+KeyError: 'Input to PromptTemplate is missing variables {\'\\n  "action"\'}.  Expected: [\'\\n  "action"\', \'agent_scratchpad\', \'input\'] Received: [\'input\', \'intermediate_steps\', \'agent_scratchpad\']'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\app.py", line 181, in chat_endpoint
+    result = enhanced_query_ml_agent(user_query, use_existing_model=use_existing_model)
+  File "C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\ml_agents_enhanced.py", line 147, in enhanced_query_ml_agent
+    result = query_ml_agent(query, use_existing_model)
+  File "C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\ml_agents.py", line 2174, in query_ml_agent
+    error_msg_detail = f"´¦Àí»úÆ÷Ñ§Ï°²éÑ¯Ê±·¢Éú´íÎó: {str(e_outer)}\n{traceback.format_exc()}\n"
+NameError: name 'traceback' is not defined
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\ml_agents.py", line 2111, in query_ml_agent
+    response = agent.invoke({"input": question})
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\chains\base.py", line 163, in invoke
+    raise e
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\chains\base.py", line 153, in invoke
+    self._call(inputs, run_manager=run_manager)
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\agents\agent.py", line 1432, in _call
+    next_step_output = self._take_next_step(
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\agents\agent.py", line 1138, in _take_next_step
+    [
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\agents\agent.py", line 1138, in <listcomp>
+    [
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\agents\agent.py", line 1166, in _iter_next_step
+    output = self.agent.plan(
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\agents\agent.py", line 397, in plan
+    for chunk in self.runnable.stream(inputs, config={"callbacks": callbacks}):
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 2875, in stream
+    yield from self.transform(iter([input]), config, **kwargs)
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 2862, in transform
+    yield from self._transform_stream_with_config(
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 1881, in _transform_stream_with_config
+    chunk: Output = context.run(next, iterator)  # type: ignore
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 2826, in _transform
+    for output in final_pipeline:
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 1282, in transform
+    for ichunk in input:
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 4736, in transform
+    yield from self.bound.transform(
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 1282, in transform
+    for ichunk in input:
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 1300, in transform
+    yield from self.stream(final, config, **kwargs)
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 807, in stream
+    yield self.invoke(input, config, **kwargs)
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\prompts\base.py", line 128, in invoke
+    return self._call_with_config(
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 1626, in _call_with_config
+    context.run(
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\config.py", line 347, in call_func_with_variable_args
+    return func(input, **kwargs)  # type: ignore[call-arg]
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\prompts\base.py", line 111, in _format_prompt_with_error_handling
+    _inner_input = self._validate_input(inner_input)
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\prompts\base.py", line 103, in _validate_input
+    raise KeyError(
+KeyError: 'Input to PromptTemplate is missing variables {\'\\n  "action"\'}.  Expected: [\'\\n  "action"\', \'agent_scratchpad\', \'input\'] Received: [\'input\', \'intermediate_steps\', \'agent_scratchpad\']'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\app.py", line 185, in chat_endpoint
+    result = query_ml_agent(user_query, use_existing_model=use_existing_model)
+  File "C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\ml_agents.py", line 2174, in query_ml_agent
+    error_msg_detail = f"´¦Àí»úÆ÷Ñ§Ï°²éÑ¯Ê±·¢Éú´íÎó: {str(e_outer)}\n{traceback.format_exc()}\n"
+NameError: name 'traceback' is not defined
+2025-05-20 22:35:29,041 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 22:35:29] "[35m[1mPOST /api/chat HTTP/1.1[0m" 500 -
+2025-05-20 22:35:53,750 - app - INFO - API½ÓÊÕµ½²éÑ¯: '½âÊÍÒ»ÏÂÊ²Ã´ÊÇK¾ùÖµ¾ÛÀàËã·¨¡£'
+2025-05-20 22:35:53,751 - app - INFO - Ê¹ÓÃÔöÇ¿°æRAGÏµÍ³´¦Àí³£¹æ/ÖªÊ¶Àà²éÑ¯
+2025-05-20 22:35:54,034 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/embeddings "HTTP/1.1 200 OK"
+2025-05-20 22:36:04,001 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-20 22:36:04,252 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/embeddings "HTTP/1.1 200 OK"
+2025-05-20 22:36:04,288 - app - INFO - RAG½á¹ûÖÊÁ¿²»¼Ñ£¬ÇÐ»»µ½Ö±½Ó´óÄ£ÐÍ»Ø´ð
+2025-05-20 22:36:40,648 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-20 22:36:40,649 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 22:36:40] "POST /api/chat HTTP/1.1" 200 -
+2025-05-20 22:38:17,690 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 22:38:17] "[31m[1mPOST /api/ml/compare_models HTTP/1.1[0m" 400 -
+2025-05-20 22:38:26,169 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 22:38:26] "[31m[1mPOST /api/ml/ensemble HTTP/1.1[0m" 400 -
+2025-05-20 22:47:36,956 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-20 22:47:36,956 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-20 22:47:36,957 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 22:47:36] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-20 22:47:50,157 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 22:47:50] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-20 22:47:50,193 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 22:47:50] "POST /api/ml/analyze HTTP/1.1" 200 -
+2025-05-20 22:48:02,521 - app - INFO - API½ÓÊÕµ½²éÑ¯: 'Ê¹ÓÃLinear Regression CO PM25¶ÔÊý¾Ý½øÐÐÊ¹ÓÃÒÑÓÐÄ£ÐÍÔ¤²â£¬²¢ÆÀ¹ÀÆäÐÔÄÜ¡£'
+2025-05-20 22:48:02,521 - app - INFO - ¼ì²âµ½»úÆ÷Ñ§Ï°²Ù×÷Àà²éÑ¯£¬½«Ê¹ÓÃÔöÇ¿°æML Agent´¦Àí
+2025-05-20 22:48:02,569 - app - WARNING - ÔöÇ¿°æML´úÀí´¦ÀíÊ§°Ü£¬»ØÍËµ½±ê×¼ML´úÀí: name 'traceback' is not defined
+2025-05-20 22:48:02,599 - app - ERROR - /api/chat ½Ó¿Ú·¢Éú´íÎó: name 'traceback' is not defined
+Traceback (most recent call last):
+  File "C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\ml_agents.py", line 2111, in query_ml_agent
+    response = agent.invoke({"input": question})
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\chains\base.py", line 163, in invoke
+    raise e
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\chains\base.py", line 153, in invoke
+    self._call(inputs, run_manager=run_manager)
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\agents\agent.py", line 1432, in _call
+    next_step_output = self._take_next_step(
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\agents\agent.py", line 1138, in _take_next_step
+    [
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\agents\agent.py", line 1138, in <listcomp>
+    [
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\agents\agent.py", line 1166, in _iter_next_step
+    output = self.agent.plan(
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\agents\agent.py", line 397, in plan
+    for chunk in self.runnable.stream(inputs, config={"callbacks": callbacks}):
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 2875, in stream
+    yield from self.transform(iter([input]), config, **kwargs)
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 2862, in transform
+    yield from self._transform_stream_with_config(
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 1881, in _transform_stream_with_config
+    chunk: Output = context.run(next, iterator)  # type: ignore
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 2826, in _transform
+    for output in final_pipeline:
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 1282, in transform
+    for ichunk in input:
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 4736, in transform
+    yield from self.bound.transform(
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 1282, in transform
+    for ichunk in input:
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 1300, in transform
+    yield from self.stream(final, config, **kwargs)
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 807, in stream
+    yield self.invoke(input, config, **kwargs)
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\prompts\base.py", line 128, in invoke
+    return self._call_with_config(
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 1626, in _call_with_config
+    context.run(
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\config.py", line 347, in call_func_with_variable_args
+    return func(input, **kwargs)  # type: ignore[call-arg]
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\prompts\base.py", line 111, in _format_prompt_with_error_handling
+    _inner_input = self._validate_input(inner_input)
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\prompts\base.py", line 103, in _validate_input
+    raise KeyError(
+KeyError: 'Input to PromptTemplate is missing variables {\'\\n  "action"\'}.  Expected: [\'\\n  "action"\', \'agent_scratchpad\', \'input\'] Received: [\'input\', \'intermediate_steps\', \'agent_scratchpad\']'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\app.py", line 188, in chat_endpoint
+    result = enhanced_query_ml_agent(user_query, use_existing_model=use_existing_model)
+  File "C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\ml_agents_enhanced.py", line 147, in enhanced_query_ml_agent
+    result = query_ml_agent(query, use_existing_model)
+  File "C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\ml_agents.py", line 2174, in query_ml_agent
+    error_msg_detail = f"´¦Àí»úÆ÷Ñ§Ï°²éÑ¯Ê±·¢Éú´íÎó: {str(e_outer)}\n{traceback.format_exc()}\n"
+NameError: name 'traceback' is not defined
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\ml_agents.py", line 2111, in query_ml_agent
+    response = agent.invoke({"input": question})
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\chains\base.py", line 163, in invoke
+    raise e
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\chains\base.py", line 153, in invoke
+    self._call(inputs, run_manager=run_manager)
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\agents\agent.py", line 1432, in _call
+    next_step_output = self._take_next_step(
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\agents\agent.py", line 1138, in _take_next_step
+    [
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\agents\agent.py", line 1138, in <listcomp>
+    [
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\agents\agent.py", line 1166, in _iter_next_step
+    output = self.agent.plan(
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain\agents\agent.py", line 397, in plan
+    for chunk in self.runnable.stream(inputs, config={"callbacks": callbacks}):
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 2875, in stream
+    yield from self.transform(iter([input]), config, **kwargs)
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 2862, in transform
+    yield from self._transform_stream_with_config(
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 1881, in _transform_stream_with_config
+    chunk: Output = context.run(next, iterator)  # type: ignore
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 2826, in _transform
+    for output in final_pipeline:
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 1282, in transform
+    for ichunk in input:
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 4736, in transform
+    yield from self.bound.transform(
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 1282, in transform
+    for ichunk in input:
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 1300, in transform
+    yield from self.stream(final, config, **kwargs)
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 807, in stream
+    yield self.invoke(input, config, **kwargs)
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\prompts\base.py", line 128, in invoke
+    return self._call_with_config(
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\base.py", line 1626, in _call_with_config
+    context.run(
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\runnables\config.py", line 347, in call_func_with_variable_args
+    return func(input, **kwargs)  # type: ignore[call-arg]
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\prompts\base.py", line 111, in _format_prompt_with_error_handling
+    _inner_input = self._validate_input(inner_input)
+  File "C:\Users\86198\.conda\envs\YOLOv8\lib\site-packages\langchain_core\prompts\base.py", line 103, in _validate_input
+    raise KeyError(
+KeyError: 'Input to PromptTemplate is missing variables {\'\\n  "action"\'}.  Expected: [\'\\n  "action"\', \'agent_scratchpad\', \'input\'] Received: [\'input\', \'intermediate_steps\', \'agent_scratchpad\']'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\app.py", line 192, in chat_endpoint
+    result = query_ml_agent(user_query, use_existing_model=use_existing_model)
+  File "C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\ml_agents.py", line 2174, in query_ml_agent
+    error_msg_detail = f"´¦Àí»úÆ÷Ñ§Ï°²éÑ¯Ê±·¢Éú´íÎó: {str(e_outer)}\n{traceback.format_exc()}\n"
+NameError: name 'traceback' is not defined
+2025-05-20 22:48:02,605 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 22:48:02] "[35m[1mPOST /api/chat HTTP/1.1[0m" 500 -
+2025-05-20 22:49:23,770 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 22:49:23] "[31m[1mPOST /api/ml/compare_models HTTP/1.1[0m" 400 -
+2025-05-20 22:49:33,201 - werkzeug - INFO - 127.0.0.1 - - [20/May/2025 22:49:33] "[31m[1mPOST /api/ml/ensemble HTTP/1.1[0m" 400 -

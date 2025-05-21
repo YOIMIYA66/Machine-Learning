@@ -1,0 +1,9 @@
+{
+  "model_name": "decision_tree_air_quality",
+  "version": "20250516_162013",
+  "timestamp": "2025-05-16T16:20:13.801634",
+  "path": "ml_models\\decision_tree_air_quality_versions\\decision_tree_air_quality_v20250516_162013.pkl",
+  "description": "\u6d4b\u8bd5\u7248\u672c",
+  "author": "\u81ea\u52a8\u6d4b\u8bd5\u811a\u672c",
+  "accuracy": 0.95
+}
