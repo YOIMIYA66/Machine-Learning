@@ -181,8 +181,36 @@ def chat_endpoint():
     is_ml_query = any(keyword in user_query for keyword in ml_keywords)
     is_ml_ops = any(op in user_query for op in ml_ops_keywords)
     try:
+        # 优先处理通用大模型回答模式
+        # 前端实际传递的通用大模型模式的 mode 值为 'general_llm'
+        if data.get('mode') == 'general_llm': 
+            app.logger.info("检测到通用大模型回答模式，直接调用LLM API")
+            try:
+                direct_llm_response = enhanced_direct_query_llm(user_query)
+                return jsonify({
+                    "answer": direct_llm_response.get("answer", "未能获取回答。"),
+                    "source_documents": direct_llm_response.get("source_documents", []),
+                    "is_ml_query": False,
+                    "is_direct_answer": True,
+                    "model_used": direct_llm_response.get("model_name", "General LLM (Enhanced)")
+                })
+            except Exception as e_enhanced_llm:
+                app.logger.error(f"增强版通用大模型LLM调用失败: {str(e_enhanced_llm)}，尝试标准LLM", exc_info=True)
+                try:
+                    direct_llm_response = direct_query_llm(user_query)
+                    return jsonify({
+                        "answer": direct_llm_response.get("answer", "未能获取回答。"),
+                        "source_documents": direct_llm_response.get("source_documents", []),
+                        "is_ml_query": False,
+                        "is_direct_answer": True,
+                        "model_used": "General LLM (Standard)"
+                    })
+                except Exception as e_standard_llm:
+                    app.logger.error(f"标准通用大模型LLM调用也失败: {str(e_standard_llm)}", exc_info=True)
+                    return jsonify({"error": f"通用大模型处理时出错: {str(e_standard_llm)}"}), 500
+        
         # 检查是否为教程生成请求
-        if (data.get('mode') == 'data_analysis' and
+        elif (data.get('mode') == 'data_analysis' and
             data.get('data_preview') and
             data.get('model_name') and
             data.get('target_column')):

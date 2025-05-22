@@ -112,10 +112,11 @@
         */
 
         .selected-model-card .model-card-inner {
-            /* transform: rotateY(0deg) !important; */ /* Keep flip for consistency unless design dictates otherwise */
+            transform: rotateY(0deg) !important; /* Ensure selected card is always front-facing */
         }
         .selected-model-card .model-card-front {
-            background-color: var(--primary-hex) !important; /* Use primary color for selected front */
+            background-image: none !important; /* Explicitly remove any gradient */
+            background-color: var(--primary-hex) !important; /* Set solid blue background using CSS variable */
             border: 2px solid var(--primary-focus-hex) !important; /* Darker border for contrast */
             color: var(--primary-content-hex) !important; /* White text on primary bg */
         }
@@ -135,6 +136,14 @@
             background: var(--primary-hex) !important; /* Use shorthand to ensure solid color and override gradients */
             color: var(--primary-content-hex) !important;
             border: 2px solid var(--primary-focus-hex) !important; /* Consistent with selected front */
+        }
+        .selected-model-card .model-card-back::before {
+            display: none !important; /* Hide shine effect on selected card's back */
+        }
+
+        /* Ensure inner container of a selected, flipped card has no interfering background */
+        .model-card.selected-model-card.is-flipped .model-card-inner {
+            background: transparent !important;
         }
 
         .model-card { 
@@ -161,7 +170,7 @@
             box-shadow: 0 6px 10px -4px rgba(0,0,0,0.08), 0 2px 4px -3px rgba(0,0,0,0.05); /* Even softer initial shadow */
             border-radius: inherit; /* Inherit from .model-card */
         }
-        .model-card:hover .model-card-inner:not(.no-flip),
+        .model-card:not(.selected-model-card):hover .model-card-inner:not(.no-flip),
         .model-card.is-flipped .model-card-inner:not(.no-flip) {
             transform: rotateY(180deg);
             box-shadow: 0 12px 25px rgba(0,0,0,0.18), 0 5px 10px rgba(0,0,0,0.08); /* More pronounced shadow on flip */

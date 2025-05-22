@@ -1276,3 +1276,35 @@ ImportError: cannot import name 'get_deployment_metrics' from 'ml_api_endpoints_
 2025-05-22 10:19:19,722 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
 2025-05-22 10:19:19,722 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:19:19] "GET /api/ml/deployments HTTP/1.1" 200 -
 2025-05-22 10:19:19,970 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:19:19] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -
+2025-05-22 10:36:08,087 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:36:08] "GET / HTTP/1.1" 200 -
+2025-05-22 10:36:08,339 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:36:08] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-22 10:36:08,599 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-22 10:36:08,600 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-22 10:36:08,600 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:36:08] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-22 10:36:08,711 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:36:08] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -
+2025-05-22 10:44:34,798 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:44:34] "GET / HTTP/1.1" 200 -
+2025-05-22 10:44:35,051 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:44:35] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2025-05-22 10:44:35,332 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-22 10:44:35,334 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-22 10:44:35,336 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:44:35] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-22 10:44:35,430 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:44:35] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -
+2025-05-22 10:48:26,401 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:48:26] "GET / HTTP/1.1" 200 -
+2025-05-22 10:48:26,650 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:48:26] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2025-05-22 10:48:26,733 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-22 10:48:26,734 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-22 10:48:26,735 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:48:26] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-22 10:48:26,972 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:48:26] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -
+2025-05-22 10:53:44,990 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:53:44] "GET / HTTP/1.1" 200 -
+2025-05-22 10:53:45,242 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:53:45] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2025-05-22 10:53:45,519 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-22 10:53:45,519 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-22 10:53:45,520 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:53:45] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-22 10:53:45,605 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:53:45] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -
+2025-05-22 11:17:24,600 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-22 11:17:24,601 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-22 11:17:24,603 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 11:17:24] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-22 11:17:24,718 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 11:17:24] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -
+2025-05-22 11:27:18,039 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-22 11:27:18,040 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-22 11:27:18,040 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 11:27:18] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-22 11:27:18,134 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 11:27:18] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -

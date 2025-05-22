@@ -739,9 +739,17 @@ async function loadAvailableModels() {
                     if (event.target.closest('.model-card')) {
                         const currentCard = event.target.closest('.model-card');
                         // 如果卡片已被选中，则不执行翻转，保持正面显示
+                        // if (!currentCard.classList.contains('selected-model-card')) {
+                        //     currentCard.classList.toggle('is-flipped');
+                        // }
+                        // 上述翻转逻辑已移至 initModelSelectionDelegation 统一处理，此处不再单独切换翻转状态
+                        // 仅当卡片未被选中时，允许通过点击（非选择操作）来翻转查看背面信息
+                        // 真正的选择逻辑会确保选中的卡片是正面朝上的
                         if (!currentCard.classList.contains('selected-model-card')) {
-                            currentCard.classList.toggle('is-flipped');
+                             // 允许用户点击非选中的卡片来查看背面，但这个翻转是临时的
+                             // is-flipped 状态会在 initModelSelectionDelegation 中被正确管理
                         }
+
                     }
                 });
                 
@@ -842,6 +850,7 @@ function initModelSelectionDelegation() {
         // 移除所有卡片的选中样式
         grid.querySelectorAll('.model-card').forEach(c => {
             c.classList.remove('selected-model-card', 'bg-blue-600', 'text-white', 'border-blue-700', 'shadow-xl');
+            c.classList.remove('is-flipped'); // 确保所有卡片都恢复到正面
             c.classList.add('bg-base-100', 'border-base-300', 'shadow-md'); // 恢复默认样式
             const icon = c.querySelector('i.fas');
             if (icon) {
@@ -853,6 +862,7 @@ function initModelSelectionDelegation() {
         // 为选中的卡片添加新样式 (参考图片中的蓝色选中效果)
         targetCard.classList.add('selected-model-card', 'bg-blue-600', 'text-white', 'border-blue-700', 'shadow-xl');
         targetCard.classList.remove('bg-base-100', 'border-base-300', 'shadow-md');
+        targetCard.classList.remove('is-flipped'); // 确保选中的卡片正面朝上
         
         const icon = targetCard.querySelector('i.fas');
         if (icon) {
@@ -1385,8 +1395,8 @@ function initExampleQueries() {
     const examples = [
         { text: "这份数据适合用什么模型进行分析？", query: "根据当前数据特点，推荐合适的分析模型。", mode: "data_analysis" },
         { text: "如果我想预测[目标列名]，哪些特征最重要？", query: "如果目标是[目标列名]，请分析各特征的重要性。", mode: "data_analysis" },
-        { text: "使用[模型名称]模型对[目标列名]进行预测，并展示结果。", query: "请使用[模型名称]模型，以[目标列名]为目标进行预测，并告诉我预测结果和评估指标。", mode: "data_analysis" },
-        { text: "请解释[模型名称]模型的原理及其优缺点。", query: "详细解释一下[模型名称]模型的工作原理、适用场景以及主要的优缺点是什么？", mode: "general_llm" }, // Changed mode to general_llm as it's a knowledge question
+        { text: "使用[当前模型]模型对[目标列名]进行预测，并展示结果。", query: "请使用[当前模型]模型，以[目标列名]为目标进行预测，并告诉我预测结果和评估指标。", mode: "data_analysis" },
+        { text: "请解释[当前模型]模型的原理及其优缺点。", query: "详细解释一下[当前模型]模型的工作原理、适用场景以及主要的优缺点是什么？", mode: "data_analysis" }, // Changed mode to general_llm as it's a knowledge question
         { text: "如何解读当前模型的[具体指标，如AUC或R方]？", query: "当前模型训练结果中的[具体指标，如AUC或R方]代表什么意义？这个数值表现如何？", mode: "data_analysis" },
         { text: "机器学习和传统编程有什么区别？", query: "机器学习与传统编程的主要区别是什么？", mode: "general_llm" },
         { text: "什么是监督学习和无监督学习？请举例说明。", query: "请解释监督学习和无监督学习的概念，并分别给出一个实际应用的例子。", mode: "general_llm" },
