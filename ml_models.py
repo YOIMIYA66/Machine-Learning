@@ -5,7 +5,10 @@ import numpy as np
 import pandas as pd
 import json
 import datetime
-from typing import Dict, Any, List, Optional, Tuple, Union
+import time
+import threading
+from functools import lru_cache
+from typing import Dict, Any, List, Optional, Tuple, Union, Callable
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.linear_model import LinearRegression, LogisticRegression
@@ -18,12 +21,22 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import (
     accuracy_score, precision_score, recall_score, f1_score,
     mean_squared_error, r2_score, mean_absolute_error,
-    classification_report, confusion_matrix
+    classification_report, confusion_matrix, roc_auc_score,
+    explained_variance_score
 )
+import multiprocessing
+from joblib import Parallel, delayed
+import inspect  # 用于检查模型类的参数签名
 
 # 模型保存目录
 MODELS_DIR = "ml_models"
 os.makedirs(MODELS_DIR, exist_ok=True)
+
+# 模型缓存系统
+_MODEL_CACHE = {}  # 模型缓存字典
+_MODEL_CACHE_LOCK = threading.RLock()  # 缓存锁
+_MODEL_CACHE_MAX_SIZE = 10  # 最大缓存模型数量
+_MODEL_CACHE_ACCESS_TIMES = {}  # 记录每个模型的最后访问时间
 
 # 模型映射表，便于通过名称查找模型
 MODEL_TYPES = {
@@ -203,99 +216,95 @@ def train_model(
         test_size: 测试集比例
         
     返回:
-        Dictionary包含训练结果和评估指标
-        
-    可能抛出的异常:
-        ValueError: 当模型类型不支持或数据格式不正确时
-        FileNotFoundError: 当数据文件不存在时
-        KeyError: 当目标列不存在时
+        包含模型信息的字典
     """
-    print(f"[INFO] 开始训练 {model_type} 模型...")
-    # 加载数据
+    # 加载数据（如果是文件路径）
     if isinstance(data, str):
         if data.endswith('.csv'):
-            data = pd.read_csv(data, keep_default_na=False, na_values=['NaN', 'N/A', 'NA', 'nan', 'null'])
-        elif data.endswith( ('.xls', '.xlsx') ):
-            data = pd.read_excel(data, keep_default_na=False, na_values=['NaN', 'N/A', 'NA', 'nan', 'null'])
-        elif data.endswith('.json'):
-            data = pd.read_json(data)
-            data = data.fillna('')
+            df = pd.read_csv(data)
+        elif data.endswith('.xlsx'):
+            df = pd.read_excel(data)
         else:
-            raise ValueError("支持的文件格式: CSV, Excel (.xls, .xlsx), JSON (.json)")
+            raise ValueError(f"不支持的文件格式: {data}")
         
-        # 检查数据是否为空
-        if data.empty:
-            raise ValueError("加载的数据为空，请检查文件内容")
-            
-        # 处理缺失值
-        if data.isna().any().any():
-            print("警告：数据中存在缺失值，将使用适当的策略处理")
-            # 对数值列使用均值填充，对分类列使用众数填充
-            for col in data.columns:
-                if pd.api.types.is_numeric_dtype(data[col]):
-                    data[col] = data[col].fillna(data[col].mean())
-                else:
-                    data[col] = data[col].fillna(data[col].mode()[0] if not data[col].mode().empty else '')
+        # 对大型数据集进行内存优化
+        if len(df) > 10000 or df.memory_usage().sum() > 100*1024*1024:  # 10k行或100MB
+            df = optimize_dataframe_memory(df)
+    else:
+        df = data.copy()
     
-    # 检查模型类型是否支持
+    # 如果模型类型无效，引发错误
     if model_type not in MODEL_TYPES:
-        error_msg = f"不支持的模型类型: {model_type}. 支持的类型有: {', '.join(MODEL_TYPES.keys())}"
-        print(f"[ERROR] {error_msg}")
-        raise ValueError(error_msg)
+        valid_types = list(MODEL_TYPES.keys())
+        raise ValueError(f"无效的模型类型: {model_type}。有效类型: {valid_types}")
     
-    # 预处理数据
+    # 自动识别分类和数值特征（如果未指定）
+    if categorical_columns is None or numerical_columns is None:
+        categorical_cols = []
+        numerical_cols = []
+        
+        for col in df.columns:
+            if col == target_column:
+                continue
+                
+            if pd.api.types.is_numeric_dtype(df[col]):
+                if df[col].nunique() < min(10, len(df) // 10):  # 如果唯一值较少，可能是分类变量
+                    categorical_cols.append(col)
+                else:
+                    numerical_cols.append(col)
+            else:
+                categorical_cols.append(col)
+        
+        categorical_columns = categorical_columns or categorical_cols
+        numerical_columns = numerical_columns or numerical_cols
+    
+    # 数据预处理
     X_train, X_test, y_train, y_test, preprocessors = preprocess_data(
-        data,
-        target_column,
-        categorical_columns,
-        numerical_columns,
-        test_size
+        df, target_column, categorical_columns, numerical_columns, test_size
     )
     
-    # 创建并训练模型
-    model_cls = MODEL_TYPES[model_type]
-    model = model_cls(**(model_params or {}))
+    # 使用默认参数或自定义参数创建模型
+    if model_params is None:
+        model_params = DEFAULT_MODEL_PARAMS.get(model_type, {})
+    
+    # 实例化模型
+    model = MODEL_TYPES[model_type](**model_params)
+    
+    # 训练模型
     model.fit(X_train, y_train)
     
-    # 进行预测
-    y_pred = model.predict(X_test)
-    
     # 评估模型
-    metrics = {}
-    if model_type in ["linear_regression", "random_forest_regressor"]:
-        # 回归模型评估
-        metrics = {
-            "mse": mean_squared_error(y_test, y_pred),
-            "rmse": np.sqrt(mean_squared_error(y_test, y_pred)),
-            "mae": mean_absolute_error(y_test, y_pred),
-            "r2": r2_score(y_test, y_pred)
-        }
-    else:
-        # 分类模型评估
-        metrics = {
-            "accuracy": accuracy_score(y_test, y_pred),
-            "precision": precision_score(y_test, y_pred, average="weighted", zero_division=0),
-            "recall": recall_score(y_test, y_pred, average="weighted", zero_division=0),
-            "f1": f1_score(y_test, y_pred, average="weighted", zero_division=0),
-            "classification_report": classification_report(y_test, y_pred, output_dict=True)
-        }
+    metrics = evaluate_model(model, X_test, y_test, model_type)
     
-    # 生成模型名称
+    # 生成唯一模型名称（如果未提供）
     if model_name is None:
-        model_name = f"{model_type}_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}"
-        
-    # 保存模型和预处理器
-    model_path = os.path.join(MODELS_DIR, f"{model_name}.pkl")
-    with open(model_path, "wb") as f:
-        pickle.dump((model, preprocessors), f)
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        model_name = f"{model_type}_{timestamp}"
     
-    return {
-        "model_name": model_name,
+    # 保存模型、预处理器和元数据
+    metadata = {
         "model_type": model_type,
-        "model_path": model_path,
         "target_column": target_column,
         "categorical_columns": categorical_columns,
         "numerical_columns": numerical_columns,
+        "metrics": metrics,
+        "model_params": model_params,
+        "created_at": datetime.datetime.now().isoformat(),
+        "data_shape": df.shape,
+        "data_columns": df.columns.tolist(),
+    }
+    
+    # 保存模型
+    model_path = os.path.join(MODELS_DIR, f"{model_name}.pkl")
+    with open(model_path, "wb") as f:
+        pickle.dump((model, preprocessors, metadata), f)
+    
+    print(f"模型已保存至: {model_path}")
+    
+    # 返回结果
+    return {
+        "model_name": model_name,
+        "model_type": model_type,
         "metrics": metrics,
         "feature_importance": getattr(model, "feature_importances_", None)
     }
@@ -303,33 +312,91 @@ def train_model(
 # 加载模型函数
 def load_model(model_name: str) -> Tuple[Any, Dict[str, Any], Dict[str, Any]]:
     """
-    从文件加载机器学习模型和预处理器
+    从文件加载机器学习模型和预处理器，使用缓存优化性能
     
     返回:
         (模型对象, 预处理器, 元数据)
     """
+    # 获取模型文件路径
     model_path = os.path.join(MODELS_DIR, f"{model_name}.pkl")
-    with open(model_path, "rb") as f:
-        loaded_data = pickle.load(f)
-        
-    # 处理不同格式的模型文件
-    if isinstance(loaded_data, tuple):
-        if len(loaded_data) == 2:
-            # 旧格式: (model, preprocessors)
-            model, preprocessors = loaded_data
-            metadata = {}
-        elif len(loaded_data) == 3:
-            # 新格式: (model, preprocessors, metadata)
-            model, preprocessors, metadata = loaded_data
-        else:
-            raise ValueError(f"未知的模型文件格式，元组长度: {len(loaded_data)}")
-    else:
-        # 单一对象格式
-        model = loaded_data
-        preprocessors = {}
-        metadata = {}
     
-    return model, preprocessors, metadata
+    if not os.path.exists(model_path):
+        raise FileNotFoundError(f"模型文件不存在: {model_path}")
+    
+    # 获取文件的修改时间作为缓存键的一部分
+    file_mtime = os.path.getmtime(model_path)
+    cache_key = f"{model_name}_{file_mtime}"
+    
+    # 检查缓存
+    with _MODEL_CACHE_LOCK:
+        if cache_key in _MODEL_CACHE:
+            # 更新访问时间
+            _MODEL_CACHE_ACCESS_TIMES[cache_key] = time.time()
+            return _MODEL_CACHE[cache_key]
+        
+        # 从文件加载模型
+        start_time = time.time()
+        try:
+            with open(model_path, "rb") as f:
+                loaded_data = pickle.load(f)
+            
+            # 处理不同格式的模型文件
+            if isinstance(loaded_data, tuple):
+                if len(loaded_data) == 2:
+                    # 旧格式: (model, preprocessors)
+                    model, preprocessors = loaded_data
+                    metadata = {}
+                elif len(loaded_data) == 3:
+                    # 新格式: (model, preprocessors, metadata)
+                    model, preprocessors, metadata = loaded_data
+                else:
+                    raise ValueError(f"未知的模型文件格式，元组长度: {len(loaded_data)}")
+            else:
+                # 单一对象格式
+                model = loaded_data
+                preprocessors = {}
+                metadata = {}
+            
+            # 记录加载时间
+            load_time = time.time() - start_time
+            print(f"模型 {model_name} 加载耗时: {load_time:.4f}秒")
+            
+            # 缓存结果
+            result = (model, preprocessors, metadata)
+            
+            # 检查缓存大小，如果超过限制则移除最老的
+            if len(_MODEL_CACHE) >= _MODEL_CACHE_MAX_SIZE:
+                _clean_model_cache()
+            
+            _MODEL_CACHE[cache_key] = result
+            _MODEL_CACHE_ACCESS_TIMES[cache_key] = time.time()
+            
+            return result
+        except Exception as e:
+            print(f"加载模型 {model_name} 时出错: {str(e)}")
+            raise
+
+def _clean_model_cache():
+    """清理模型缓存，移除最久未访问的模型"""
+    if not _MODEL_CACHE:
+        return
+    
+    # 按访问时间排序
+    sorted_keys = sorted(_MODEL_CACHE_ACCESS_TIMES.keys(), 
+                         key=lambda k: _MODEL_CACHE_ACCESS_TIMES[k])
+    
+    # 移除最久未访问的模型
+    oldest_key = sorted_keys[0]
+    _MODEL_CACHE.pop(oldest_key, None)
+    _MODEL_CACHE_ACCESS_TIMES.pop(oldest_key, None)
+    print(f"从缓存中移除最久未访问的模型: {oldest_key.split('_')[0]}")
+
+def clear_model_cache():
+    """清空模型缓存"""
+    with _MODEL_CACHE_LOCK:
+        _MODEL_CACHE.clear()
+        _MODEL_CACHE_ACCESS_TIMES.clear()
+    print("模型缓存已清空")
 
 # 预测函数 - 使用已训练模型进行预测
 def predict(
@@ -1224,3 +1291,552 @@ def optimize_ensemble_weights(base_models, X, y, n_trials=10):
             best_weights = weights
     
     return best_weights
+
+def optimize_dataframe_memory(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    优化DataFrame的内存使用，对大型数据集特别有效
+    
+    Args:
+        df: 输入的DataFrame
+        
+    Returns:
+        优化后的DataFrame
+    """
+    start_mem = df.memory_usage().sum() / 1024**2
+    print(f"原始DataFrame内存使用: {start_mem:.2f} MB")
+    
+    optimized_df = df.copy()
+    
+    # 数值类型优化
+    for col in df.columns:
+        col_type = df[col].dtype
+        
+        # 整数类型优化
+        if pd.api.types.is_integer_dtype(col_type):
+            c_min = df[col].min()
+            c_max = df[col].max()
+            
+            # 根据值范围选择最小的整数类型
+            if c_min >= 0:
+                if c_max < 256:
+                    optimized_df[col] = df[col].astype(np.uint8)
+                elif c_max < 65536:
+                    optimized_df[col] = df[col].astype(np.uint16)
+                elif c_max < 4294967296:
+                    optimized_df[col] = df[col].astype(np.uint32)
+                else:
+                    optimized_df[col] = df[col].astype(np.uint64)
+            else:
+                if c_min > -128 and c_max < 128:
+                    optimized_df[col] = df[col].astype(np.int8)
+                elif c_min > -32768 and c_max < 32768:
+                    optimized_df[col] = df[col].astype(np.int16)
+                elif c_min > -2147483648 and c_max < 2147483648:
+                    optimized_df[col] = df[col].astype(np.int32)
+                else:
+                    optimized_df[col] = df[col].astype(np.int64)
+                    
+        # 浮点类型优化
+        elif pd.api.types.is_float_dtype(col_type):
+            # 检查是否可以用较小精度的浮点数
+            optimized_df[col] = df[col].astype(np.float32)
+            
+        # 对象类型优化 (主要是字符串)
+        elif pd.api.types.is_object_dtype(col_type):
+            # 检查是否可以转为分类类型
+            if df[col].nunique() < 0.5 * len(df):
+                optimized_df[col] = df[col].astype('category')
+    
+    end_mem = optimized_df.memory_usage().sum() / 1024**2
+    print(f"优化后DataFrame内存使用: {end_mem:.2f} MB, 减少了 {100 * (start_mem - end_mem) / start_mem:.1f}%")
+    
+    return optimized_df
+
+def evaluate_model(model, X_test, y_test, model_type: str) -> Dict[str, Any]:
+    """
+    评估模型性能，返回相关评估指标
+    
+    Args:
+        model: 训练好的模型
+        X_test: 测试集特征
+        y_test: 测试集标签
+        model_type: 模型类型
+        
+    Returns:
+        包含评估指标的字典
+    """
+    # 进行预测
+    y_pred = model.predict(X_test)
+    
+    # 初始化指标字典
+    metrics = {}
+    
+    # 判断模型类型并计算相应指标
+    if any(t in model_type for t in ["regression", "svr", "lars"]):
+        # 回归模型评估
+        metrics = {
+            "mse": float(mean_squared_error(y_test, y_pred)),
+            "rmse": float(np.sqrt(mean_squared_error(y_test, y_pred))),
+            "mae": float(mean_absolute_error(y_test, y_pred)),
+            "r2": float(r2_score(y_test, y_pred)),
+            "explained_variance": float(explained_variance_score(y_test, y_pred))
+        }
+    else:
+        # 分类模型评估
+        try:
+            # 处理可能的数据类型问题
+            y_test = np.array(y_test)
+            y_pred = np.array(y_pred)
+            
+            # 基本分类指标
+            metrics = {
+                "accuracy": float(accuracy_score(y_test, y_pred)),
+                "precision": float(precision_score(y_test, y_pred, average="weighted", zero_division=0)),
+                "recall": float(recall_score(y_test, y_pred, average="weighted", zero_division=0)),
+                "f1": float(f1_score(y_test, y_pred, average="weighted", zero_division=0))
+            }
+            
+            # 对于二分类问题，添加额外的指标
+            if len(np.unique(y_test)) == 2:
+                # 确保模型有predict_proba方法
+                if hasattr(model, 'predict_proba'):
+                    y_prob = model.predict_proba(X_test)[:, 1]
+                    metrics["roc_auc"] = float(roc_auc_score(y_test, y_prob))
+                
+                # 添加混淆矩阵
+                cm = confusion_matrix(y_test, y_pred)
+                tn, fp, fn, tp = cm.ravel()
+                metrics["confusion_matrix"] = {
+                    "true_negative": int(tn),
+                    "false_positive": int(fp),
+                    "false_negative": int(fn),
+                    "true_positive": int(tp)
+                }
+                
+                # 计算特异性和敏感性
+                specificity = tn / (tn + fp) if (tn + fp) > 0 else 0
+                sensitivity = tp / (tp + fn) if (tp + fn) > 0 else 0
+                metrics["specificity"] = float(specificity)
+                metrics["sensitivity"] = float(sensitivity)
+            
+            # 添加详细的分类报告
+            report = classification_report(y_test, y_pred, output_dict=True)
+            # 转换数据类型以确保JSON可序列化
+            json_report = {}
+            for k, v in report.items():
+                if isinstance(v, dict):
+                    json_report[k] = {sk: float(sv) for sk, sv in v.items() if not isinstance(sv, np.ndarray)}
+                elif not isinstance(v, np.ndarray):
+                    json_report[k] = float(v)
+            
+            metrics["classification_report"] = json_report
+            
+        except Exception as e:
+            # 记录评估过程中的错误，但不中断执行
+            print(f"评估模型时发生错误: {str(e)}")
+            metrics["evaluation_error"] = str(e)
+    
+    # 确保所有指标都是JSON可序列化的
+    return {k: (float(v) if isinstance(v, (np.number, np.ndarray)) else v) 
+            for k, v in metrics.items()}
+
+# 添加对大型数据集的处理函数
+def process_large_dataset(
+    data_path: str, 
+    processing_func: Callable, 
+    chunk_size: int = 100000,
+    **kwargs
+) -> Any:
+    """
+    分块处理大型数据集文件
+    
+    Args:
+        data_path: 数据文件路径
+        processing_func: 处理每个数据块的函数
+        chunk_size: 每个块的行数
+        **kwargs: 传递给处理函数的额外参数
+        
+    Returns:
+        处理结果，根据处理函数的返回值而定
+    """
+    if not os.path.exists(data_path):
+        raise FileNotFoundError(f"数据文件不存在: {data_path}")
+    
+    file_extension = os.path.splitext(data_path)[1].lower()
+    
+    results = []
+    
+    try:
+        # CSV文件处理
+        if file_extension == '.csv':
+            # 首先检查文件大小
+            file_size = os.path.getsize(data_path) / (1024 * 1024)  # MB
+            print(f"处理CSV文件: {data_path}, 大小: {file_size:.2f} MB")
+            
+            # 如果文件较小，直接处理
+            if file_size < 100:  # 小于100MB直接读取
+                df = pd.read_csv(data_path)
+                return processing_func(df, **kwargs)
+            
+            # 分块读取大文件
+            reader = pd.read_csv(data_path, chunksize=chunk_size)
+            for i, chunk in enumerate(reader):
+                print(f"处理数据块 {i+1}, 大小: {len(chunk)} 行")
+                chunk_result = processing_func(chunk, **kwargs)
+                results.append(chunk_result)
+                
+        # Excel文件处理
+        elif file_extension in ['.xlsx', '.xls']:
+            # Excel文件通常较小，直接读取
+            df = pd.read_excel(data_path)
+            return processing_func(df, **kwargs)
+            
+        # Parquet文件处理（高效存储格式）
+        elif file_extension == '.parquet':
+            # 分块读取
+            df = pd.read_parquet(data_path)
+            total_rows = len(df)
+            
+            # 如果行数少于chunk_size，直接处理
+            if total_rows <= chunk_size:
+                return processing_func(df, **kwargs)
+            
+            # 分块处理
+            for i in range(0, total_rows, chunk_size):
+                end = min(i + chunk_size, total_rows)
+                print(f"处理数据块 {i//chunk_size + 1}, 行 {i} 到 {end}")
+                chunk = df.iloc[i:end]
+                chunk_result = processing_func(chunk, **kwargs)
+                results.append(chunk_result)
+                
+        else:
+            raise ValueError(f"不支持的文件格式: {file_extension}")
+            
+        # 合并结果
+        if results and hasattr(results[0], '__add__'):
+            # 如果结果可以相加（例如列表、数据帧等）
+            final_result = results[0]
+            for result in results[1:]:
+                final_result += result
+            return final_result
+        else:
+            # 否则返回结果列表
+            return results
+            
+    except Exception as e:
+        print(f"处理大型数据集时出错: {str(e)}")
+        raise
+
+def batch_predict(
+    model_name: str,
+    data_path: str,
+    output_path: str = None,
+    chunk_size: int = 100000
+) -> str:
+    """
+    分批处理大型数据集进行预测，避免内存溢出
+    
+    Args:
+        model_name: 模型名称
+        data_path: 输入数据路径
+        output_path: 输出结果路径（可选）
+        chunk_size: 每批处理的行数
+        
+    Returns:
+        输出结果的文件路径
+    """
+    import csv  # 导入CSV模块用于文件操作
+    
+    print(f"开始批量预测，使用模型: {model_name}")
+    
+    # 如果未指定输出路径，生成一个
+    if output_path is None:
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        basename = os.path.splitext(os.path.basename(data_path))[0]
+        output_path = f"{basename}_predictions_{timestamp}.csv"
+    
+    # 加载模型
+    model, preprocessors, metadata = load_model(model_name)
+    
+    # 获取特征列
+    categorical_columns = metadata.get("categorical_columns", [])
+    numerical_columns = metadata.get("numerical_columns", [])
+    all_features = categorical_columns + numerical_columns
+    
+    # 定义处理函数
+    def process_chunk(chunk):
+        # 验证数据
+        missing_cols = [col for col in all_features if col not in chunk.columns]
+        if missing_cols:
+            raise ValueError(f"数据中缺少以下特征列: {missing_cols}")
+        
+        # 提取特征
+        X = chunk[all_features].copy()
+        
+        # 应用预处理器
+        X_processed = apply_preprocessors(X, preprocessors, categorical_columns, numerical_columns)
+        
+        # 进行预测
+        predictions = model.predict(X_processed)
+        
+        # 创建结果DataFrame
+        result_df = chunk.copy()
+        result_df['prediction'] = predictions
+        
+        return result_df
+    
+    try:
+        # 分块处理数据
+        file_extension = os.path.splitext(data_path)[1].lower()
+        
+        # 对于CSV文件的特殊处理
+        if file_extension == '.csv':
+            # 先读取一小部分来获取列名
+            sample_df = pd.read_csv(data_path, nrows=5)
+            headers = sample_df.columns.tolist()
+            
+            # 打开输出文件
+            with open(output_path, 'w', newline='') as f_out:
+                # 写入表头
+                writer = csv.writer(f_out)
+                writer.writerow(headers + ['prediction'])
+                
+                # 分块读取和处理
+                for chunk in pd.read_csv(data_path, chunksize=chunk_size):
+                    # 处理数据块
+                    result_chunk = process_chunk(chunk)
+                    
+                    # 写入结果（不包含表头）
+                    result_chunk.to_csv(f_out, header=False, index=False, mode='a')
+        else:
+            # 对于其他文件格式，使用通用处理方法
+            results = process_large_dataset(
+                data_path=data_path,
+                processing_func=process_chunk,
+                chunk_size=chunk_size
+            )
+            
+            # 保存结果
+            if isinstance(results, pd.DataFrame):
+                results.to_csv(output_path, index=False)
+            elif isinstance(results, list):
+                # 合并所有结果
+                pd.concat(results).to_csv(output_path, index=False)
+        
+        print(f"批量预测完成，结果已保存至: {output_path}")
+        return output_path
+        
+    except Exception as e:
+        print(f"批量预测过程中出错: {str(e)}")
+        raise
+
+def apply_preprocessors(X, preprocessors, categorical_columns, numerical_columns):
+    """
+    应用预处理器到输入数据
+    
+    Args:
+        X: 输入特征
+        preprocessors: 预处理器字典
+        categorical_columns: 分类特征列表
+        numerical_columns: 数值特征列表
+        
+    Returns:
+        处理后的特征矩阵
+    """
+    X_processed = X.copy()
+    
+    # 应用标签编码器
+    if 'label_encoders' in preprocessors and categorical_columns:
+        for col in categorical_columns:
+            if col in X_processed.columns and col in preprocessors['label_encoders']:
+                le = preprocessors['label_encoders'][col]
+                # 处理未知类别
+                X_processed[col] = X_processed[col].astype(str)
+                unique_values = set(X_processed[col].unique())
+                known_values = set(le.classes_)
+                unknown_values = unique_values - known_values
+                
+                if unknown_values:
+                    print(f"警告: 列 {col} 包含未知类别: {unknown_values}")
+                    # 将未知类别设为最常见类别
+                    most_common = X_processed[col][X_processed[col].isin(known_values)].mode()
+                    most_common = most_common[0] if not most_common.empty else le.classes_[0]
+                    X_processed.loc[X_processed[col].isin(unknown_values), col] = most_common
+                
+                X_processed[col] = le.transform(X_processed[col])
+    
+    # 应用标准化器
+    if 'scaler' in preprocessors and numerical_columns:
+        numeric_cols_present = [col for col in numerical_columns if col in X_processed.columns]
+        if numeric_cols_present:
+            X_processed[numeric_cols_present] = preprocessors['scaler'].transform(X_processed[numeric_cols_present])
+    
+    return X_processed.values
+
+def parallel_process(func, items, n_jobs=None, backend='multiprocessing', **kwargs):
+    """
+    并行执行函数以加速处理
+    
+    Args:
+        func: 要并行执行的函数
+        items: 要处理的项目列表
+        n_jobs: 并行任务数（None表示使用所有可用CPU核心）
+        backend: 并行后端 ('multiprocessing', 'threading', 'loky')
+        **kwargs: 传递给func的其他参数
+        
+    Returns:
+        处理结果列表
+    """
+    if n_jobs is None:
+        n_jobs = max(1, multiprocessing.cpu_count() - 1)  # 保留1个CPU核心给系统
+    
+    print(f"启动并行处理，使用{n_jobs}个工作线程")
+    results = Parallel(n_jobs=n_jobs, backend=backend)(
+        delayed(func)(item, **kwargs) for item in items
+    )
+    return results
+
+def parallel_feature_selection(
+    data: pd.DataFrame,
+    target_column: str,
+    n_jobs: int = -1,
+    method: str = 'mutual_info',
+    top_k: int = 10
+) -> List[str]:
+    """
+    使用并行计算加速特征选择
+    
+    Args:
+        data: 输入数据
+        target_column: 目标列名
+        n_jobs: 并行任务数，-1表示使用所有可用CPU
+        method: 特征选择方法 ('mutual_info', 'f_test', 'chi2')
+        top_k: 选择的特征数量
+        
+    Returns:
+        选择的特征列表
+    """
+    from sklearn.feature_selection import (
+        SelectKBest, mutual_info_classif, f_classif, chi2, mutual_info_regression, f_regression
+    )
+    
+    # 准备数据
+    X = data.drop(columns=[target_column])
+    y = data[target_column]
+    
+    # 确定问题类型和选择相应的评分函数
+    is_classification = isinstance(y.iloc[0], (str, bool)) or y.nunique() < 10
+    
+    if method == 'mutual_info':
+        score_func = mutual_info_classif if is_classification else mutual_info_regression
+    elif method == 'f_test':
+        score_func = f_classif if is_classification else f_regression
+    elif method == 'chi2' and is_classification:
+        # chi2只适用于分类问题，且特征值必须非负
+        score_func = chi2
+        # 确保所有特征都是非负的
+        for col in X.columns:
+            if X[col].min() < 0:
+                X[col] = X[col] - X[col].min()
+    else:
+        raise ValueError(f"不支持的特征选择方法: {method}")
+    
+    # 执行特征选择
+    selector = SelectKBest(score_func=score_func, k=min(top_k, X.shape[1]))
+    selector.fit(X, y)
+    
+    # 获取特征分数
+    scores = selector.scores_
+    
+    # 获取选中的特征
+    feature_scores = list(zip(X.columns, scores))
+    feature_scores.sort(key=lambda x: x[1], reverse=True)
+    
+    # 返回前k个特征
+    selected_features = [f[0] for f in feature_scores[:top_k]]
+    
+    return selected_features
+
+def parallel_train_model(
+    model_type: str,
+    data: pd.DataFrame,
+    target_column: str,
+    categorical_columns: List[str] = None,
+    numerical_columns: List[str] = None,
+    model_params: Dict[str, Any] = None,
+    n_jobs: int = -1,
+    cv: int = 5
+) -> Dict[str, Any]:
+    """
+    使用并行计算加速模型训练和交叉验证
+    
+    Args:
+        model_type: 模型类型
+        data: 输入数据
+        target_column: 目标列名
+        categorical_columns: 分类特征列表
+        numerical_columns: 数值特征列表
+        model_params: 模型参数
+        n_jobs: 并行任务数，-1表示使用所有可用CPU
+        cv: 交叉验证折数
+        
+    Returns:
+        训练好的模型和评估结果
+    """
+    from sklearn.model_selection import cross_val_score
+    
+    # 获取模型类
+    if model_type not in MODEL_TYPES:
+        valid_types = list(MODEL_TYPES.keys())
+        raise ValueError(f"无效的模型类型: {model_type}。有效类型: {valid_types}")
+    
+    # 预处理数据
+    X_train, X_test, y_train, y_test, preprocessors = preprocess_data(
+        data, target_column, categorical_columns, numerical_columns
+    )
+    
+    # 创建并行任务的模型
+    if model_params is None:
+        model_params = DEFAULT_MODEL_PARAMS.get(model_type, {})
+    
+    # 添加n_jobs参数（如果模型支持）
+    model_class = MODEL_TYPES[model_type]
+    model_signature = inspect.signature(model_class.__init__)
+    if 'n_jobs' in model_signature.parameters:
+        model_params['n_jobs'] = n_jobs
+    
+    # 创建模型
+    model = model_class(**model_params)
+    
+    # 使用并行计算进行交叉验证
+    print(f"执行{cv}折交叉验证，使用{n_jobs}个CPU核心")
+    
+    # 根据模型类型选择评分标准
+    if any(t in model_type for t in ["regression", "svr", "lars"]):
+        scoring = 'neg_mean_squared_error'
+    else:
+        scoring = 'accuracy'
+    
+    cv_scores = cross_val_score(
+        model, X_train, y_train, cv=cv, scoring=scoring, n_jobs=n_jobs
+    )
+    
+    # 训练最终模型
+    model.fit(X_train, y_train)
+    
+    # 评估模型
+    metrics = evaluate_model(model, X_test, y_test, model_type)
+    
+    # 添加交叉验证结果
+    if scoring == 'neg_mean_squared_error':
+        metrics['cv_mse'] = -cv_scores.mean()
+        metrics['cv_mse_std'] = cv_scores.std()
+    else:
+        metrics['cv_accuracy'] = cv_scores.mean()
+        metrics['cv_accuracy_std'] = cv_scores.std()
+    
+    return {
+        'model': model,
+        'preprocessors': preprocessors,
+        'metrics': metrics
+    }

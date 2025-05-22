@@ -8,6 +8,10 @@ import pandas as pd
 import numpy as np
 from typing import Dict, Any, List, Optional
 from scipy import stats
+import datetime
+import traceback
+import threading
+from concurrent.futures import ThreadPoolExecutor
 
 from flask import Flask, request, jsonify, render_template, send_from_directory
 from flask_cors import CORS
@@ -63,7 +67,8 @@ def is_rag_result_poor(query, rag_result):
 
     return False
 
-
+# 创建一个线程池执行器用于异步任务
+executor = ThreadPoolExecutor(max_workers=4)
 
 app = Flask(__name__)  # Flask会自动查找同级的 'templates' 文件夹
 CORS(app)
@@ -376,10 +381,10 @@ def rebuild_vector_store_endpoint():
     """强制重新构建向量数据库的API端点。"""
     app.logger.info("接收到重建向量数据库的请求。")
     try:
-        # 确保这个函数调用不会阻塞太久，或者考虑异步处理
-        initialize_rag_system(force_recreate_vs=True)
-        app.logger.info("向量数据库重建流程已完成。")
-        return jsonify({"message": "向量数据库重建流程已启动并完成。"}), 200
+        # 启动异步任务重建向量库
+        executor.submit(initialize_rag_system, force_recreate_vs=True)
+        app.logger.info("向量数据库重建流程已异步启动。")
+        return jsonify({"message": "向量数据库重建流程已异步启动，请稍后查询状态。"}), 202
     except Exception as e:
         app.logger.error(f"/api/rebuild_vector_store 接口发生错误: {e}", exc_info=True)
         return jsonify({"error": f"重建向量数据库失败: {str(e)}"}), 500
@@ -397,50 +402,72 @@ def train_model_endpoint():
             return jsonify({"error": f"缺少必要字段 '{field}'"}), 400
 
     try:
-        # 直接调用ml_models.py中的train_model函数
-        from ml_models import train_model
+        # 创建任务ID
+        task_id = str(uuid.uuid4())
+        
+        # 复制请求数据以便异步任务使用
+        task_data = data.copy()
+        
+        # 异步执行模型训练
+        def async_train_model(task_id, task_data):
+            try:
+                from ml_models import train_model
 
-        model_type = data['model_type']
-        data_path = data['data_path']
-        target_column = data['target_column']
-        model_name = data.get('model_name')
-        categorical_columns = data.get('categorical_columns', [])
-        numerical_columns = data.get('numerical_columns', [])
-        model_params = data.get('model_params', {})
-        test_size = data.get('test_size', 0.2)
-
-        # 如果是Excel文件，转换为CSV以便更好地处理
-        if data_path.endswith('.xlsx'):
-            import pandas as pd
-            df = pd.read_excel(data_path)
-            csv_path = data_path.replace('.xlsx', '_processed.csv')
-            df.to_csv(csv_path, index=False)
-            data_path = csv_path
-            
-        # 训练模型
-        result = train_model(
-            model_type=model_type,
-            data=data_path,
-            target_column=target_column,
-            model_name=model_name,
-            categorical_columns=categorical_columns,
-            numerical_columns=numerical_columns,
-            model_params=model_params,
-            test_size=test_size
-        )
-
-        # 格式化结果以便前端显示
-        formatted_result = {
-            "model_name": result["model_name"],
-            "model_type": result["model_type"],
-            "metrics": result["metrics"],
-            "message": f"成功训练{model_type}模型，模型名称为{result['model_name']}"
-        }
-
-        return jsonify(formatted_result), 200
+                model_type = task_data['model_type']
+                data_path = task_data['data_path']
+                target_column = task_data['target_column']
+                model_name = task_data.get('model_name')
+                categorical_columns = task_data.get('categorical_columns', [])
+                numerical_columns = task_data.get('numerical_columns', [])
+                model_params = task_data.get('model_params', {})
+                test_size = task_data.get('test_size', 0.2)
+                
+                app.logger.info(f"开始异步训练任务 {task_id}: {model_type} 模型，目标列: {target_column}")
+                
+                # 如果是Excel文件，转换为CSV以便更好地处理
+                if data_path.endswith('.xlsx'):
+                    import pandas as pd
+                    df = pd.read_excel(data_path)
+                    csv_path = data_path.replace('.xlsx', f'_processed_{task_id}.csv')
+                    df.to_csv(csv_path, index=False)
+                    data_path = csv_path
+                
+                # 执行训练
+                result = train_model(
+                    model_type=model_type,
+                    data=data_path,
+                    target_column=target_column,
+                    model_name=model_name,
+                    categorical_columns=categorical_columns,
+                    numerical_columns=numerical_columns,
+                    model_params=model_params,
+                    test_size=test_size
+                )
+                
+                # 将临时CSV清理掉
+                if data_path.endswith(f'_processed_{task_id}.csv') and os.path.exists(data_path):
+                    try:
+                        os.remove(data_path)
+                    except Exception as e:
+                        app.logger.warning(f"清理临时文件 {data_path} 失败: {str(e)}")
+                
+                app.logger.info(f"异步训练任务 {task_id} 完成: {result.get('model_name')}")
+            except Exception as e:
+                app.logger.error(f"异步训练任务 {task_id} 失败: {str(e)}", exc_info=True)
+        
+        # 提交异步任务
+        executor.submit(async_train_model, task_id, task_data)
+        
+        return jsonify({
+            "message": f"模型训练任务已异步启动 (ID: {task_id})",
+            "task_id": task_id,
+            "status": "processing",
+            "model_type": data['model_type'],
+            "target_column": data['target_column']
+        }), 202
     except Exception as e:
         app.logger.error(f"/api/ml/train 接口发生错误: {e}", exc_info=True)
-        return jsonify({"error": f"训练模型时发生错误: {str(e)}"}), 500
+        return jsonify({"error": f"启动训练任务时发生错误: {str(e)}"}), 500
 
 @app.route('/api/ml/predict', methods=['POST'])
 def predict_endpoint():
@@ -518,8 +545,6 @@ def list_models_endpoint():
         app.logger.error(f"/api/ml/models 接口发生错误: {e}", exc_info=True)
         return jsonify({"error": f"列出模型时发生错误: {str(e)}"}), 500
 
-
-
 @app.route('/api/ml/upload', methods=['POST'])
 def upload_data_endpoint():
     """上传数据文件的API端点"""
@@ -529,90 +554,110 @@ def upload_data_endpoint():
     file = request.files['file']
     if file.filename == '':
         return jsonify({"error": "没有选择文件"}), 400
+        
+    # 安全检查文件扩展名
+    allowed_extensions = ['.csv', '.xlsx', '.xls', '.json']
+    file_ext = os.path.splitext(file.filename.lower())[1]
+    if file_ext not in allowed_extensions:
+        return jsonify({"error": f"不支持的文件类型。仅支持 {', '.join(allowed_extensions)}"}), 400
 
-    if file and (file.filename.endswith('.csv') or file.filename.endswith('.xlsx') or file.filename.endswith('.json')):
+    try:
+        # 确保上传目录存在
+        uploads_dir = os.path.join(os.getcwd(), 'uploads')
+        os.makedirs(uploads_dir, exist_ok=True)
+
+        # 生成安全的文件名 (使用UUID避免文件名冲突)
+        safe_filename = f"{str(uuid.uuid4())}{file_ext}"
+        file_path = os.path.join(uploads_dir, safe_filename)
+        
+        # 保存原始文件名与安全文件名的映射关系
+        original_filename = file.filename
+        
+        # 保存文件
+        file.save(file_path)
+        app.logger.info(f"文件上传成功: {original_filename} -> {file_path}")
+
+        # 读取数据并处理不同格式
+        df = None
         try:
-            # 确保上传目录存在
-            uploads_dir = os.path.join(os.getcwd(), 'uploads')
-            os.makedirs(uploads_dir, exist_ok=True)
-
-            # 保存文件
-            file_path = os.path.join(uploads_dir, file.filename)
-            file.save(file_path)
-
-            # 如果是Excel文件，转换为CSV以便更好地处理
-            if file.filename.endswith('.xlsx'):
-                import pandas as pd
-                df = pd.read_excel(file_path)
-                csv_path = os.path.join(uploads_dir, file.filename.replace('.xlsx', '_processed.csv'))
-                df.to_csv(csv_path, index=False)
-                file_path = csv_path
-
-            # 读取数据的前几行，获取列名和数据类型
-            import pandas as pd
-            # 处理NaN值，避免JSON序列化错误
-            if file_path.endswith('.csv'):
+            if file_ext == '.csv':
                 df = pd.read_csv(file_path, keep_default_na=False, na_values=['NaN', 'N/A', 'NA', 'nan', 'null'])
-            elif file_path.endswith('.xlsx'):
+            elif file_ext in ['.xlsx', '.xls']:
                 df = pd.read_excel(file_path, keep_default_na=False, na_values=['NaN', 'N/A', 'NA', 'nan', 'null'])
-            elif file_path.endswith('.json'):
-                # 读取JSON文件
+            elif file_ext == '.json':
                 df = pd.read_json(file_path, orient='records')
-                # 处理可能的NaN值
                 df = df.fillna('')
+        except Exception as e:
+            # 清理已上传的文件
+            if os.path.exists(file_path):
+                os.remove(file_path)
+            app.logger.error(f"读取文件 {original_filename} 失败: {str(e)}")
+            return jsonify({"error": f"读取文件失败: {str(e)}"}), 400
+            
+        if df is None or df.empty:
+            # 清理已上传的文件
+            if os.path.exists(file_path):
+                os.remove(file_path)
+            return jsonify({"error": "文件为空或格式不正确"}), 400
 
-            # 推断每列的数据类型
-            column_types = {}
-            categorical_columns = []
-            numerical_columns = []
+        # 推断每列的数据类型
+        column_types = {}
+        categorical_columns = []
+        numerical_columns = []
 
-            for col in df.columns:
-                if df[col].dtype == 'object' or df[col].nunique() < 10:
+        for col in df.columns:
+            if pd.api.types.is_numeric_dtype(df[col]):
+                if df[col].nunique() < min(10, len(df) // 10):  # 如果唯一值较少，仍视为分类
                     categorical_columns.append(col)
                     column_types[col] = 'categorical'
                 else:
                     numerical_columns.append(col)
                     column_types[col] = 'numerical'
+            else:
+                categorical_columns.append(col)
+                column_types[col] = 'categorical'
 
-            # 使用json_compatible_result处理结果，确保没有NaN值
-            result = json_compatible_result({
-                "message": "文件上传成功",
-                "file_path": file_path,
-                "columns": df.columns.tolist(),
-                "column_types": column_types,
-                "categorical_columns": categorical_columns,
-                "numerical_columns": numerical_columns,
-                "row_count": len(df),
-                "preview": df.head(5).to_dict('records')
-            })
-            
-            return jsonify(result), 200
-        except Exception as e:
-            app.logger.error(f"/api/ml/upload 接口发生错误: {e}", exc_info=True)
-            return jsonify({"error": f"处理上传文件时发生错误: {str(e)}"}), 500
-    else:
-        return jsonify({"error": "只支持CSV、Excel和JSON文件"}), 400
+        # 使用json_compatible_result处理结果，确保没有NaN值
+        result = json_compatible_result({
+            "message": "文件上传成功",
+            "file_path": file_path,
+            "original_filename": original_filename,
+            "columns": df.columns.tolist(),
+            "column_types": column_types,
+            "categorical_columns": categorical_columns,
+            "numerical_columns": numerical_columns,
+            "preview": df.head(5).to_dict('records'),
+            "row_count": len(df),
+            "column_count": len(df.columns)
+        })
+
+        return jsonify(result), 200
+    except Exception as e:
+        app.logger.error(f"上传文件时出错: {str(e)}", exc_info=True)
+        return jsonify({"error": f"上传文件时出错: {str(e)}"}), 500
 
 def json_compatible_result(data):
-    """
-    Recursively converts numpy NaN/Inf and other non-JSON serializable types
-    to None or string.
-    """
+    """确保数据可以被JSON序列化"""
     if isinstance(data, dict):
         return {k: json_compatible_result(v) for k, v in data.items()}
     elif isinstance(data, list):
         return [json_compatible_result(item) for item in data]
-    elif isinstance(data, float):
+    elif isinstance(data, (np.int64, np.int32, np.int16, np.int8)):
+        return int(data)
+    elif isinstance(data, (np.float64, np.float32, np.float16)):
         if np.isnan(data) or np.isinf(data):
             return None
-        return data
-    elif isinstance(data, (np.int64, np.float64, np.bool_)):
-        return data.item() # Convert numpy types to Python native types
+        return float(data)
+    elif pd and isinstance(data, pd.Series):
+        return json_compatible_result(data.tolist())
+    elif pd and isinstance(data, pd.DataFrame):
+        return json_compatible_result(data.to_dict(orient='records'))
+    elif pd and isinstance(data, pd.Timestamp):
+        return data.isoformat()
     elif isinstance(data, np.ndarray):
-        return data.tolist() # Convert numpy arrays to lists
-    elif pd.isna(data): # Catch Pandas NaN specifically
-        return None
-    # Add other types if needed
+        return json_compatible_result(data.tolist())
+    elif isinstance(data, (datetime.datetime, datetime.date)):
+        return data.isoformat()
     return data
 
 @app.route('/api/ml/analyze', methods=['POST'])
@@ -740,6 +785,40 @@ def analyze_data_endpoint():
         app.logger.error(f"/api/ml/analyze 接口发生错误: {e}", exc_info=True)
         # Ensure error response is also JSON compatible
         return jsonify(json_compatible_result({"error": f"分析数据时发生错误: {str(e)}"})), 500
+
+@app.route('/api/ml/analyze', methods=['GET'])
+def analyze_data_get_endpoint():
+    """处理GET请求的数据分析，用于模型比较等场景"""
+    try:
+        file_path = request.args.get('file_path')
+        if not file_path:
+            return jsonify({"error": "未提供文件路径参数"}), 400
+            
+        # 确保文件存在
+        if not os.path.exists(file_path):
+            return jsonify({"error": f"文件不存在: {file_path}"}), 404
+            
+        # 读取并分析数据
+        df, error = load_dataframe(file_path)
+        if error:
+            return jsonify({"error": f"读取文件失败: {error}"}), 400
+            
+        # 获取列信息
+        columns = df.columns.tolist()
+        
+        # 简单分析
+        result = {
+            "columns": columns,
+            "row_count": len(df),
+            "column_count": len(columns),
+            "file_path": file_path
+        }
+        
+        return jsonify(result)
+    except Exception as e:
+        traceback_str = traceback.format_exc()
+        logger.error(f"分析数据失败: {str(e)}\n{traceback_str}")
+        return jsonify({"error": f"分析数据失败: {str(e)}"}), 500
 
 @app.route('/api/ml/model_versions', methods=['POST'])
 def create_model_version_endpoint():
@@ -947,7 +1026,6 @@ def undeploy_model_endpoint(deployment_id):
     except Exception as e:
         app.logger.error(f"/api/ml/undeploy/{deployment_id} 接口发生错误: {e}", exc_info=True)
         return jsonify({"success": False, "error": f"取消部署模型时发生错误: {str(e)}"}), 500
-
 
 @app.route('/api/ml/explain', methods=['POST'])
 def explain_model_endpoint():
@@ -1231,9 +1309,6 @@ def auto_model_selection_endpoint():
         app.logger.error(f"/api/ml/auto_select 接口发生错误: {e}", exc_info=True)
         return jsonify({"error": f"自动选择模型时发生错误: {str(e)}"}), 500
 
-
-
-
 def check_config_and_kb():
     """检查基本配置和知识库目录。"""
     config_valid = True
@@ -1282,12 +1357,9 @@ def check_config_and_kb():
 
     return config_valid
 
-
-
 # 配置静态文件路径，使前端能够正确加载JavaScript文件
 # Functions is_rag_result_poor and get_direct_llm_answer have been moved to the top of the file.
 @app.route('/templates/<path:filename>')
-
 def serve_template_file(filename):
     """提供模板目录中的静态文件"""
     try:

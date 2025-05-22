@@ -323,12 +323,14 @@ async function main() { // Make main async
     initQuerySubmission();
     initExampleQueries();
     initModelSelectionDelegation();
-    await loadAvailableModels(); // Wait for models to load before initializing advanced tools
     initDataUploadShortcut();
     initParticlesJS();
     updateQueryInputState();
     initVisualizationTabs();
-    initAdvancedTools(); // Initialize advanced tools interactions
+    
+    // 先加载模型，然后初始化高级工具
+    await loadAvailableModels();
+    await initAdvancedTools(); // 修改为async函数等待模型加载完成
 
     showToast('欢迎使用 AI 机器学习助手 Pro！', 'info', 5000);
 }
@@ -845,31 +847,23 @@ function initModelSelectionDelegation() {
     if (!grid) return;
 
     const handleSelection = (targetCard) => {
+        if (!targetCard) return;
+        
         const modelName = targetCard.getAttribute('data-model-name');
         if (!modelName) return;
-
-        // 如果点击的是已选中的卡片，则取消选择 (可选行为)
-        // if (selectedModelName === modelName) {
-        //     selectedModelName = null;
-        //     targetCard.classList.remove('selected-model-card', 'bg-blue-600', 'text-white', 'border-blue-700', 'shadow-xl');
-        //     targetCard.classList.add('bg-base-100', 'border-base-300', 'shadow-md');
-        //     const icon = targetCard.querySelector('i.fas');
-        //     if (icon) icon.style.color = getModelIconColor(modelName); // 恢复原始图标颜色
-        //     DOM.selectedModelInfo().textContent = '当前未选择模型。请点击模型卡片进行选择。';
-        //     updateQueryInputState();
-        //     return;
-        // }
 
         selectedModelName = modelName;
 
         // 移除所有卡片的选中样式
         grid.querySelectorAll('.model-card').forEach(c => {
+            if (!c) return; // 安全检查
+            
             c.classList.remove('selected-model-card', 'bg-blue-600', 'text-white', 'border-blue-700', 'shadow-xl');
             c.classList.remove('is-flipped'); // 确保所有卡片都恢复到正面
             c.classList.add('bg-base-100', 'border-base-300', 'shadow-md'); // 恢复默认样式
             const icon = c.querySelector('i.fas');
             if (icon) {
-                const originalColor = c.getAttribute('data-original-icon-color') || getModelIconColor(c.getAttribute('data-model-name'));
+                const originalColor = c.getAttribute('data-original-icon-color') || getModelIconColor(c.getAttribute('data-model-name') || '');
                 icon.style.color = originalColor;
             }
         });
@@ -882,14 +876,17 @@ function initModelSelectionDelegation() {
         const icon = targetCard.querySelector('i.fas');
         if (icon) {
             if (!targetCard.hasAttribute('data-original-icon-color')) {
-                 targetCard.setAttribute('data-original-icon-color', icon.style.color);
+                 targetCard.setAttribute('data-original-icon-color', icon.style.color || '');
             }
             icon.style.color = 'white'; // 选中时图标变为白色
         }
         
         const modelDetails = FIXED_MODEL_DETAILS[modelName] || { display_name: modelName };
-        DOM.selectedModelInfo().innerHTML = `已选择模型: <strong class="text-blue-600">${escapeHtml(modelDetails.display_name)}</strong>.`;
-        showToast(`已选模型: "${escapeHtml(modelDetails.display_name)}"`, 'info');
+        const selectedInfoEl = DOM.selectedModelInfo();
+        if (selectedInfoEl) {
+            selectedInfoEl.innerHTML = `已选择模型: <strong class="text-blue-600">${escapeHtml(modelDetails.display_name || modelName)}</strong>.`;
+        }
+        showToast(`已选模型: "${escapeHtml(modelDetails.display_name || modelName)}"`, 'info');
         updateQueryInputState();
 
         // 滚动到查询区域（如果模型选择后需要用户立即操作）
@@ -1183,10 +1180,18 @@ function displayChatResponse(data, userQuery) {
                 predictionHtml = data.prediction.toFixed(4); // 格式化数字，保留4位小数
             } else if (typeof data.prediction === 'string') {
                 predictionHtml = escapeHtml(data.prediction);
+            } else if (Array.isArray(data.prediction) && data.prediction.length > 0) {
+                // 处理数组类型的预测结果
+                predictionHtml = `<pre class="whitespace-pre-wrap text-sm">${escapeHtml(JSON.stringify(data.prediction, null, 2))}</pre>`;
             } else {
                 predictionHtml = `<pre class="whitespace-pre-wrap text-sm">${escapeHtml(JSON.stringify(data.prediction, null, 2))}</pre>`; // 格式化JSON对象或数组
             }
             responseText.innerHTML += `<div class="mt-4 p-3 bg-blue-100 text-blue-800 rounded-md"><strong class="font-semibold">预测结果:</strong> ${predictionHtml}</div>`;
+        }
+        
+        // 显示执行时间（如果存在）
+        if (data.execution_time !== undefined) {
+            responseText.innerHTML += `<div class="mt-3 text-right text-xs text-gray-500">处理时间: ${data.execution_time.toFixed(2)}秒</div>`;
         }
     }
     
@@ -1207,7 +1212,10 @@ function displayChatResponse(data, userQuery) {
             metricsMessage.classList.add('hidden');
             let metricsHtml = '<h4 class="font-semibold mb-2">模型评估指标:</h4><ul class="list-disc pl-5">';
             for (const metric in data.model_metrics) {
-                metricsHtml += `<li><strong>${escapeHtml(metric)}:</strong> ${escapeHtml(JSON.stringify(data.model_metrics[metric]))}</li>`;
+                const metricValue = data.model_metrics[metric];
+                const formattedValue = typeof metricValue === 'number' ? metricValue.toFixed(4) : 
+                                      JSON.stringify(metricValue);
+                metricsHtml += `<li><strong>${escapeHtml(metric)}:</strong> ${escapeHtml(formattedValue)}</li>`;
             }
             metricsHtml += '</ul>';
             metricsContainer.innerHTML = metricsHtml;
@@ -1600,7 +1608,12 @@ function initParticlesJS() {
 // --- ADVANCED TOOLS ---
 let allModelsCache = []; // Cache for all models to populate selectors
 
-function initAdvancedTools() {
+async function initAdvancedTools() {
+    // 确保allModelsCache已填充
+    if (allModelsCache.length === 0) {
+        await loadAvailableModels();
+    }
+    
     initModelVersioning();
     initModelComparison();
     initEnsembleBuilding();
@@ -1608,6 +1621,7 @@ function initAdvancedTools() {
     
     // 加载默认数据集
     loadDefaultDatasets();
+}
 
 /**
  * 加载默认数据集
@@ -1620,7 +1634,6 @@ function loadDefaultDatasets() {
             <option value="current_uploaded">当前上传数据</option>
         `;
     }
-}
 }
 
 /**
@@ -2231,18 +2244,24 @@ async function fetchAndDisplayDeployedModels() {
         } else {
             tBody.innerHTML = deployments.map(d => `
                 <tr class="hover">
-                    <td>${getModelDisplayName(d.model_name)}</td>
-                    <td><span class="badge badge-sm ${d.environment === 'production' ? 'badge-error' : d.environment === 'staging' ? 'badge-warning' : 'badge-info'}">${d.environment}</span></td>
-                    <td><code>${d.endpoint}</code></td>
-                    <td><span class="badge badge-sm ${d.status === '运行中' ? 'badge-success' : 'badge-ghost'}">${d.status}</span></td>
-                    <td><button type="button" class="btn btn-xs btn-ghost text-error" onclick="confirmUndeploy('${d.id}','${d.model_name}')" ${d.status !== '运行中' ? 'disabled':''}><i class="fas fa-stop-circle"></i></button></td>
+                    <td>${escapeHtml(getModelDisplayName(d.model_name))}</td>
+                    <td><span class="badge badge-sm ${d.environment === 'production' ? 'badge-error' : d.environment === 'staging' ? 'badge-warning' : 'badge-info'}">${escapeHtml(d.environment)}</span></td>
+                    <td><code>${escapeHtml(d.endpoint || '')}</code></td>
+                    <td><span class="badge badge-sm ${d.status === '运行中' ? 'badge-success' : 'badge-ghost'}">${escapeHtml(d.status || '未知')}</span></td>
+                    <td><button type="button" class="btn btn-xs btn-ghost text-error" onclick="confirmUndeploy('${escapeHtml(d.id)}','${escapeHtml(d.model_name)}')" ${d.status !== '运行中' ? 'disabled':''}><i class="fas fa-stop-circle"></i></button></td>
                 </tr>`).join('');
         }
         
-        // 更新统计信息
-        DOM.deployedModelCount().textContent = result.count || 0;
-        DOM.avgResponseTime().textContent = result.avg_response_time ? `${Math.round(result.avg_response_time)}ms` : 'N/A';
-        DOM.predictionRequests().textContent = result.total_requests || 0;
+        // 更新统计信息，添加安全检查防止undefined错误
+        if (DOM.deployedModelCount()) {
+            DOM.deployedModelCount().textContent = result.count || 0;
+        }
+        if (DOM.avgResponseTime()) {
+            DOM.avgResponseTime().textContent = result.avg_response_time ? `${Math.round(result.avg_response_time)}ms` : 'N/A';
+        }
+        if (DOM.predictionRequests()) {
+            DOM.predictionRequests().textContent = result.total_requests || 0;
+        }
     } catch (e) { 
         console.error('获取部署列表错误:', e);
         showToast(`获取部署列表失败: ${e.message}`, 'error'); 
@@ -2252,6 +2271,12 @@ async function fetchAndDisplayDeployedModels() {
     }
 }
 window.confirmUndeploy = async function(id, name) { // 暴露给onclick使用
+    // 参数安全检查
+    if (!id || !name) {
+        showToast('无效的部署ID或模型名称', 'error');
+        return;
+    }
+    
     // 使用确认对话框
     if (!confirm(`确定要停止部署模型 "${name}" (ID: ${id})?`)) return;
     
@@ -2264,7 +2289,7 @@ window.confirmUndeploy = async function(id, name) { // 暴露给onclick使用
         });
         
         if (!response.ok) {
-            const errorData = await response.json();
+            const errorData = await response.json().catch(() => ({ error: `HTTP错误: ${response.status}` }));
             throw new Error(errorData.error || `请求失败 (${response.status})`);
         }
         

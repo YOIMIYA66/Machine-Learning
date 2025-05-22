@@ -1403,3 +1403,19 @@ NameError: name 'List' is not defined
 2025-05-22 15:30:58,109 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êğ£¬ÆäÖĞ 0 ¸öÕıÔÚÔËĞĞ
 2025-05-22 15:30:58,110 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 15:30:58] "GET /api/ml/deployments HTTP/1.1" 200 -
 2025-05-22 15:30:58,339 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 15:30:58] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -
+2025-05-22 18:36:31,630 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊğÄ£ĞÍÁĞ±í
+2025-05-22 18:36:31,632 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êğ£¬ÆäÖĞ 0 ¸öÕıÔÚÔËĞĞ
+2025-05-22 18:36:31,633 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 18:36:31] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-22 22:07:56,676 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊğÄ£ĞÍÁĞ±í
+2025-05-22 22:07:56,678 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êğ£¬ÆäÖĞ 0 ¸öÕıÔÚÔËĞĞ
+2025-05-22 22:07:56,680 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 22:07:56] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-22 22:08:29,360 - app - INFO - API½ÓÊÕµ½²éÑ¯: 'ÈçºÎ±ÜÃâÄ£ĞÍÑµÁ·ÖĞµÄ¹ıÄâºÏÎÊÌâ£¿'
+2025-05-22 22:08:29,366 - app - INFO - ¼ì²âµ½Í¨ÓÃ´óÄ£ĞÍ»Ø´ğÄ£Ê½£¬Ö±½Óµ÷ÓÃLLM API
+2025-05-22 22:08:53,984 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-22 22:08:53,996 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 22:08:53] "POST /api/chat HTTP/1.1" 200 -
+2025-05-22 22:09:07,148 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 22:09:07] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-22 22:09:07,500 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 22:09:07] "POST /api/ml/analyze HTTP/1.1" 200 -
+2025-05-22 22:09:20,674 - app - INFO - API½ÓÊÕµ½²éÑ¯: 'Ê¹ÓÃ[µ±Ç°Ä£ĞÍ]Ä£ĞÍ¶Ô[Ä¿±êÁĞÃû]½øĞĞÊ¹ÓÃÒÑÓĞÄ£ĞÍÔ¤²â£¬²¢Õ¹Ê¾½á¹û¡£'
+2025-05-22 22:09:20,675 - app - INFO - ¼ì²âµ½½Ì³ÌÉú³ÉÇëÇó: Ä£ĞÍ 'knn_classifier', Ä¿±êÁĞ 'ÖÊÁ¿µÈ¼¶'
+2025-05-22 22:09:56,518 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-22 22:09:56,519 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 22:09:56] "POST /api/chat HTTP/1.1" 200 -
