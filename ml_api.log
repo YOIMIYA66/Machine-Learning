@@ -1123,3 +1123,47 @@ ImportError: cannot import name 'get_deployment_metrics' from 'ml_api_endpoints'
 2025-05-22 08:26:13,140 - app - INFO - ¼ì²âµ½½Ì³ÌÉú³ÉÇëÇó: Ä£ÐÍ 'knn_classifier', Ä¿±êÁÐ 'PM2.5'
 2025-05-22 08:27:28,485 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
 2025-05-22 08:27:28,487 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 08:27:28] "POST /api/chat HTTP/1.1" 200 -
+2025-05-22 08:31:32,309 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 08:31:32] "GET / HTTP/1.1" 200 -
+2025-05-22 08:31:32,507 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 08:31:32] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-22 08:31:32,600 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-22 08:31:32,601 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-22 08:31:32,601 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 08:31:32] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-22 08:31:32,725 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 08:31:32] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -
+2025-05-22 08:32:20,183 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 08:32:20] "GET / HTTP/1.1" 200 -
+2025-05-22 08:32:20,407 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 08:32:20] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2025-05-22 08:32:20,503 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-22 08:32:20,504 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-22 08:32:20,504 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 08:32:20] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-22 08:32:20,618 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 08:32:20] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -
+2025-05-22 08:32:28,025 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 08:32:28] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-22 08:32:28,044 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 08:32:28] "POST /api/ml/analyze HTTP/1.1" 200 -
+2025-05-22 08:32:37,440 - app - INFO - API½ÓÊÕµ½²éÑ¯: 'Ê¹ÓÃµ±Ç°Ñ¡ÔñµÄK½üÁÚ·ÖÀàÄ£ÐÍ£¬·ÖÎöÕâ·ÝÊý¾ÝµÄÖ÷ÒªÌØÕ÷¡£'
+2025-05-22 08:32:37,440 - app - INFO - ¼ì²âµ½½Ì³ÌÉú³ÉÇëÇó: Ä£ÐÍ 'knn_classifier', Ä¿±êÁÐ 'PM2.5'
+2025-05-22 08:33:28,512 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-22 08:33:28,513 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 08:33:28] "POST /api/chat HTTP/1.1" 200 -
+2025-05-22 08:34:27,600 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 08:34:27] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-22 08:34:27,620 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 08:34:27] "POST /api/ml/analyze HTTP/1.1" 200 -
+2025-05-22 08:36:04,280 - app - INFO - API½ÓÊÕµ½²éÑ¯: 'ÎÒÉÏ´«ÁËÐÂµÄÊý¾Ý¼¯£¬Çë°ïÎÒÔ¤ÀÀÒ»ÏÂÊý¾Ý¸Å¿ö¡£'
+2025-05-22 08:36:04,280 - app - INFO - ¼ì²âµ½½Ì³ÌÉú³ÉÇëÇó: Ä£ÐÍ 'knn_classifier', Ä¿±êÁÐ 'PM10'
+2025-05-22 08:37:11,423 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-22 08:37:11,429 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 08:37:11] "POST /api/chat HTTP/1.1" 200 -
+2025-05-22 08:38:50,399 - app - ERROR - /api/ml/compare_models ½Ó¿Ú·¢Éú´íÎó: cannot import name 'get_deployment_metrics' from 'ml_api_endpoints_logs' (C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\ml_api_endpoints_logs.py)
+Traceback (most recent call last):
+  File "C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\app.py", line 730, in compare_models_endpoint
+    from ml_api_endpoints_fix import compare_models_api
+  File "C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\ml_api_endpoints_fix.py", line 5, in <module>
+    from ml_api_endpoints_logs import get_deployment_logs, get_deployment_metrics
+ImportError: cannot import name 'get_deployment_metrics' from 'ml_api_endpoints_logs' (C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\ml_api_endpoints_logs.py)
+2025-05-22 08:38:50,401 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 08:38:50] "[35m[1mPOST /api/ml/compare_models HTTP/1.1[0m" 500 -
+2025-05-22 08:39:20,574 - app - ERROR - /api/ml/ensemble ½Ó¿Ú·¢Éú´íÎó: cannot import name 'get_deployment_metrics' from 'ml_api_endpoints_logs' (C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\ml_api_endpoints_logs.py)
+Traceback (most recent call last):
+  File "C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\app.py", line 775, in build_ensemble_model_endpoint
+    from ml_api_endpoints_fix import build_ensemble_model
+  File "C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\ml_api_endpoints_fix.py", line 5, in <module>
+    from ml_api_endpoints_logs import get_deployment_logs, get_deployment_metrics
+ImportError: cannot import name 'get_deployment_metrics' from 'ml_api_endpoints_logs' (C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\ml_api_endpoints_logs.py)
+2025-05-22 08:39:20,575 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 08:39:20] "[35m[1mPOST /api/ml/ensemble HTTP/1.1[0m" 500 -
+2025-05-22 09:32:01,225 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-22 09:32:01,227 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-22 09:32:01,228 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:32:01] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-22 09:32:01,579 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:32:01] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -

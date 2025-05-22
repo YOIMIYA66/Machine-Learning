@@ -10,7 +10,7 @@ AI_STUDIO_BASE_URL = "https://aistudio.baidu.com/llm/lmapi/v3" # 文档中指定
 
 # 大语言模型ID (根据你的文档和需求选择)
 # 例如: "ernie-3.5-8k", "ernie-4.0-8k", "ernie-speed-8k" 等
-BAIDU_LLM_MODEL_NAME = "deepseek-v3"
+BAIDU_LLM_MODEL_NAME = "ernie-4.5-turbo-128k"
 
 # Embedding 模型ID (根据你的文档和需求选择)
 # 例如: "embedding-v1", "bge-large-zh"

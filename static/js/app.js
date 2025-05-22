@@ -1,6 +1,7 @@
 // app.js - 前端交互逻辑
 
 // 全局状态变量
+let modelTooltipElement = null; // 用于模型描述提示框
 let currentData = {
     path: null,
     fileName: null,
@@ -230,6 +231,76 @@ const DOM = {
 /**
  * 主初始化函数
  */
+/**
+ * HTML特殊字符转义
+ * @param {string} unsafe - 需要转义的字符串
+ * @returns {string} 转义后的字符串
+ */
+function escapeHtml(unsafe) {
+    if (typeof unsafe !== 'string') return '';
+    return unsafe
+         .replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#039;");
+}
+
+/**
+ * 创建并显示模型详情提示框
+ * @param {HTMLElement} cardElement - 触发提示框的卡片元素
+ * @param {object} modelData - 模型数据，包含 display_name 和 description
+ */
+function showModelTooltip(cardElement, modelData) {
+    if (!modelTooltipElement) {
+        modelTooltipElement = document.createElement('div');
+        // 样式参考图片中的蓝色提示框
+        modelTooltipElement.className = 'fixed z-[100] p-3 bg-blue-600 text-white rounded-md shadow-xl text-xs max-w-xs transition-opacity duration-150 opacity-0 pointer-events-none';
+        document.body.appendChild(modelTooltipElement);
+    }
+
+    modelTooltipElement.innerHTML = `<p class=\"font-semibold mb-1\">${escapeHtml(modelData.display_name)}</p><p style=\"white-space: pre-wrap;\">${escapeHtml(modelData.description || '暂无详细描述。')}</p>`;
+
+    const cardRect = cardElement.getBoundingClientRect();
+    
+    // 先让tooltip可见但屏幕外，以便获取其尺寸
+    modelTooltipElement.style.visibility = 'hidden';
+    modelTooltipElement.style.display = 'block';
+    const tooltipRect = modelTooltipElement.getBoundingClientRect();
+    modelTooltipElement.style.display = 'none'; // 隐藏以避免闪烁
+    modelTooltipElement.style.visibility = 'visible';
+
+    let top = cardRect.top - tooltipRect.height - 8; // 提示框在卡片上方，间隔8px
+    let left = cardRect.left + (cardRect.width / 2) - (tooltipRect.width / 2); // 水平居中对齐卡片
+
+    // 边界检查和调整
+    if (top < 8) { // 如果提示框顶部超出屏幕
+        top = cardRect.bottom + 8; // 移到卡片下方
+        // 如果下方空间也不够，尝试放在侧边（这里简化，优先上下）
+    }
+    if (left < 8) {
+        left = 8; // 防止左侧超出屏幕
+    }
+    if (left + tooltipRect.width > window.innerWidth - 8) {
+        left = window.innerWidth - tooltipRect.width - 8; // 防止右侧超出屏幕
+    }
+
+    modelTooltipElement.style.top = `${top + window.scrollY}px`; // 加上滚动偏移
+    modelTooltipElement.style.left = `${left + window.scrollX}px`; // 加上滚动偏移
+    modelTooltipElement.style.opacity = '1';
+    modelTooltipElement.classList.remove('pointer-events-none');
+}
+
+/**
+ * 隐藏模型详情提示框
+ */
+function hideModelTooltip() {
+    if (modelTooltipElement) {
+        modelTooltipElement.style.opacity = '0';
+        modelTooltipElement.classList.add('pointer-events-none'); 
+    }
+}
+
 async function main() { // Make main async
     initTabs();
     initUploadToggle();
@@ -548,8 +619,11 @@ function createTargetColumnSelector(columns, columnTypes) {
 /**
  * 加载并显示可用模型
  */
+/**
+ * 加载并显示可用模型，实现类似图片效果的布局、样式和悬停提示。
+ */
 async function loadAvailableModels() {
-    const gridContainer = DOM.modelGrid(); // This is the main container for all categories
+    const gridContainer = DOM.modelGrid();
     const modelCountBadge = DOM.modelCountBadge();
 
     if (!gridContainer) {
@@ -557,17 +631,27 @@ async function loadAvailableModels() {
         return;
     }
 
-    gridContainer.innerHTML = ''; // Clear existing content
+    gridContainer.innerHTML = ''; // 清空现有内容
 
+    // 使用 FIXED_MODEL_DETAILS 作为数据源，因为它包含了所有必要信息
     const modelsToDisplay = Object.values(FIXED_MODEL_DETAILS);
 
     if (modelsToDisplay.length === 0) {
         gridContainer.innerHTML = '<p class="text-center text-muted col-span-full p-4">暂无可用模型。</p>';
-        if (modelCountBadge) modelCountBadge.textContent = '0';
+        if (modelCountBadge) {
+            modelCountBadge.textContent = '共 0 个模型';
+            modelCountBadge.className = 'badge border-transparent bg-gray-400 text-white py-2 px-3 text-xs sm:text-sm'; // 更新为灰色背景
+        }
         return;
     }
 
-    // Group models by category
+    // 更新模型总数徽章样式和内容
+    if (modelCountBadge) {
+        modelCountBadge.textContent = `共 ${modelsToDisplay.length} 个模型`;
+        modelCountBadge.className = 'badge border-transparent bg-purple-500 text-white py-2 px-3 text-xs sm:text-sm'; // 图片中的紫色背景
+    }
+
+    // 按类别分组模型
     const categorizedModels = {};
     modelsToDisplay.forEach(model => {
         const categoryKey = getCategoryForModel(model.internal_name) || 'other';
@@ -579,13 +663,13 @@ async function loadAvailableModels() {
 
     const fragment = document.createDocumentFragment();
 
-    // Define category display order and titles
+    // 定义类别显示顺序和标题 (与图片一致)
     const categoryDisplayOrder = [
         { key: 'classification', title: '分类模型' },
         { key: 'regression', title: '回归模型' },
         { key: 'clustering', title: '聚类模型' },
-        { key: 'ensemble', title: '集成模型' }, // Assuming ensemble might be a category
-        { key: 'other', title: '其他模型' }
+        // { key: 'ensemble', title: '集成模型' }, // 图片中未显示集成模型，暂时注释
+        // { key: 'other', title: '其他模型' } // 图片中未显示其他模型，暂时注释
     ];
 
     categoryDisplayOrder.forEach(categoryInfo => {
@@ -593,41 +677,45 @@ async function loadAvailableModels() {
         const categoryTitleText = categoryInfo.title;
 
         if (categorizedModels[categoryKey] && categorizedModels[categoryKey].length > 0) {
-            // Create category container
             const categorySection = document.createElement('div');
-            categorySection.className = 'mb-8 model-category-section'; // Added class for styling
+            categorySection.className = 'mb-6 model-category-section'; // 类别之间的间距
 
-            // Create category title
             const categoryTitleElement = document.createElement('h3');
-            categoryTitleElement.className = 'text-xl font-semibold mb-4 text-gray-700'; // Adjusted styling
+            // 类别标题样式 (参考图片，可进一步调整)
+            categoryTitleElement.className = 'text-xl font-semibold mb-3 text-neutral-content-hex'; 
             categoryTitleElement.textContent = categoryTitleText;
             categorySection.appendChild(categoryTitleElement);
 
-            // Create grid for models in this category
             const categoryGrid = document.createElement('div');
-            // Applied similar grid classes as the original image, adjust as needed
-            categoryGrid.className = 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-6'; 
+            // 模型卡片网格布局 (参考图片，5列)
+            categoryGrid.className = 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4'; 
             categorySection.appendChild(categoryGrid);
 
             categorizedModels[categoryKey].forEach(model => {
-                const cardHTML = `
-                    <div class="model-card content-card h-auto" data-model-name="${escapeHtml(model.internal_name)}" tabindex="0" role="button" aria-label="选择模型 ${escapeHtml(model.display_name)}">
-                        <div class="model-card-inner">
-                            <div class="model-card-front p-4 flex flex-col items-center justify-center text-center">
-                                <i class="fas ${escapeHtml(model.icon_class)} text-4xl mb-3" style="color: ${getModelIconColor(model.internal_name)};"></i>
-                                <h4 class="font-semibold text-base mb-1">${escapeHtml(model.display_name)}</h4>
-                                <p class="text-xs text-gray-500">${escapeHtml(getCategoryDisplayName(categoryKey))}</p>
-                            </div>
-                            <div class="model-card-back p-4 flex flex-col justify-center items-center text-center">
-                                <h4 class="font-bold text-base mb-2">${escapeHtml(model.display_name)}</h4>
-                                <p class="text-xs mb-3 leading-relaxed px-2">${escapeHtml(model.description)}</p>
-                                <button type="button" class="btn btn-sm btn-outline select-model-btn">选择此模型</button>
-                            </div>
-                        </div>
-                    </div>`;
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = cardHTML.trim();
-                categoryGrid.appendChild(tempDiv.firstChild);
+                const card = document.createElement('div');
+                // 卡片基础样式 (参考图片：浅色背景，圆角，阴影)
+                card.className = 'model-card bg-base-100 p-4 border border-base-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 ease-in-out cursor-pointer flex flex-col items-center justify-center text-center h-40'; // 固定高度，内容居中
+                card.setAttribute('data-model-name', model.internal_name);
+                card.setAttribute('tabindex', '0');
+                card.setAttribute('role', 'button');
+                card.setAttribute('aria-label', `选择模型 ${escapeHtml(model.display_name)}`);
+
+                const iconColor = getModelIconColor(model.internal_name);
+                const modelCategoryName = getCategoryDisplayName(getCategoryForModel(model.internal_name));
+
+                card.innerHTML = `
+                    <i class="fas ${escapeHtml(model.icon_class)} text-3xl mb-2" style="color: ${iconColor};"></i>
+                    <h4 class="font-semibold text-sm leading-tight">${escapeHtml(model.display_name)}</h4>
+                    <p class="text-xs text-gray-500 mt-1">${escapeHtml(modelCategoryName)}</p>
+                `;
+                
+                // 添加悬停事件监听以显示/隐藏提示框
+                card.addEventListener('mouseenter', (event) => showModelTooltip(event.currentTarget, model));
+                card.addEventListener('mouseleave', hideModelTooltip);
+                card.addEventListener('focus', (event) => showModelTooltip(event.currentTarget, model)); // 辅助功能：聚焦时也显示
+                card.addEventListener('blur', hideModelTooltip); // 辅助功能：失焦时隐藏
+
+                categoryGrid.appendChild(card);
             });
             fragment.appendChild(categorySection);
         }
@@ -635,13 +723,15 @@ async function loadAvailableModels() {
 
     gridContainer.appendChild(fragment);
 
-    if (modelCountBadge) modelCountBadge.textContent = `共 ${modelsToDisplay.length} 个模型`;
-
+    // 初始化高级工具选择器的数据 (如果需要)
     const modelsForAdvancedTools = modelsToDisplay.map(m => ({ 
         name: m.internal_name, 
         type: getCategoryForModel(m.internal_name),
     }));
-    await populateAdvancedToolSelectors(modelsForAdvancedTools);
+    // 如果 populateAdvancedToolSelectors 函数存在且需要，则调用
+    if (typeof populateAdvancedToolSelectors === 'function') {
+        await populateAdvancedToolSelectors(modelsForAdvancedTools);
+    }
 }
 
 /**
@@ -688,29 +778,79 @@ function createModelCardElement(internalName, displayName, type, description, ic
 /**
  * 初始化模型选择（事件委托）
  */
+/**
+ * 初始化模型选择（事件委托），并更新选中样式以匹配图片。
+ */
 function initModelSelectionDelegation() {
     const grid = DOM.modelGrid();
     if (!grid) return;
+
     const handleSelection = (targetCard) => {
         const modelName = targetCard.getAttribute('data-model-name');
         if (!modelName) return;
+
+        // 如果点击的是已选中的卡片，则取消选择 (可选行为)
+        // if (selectedModelName === modelName) {
+        //     selectedModelName = null;
+        //     targetCard.classList.remove('selected-model-card', 'bg-blue-600', 'text-white', 'border-blue-700', 'shadow-xl');
+        //     targetCard.classList.add('bg-base-100', 'border-base-300', 'shadow-md');
+        //     const icon = targetCard.querySelector('i.fas');
+        //     if (icon) icon.style.color = getModelIconColor(modelName); // 恢复原始图标颜色
+        //     DOM.selectedModelInfo().textContent = '当前未选择模型。请点击模型卡片进行选择。';
+        //     updateQueryInputState();
+        //     return;
+        // }
+
         selectedModelName = modelName;
-        grid.querySelectorAll('.model-card').forEach(c => c.classList.remove('selected-model-card'));
-        targetCard.classList.add('selected-model-card');
-        const name = targetCard.querySelector('.font-semibold')?.textContent || modelName;
-        DOM.selectedModelInfo().textContent = `已选模型: ${escapeHtml(name)}`;
-        showToast(`已选模型: "${escapeHtml(name)}"`, 'info');
+
+        // 移除所有卡片的选中样式
+        grid.querySelectorAll('.model-card').forEach(c => {
+            c.classList.remove('selected-model-card', 'bg-blue-600', 'text-white', 'border-blue-700', 'shadow-xl');
+            c.classList.add('bg-base-100', 'border-base-300', 'shadow-md'); // 恢复默认样式
+            const icon = c.querySelector('i.fas');
+            if (icon) {
+                const originalColor = c.getAttribute('data-original-icon-color') || getModelIconColor(c.getAttribute('data-model-name'));
+                icon.style.color = originalColor;
+            }
+        });
+
+        // 为选中的卡片添加新样式 (参考图片中的蓝色选中效果)
+        targetCard.classList.add('selected-model-card', 'bg-blue-600', 'text-white', 'border-blue-700', 'shadow-xl');
+        targetCard.classList.remove('bg-base-100', 'border-base-300', 'shadow-md');
+        
+        const icon = targetCard.querySelector('i.fas');
+        if (icon) {
+            if (!targetCard.hasAttribute('data-original-icon-color')) {
+                 targetCard.setAttribute('data-original-icon-color', icon.style.color);
+            }
+            icon.style.color = 'white'; // 选中时图标变为白色
+        }
+        
+        const modelDetails = FIXED_MODEL_DETAILS[modelName] || { display_name: modelName };
+        DOM.selectedModelInfo().innerHTML = `已选择模型: <strong class="text-blue-600">${escapeHtml(modelDetails.display_name)}</strong>.`;
+        showToast(`已选模型: "${escapeHtml(modelDetails.display_name)}"`, 'info');
         updateQueryInputState();
+
+        // 滚动到查询区域（如果模型选择后需要用户立即操作）
+        const querySection = document.getElementById('querySection');
+        if (querySection) {
+            querySection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
     };
+
     grid.addEventListener('click', (e) => {
         const card = e.target.closest('.model-card');
-        if (card) handleSelection(card);
+        if (card) {
+            handleSelection(card);
+        }
     });
+
     grid.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
             const card = document.activeElement.closest('.model-card');
             if (card && grid.contains(card)) {
-                e.preventDefault(); handleSelection(card);
+                e.preventDefault();
+                handleSelection(card);
             }
         }
     });
