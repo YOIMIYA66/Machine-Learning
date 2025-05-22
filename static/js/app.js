@@ -824,7 +824,7 @@ function initQuerySubmission() {
         showLoadingSpinner(true, 'AI思考中，请稍候...');
         clearPreviousResults();
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout
+        const timeoutId = setTimeout(() => controller.abort(), 120000); // 60s timeout
         try {
             const response = await fetch(API_ENDPOINTS.CHAT, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },

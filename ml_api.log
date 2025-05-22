@@ -1103,3 +1103,23 @@ ImportError: cannot import name 'get_deployment_metrics' from 'ml_api_endpoints'
 2025-05-22 08:18:21,659 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊğÄ£ĞÍÁĞ±í
 2025-05-22 08:18:21,659 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êğ£¬ÆäÖĞ 0 ¸öÕıÔÚÔËĞĞ
 2025-05-22 08:18:21,660 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 08:18:21] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-22 08:20:02,553 - app - INFO - API½ÓÊÕµ½²éÑ¯: '½âÊÍÒ»ÏÂÊ²Ã´ÊÇK¾ùÖµ¾ÛÀàËã·¨¡£'
+2025-05-22 08:20:02,559 - app - INFO - Ê¹ÓÃÔöÇ¿°æRAGÏµÍ³´¦Àí³£¹æ/ÖªÊ¶Àà²éÑ¯
+2025-05-22 08:20:02,877 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/embeddings "HTTP/1.1 200 OK"
+2025-05-22 08:20:08,664 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-22 08:20:08,983 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/embeddings "HTTP/1.1 200 OK"
+2025-05-22 08:20:08,997 - app - INFO - RAG½á¹ûÖÊÁ¿²»¼Ñ£¬ÇĞ»»µ½Ö±½Ó´óÄ£ĞÍ»Ø´ğ
+2025-05-22 08:20:23,279 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-22 08:20:23,280 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 08:20:23] "POST /api/chat HTTP/1.1" 200 -
+2025-05-22 08:23:45,606 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 08:23:45] "GET / HTTP/1.1" 200 -
+2025-05-22 08:23:45,770 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 08:23:45] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-22 08:23:45,912 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊğÄ£ĞÍÁĞ±í
+2025-05-22 08:23:45,912 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êğ£¬ÆäÖĞ 0 ¸öÕıÔÚÔËĞĞ
+2025-05-22 08:23:45,912 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 08:23:45] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-22 08:23:46,049 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 08:23:46] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -
+2025-05-22 08:26:00,194 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 08:26:00] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-22 08:26:00,221 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 08:26:00] "POST /api/ml/analyze HTTP/1.1" 200 -
+2025-05-22 08:26:13,140 - app - INFO - API½ÓÊÕµ½²éÑ¯: 'Ê¹ÓÃµ±Ç°Ñ¡ÔñµÄK½üÁÚ·ÖÀàÄ£ĞÍ£¬·ÖÎöÕâ·İÊı¾İµÄÖ÷ÒªÌØÕ÷¡£'
+2025-05-22 08:26:13,140 - app - INFO - ¼ì²âµ½½Ì³ÌÉú³ÉÇëÇó: Ä£ĞÍ 'knn_classifier', Ä¿±êÁĞ 'PM2.5'
+2025-05-22 08:27:28,485 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-22 08:27:28,487 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 08:27:28] "POST /api/chat HTTP/1.1" 200 -

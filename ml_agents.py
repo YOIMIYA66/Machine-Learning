@@ -2021,7 +2021,7 @@ Input: {input}
         handle_parsing_errors=lambda e: f"JSON解析错误: {str(e)}\n原始响应:\n```json\n{e.response.replace('{', '{{').replace('}', '}}')}\n```\n",
         max_iterations=1,  # 减少最大迭代次数以避免超时
         return_intermediate_steps=True,
-        max_execution_time=120  # 设置最大执行时间为30秒
+        max_execution_time=180  # 设置最大执行时间为30秒
     )
 
     return agent_executor

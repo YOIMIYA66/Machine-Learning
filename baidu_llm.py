@@ -24,7 +24,7 @@ try:
     client = OpenAI(
         api_key=AI_STUDIO_API_KEY,
         base_url=AI_STUDIO_BASE_URL,
-        timeout=120.0,  # 增加超时时间到120秒
+        timeout=180.0,  # 增加超时时间到180秒
     )
 except Exception as e:
     # 在这里打印错误并重新抛出，或者根据需要处理
