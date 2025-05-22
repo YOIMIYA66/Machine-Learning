@@ -543,5 +543,8 @@ def integrate_ml_with_rag(query_result: Dict, ml_model_name: str, feature_data: 
     query_result["ml_enhanced"] = True
     query_result["ml_model_used"] = ml_model_name
     query_result["feature_analysis"] = feature_data
-    
+    # Add prediction as a top-level key if available
+    if "prediction" in feature_data:
+        query_result["prediction"] = feature_data["prediction"]
+
     return query_result

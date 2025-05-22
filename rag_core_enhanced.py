@@ -115,105 +115,152 @@ def enhanced_query_rag(query: str, ml_integration: bool = True) -> Dict[str, Any
 
 
 def extract_prediction_info(query: str) -> tuple[Optional[str], Optional[Dict[str, Any]]]:
-    """
-    从查询中提取预测目标和特征信息
-    
-    参数:
-        query: 用户查询
-        
-    返回:
-        (预测目标, 特征字典)
-    """
-    # 这里使用简单的启发式方法，实际应用中可能需要更复杂的NLP技术
+    #  从查询中提取预测目标和特征信息。
+     
+    #  @param query 用户查询字符串。
+    #  @returns 包含预测目标和特征字典的元组。
+     
     prediction_target = None
     features = {}
+
+    # 尝试提取预测目标 (更灵活的方式)
+    prediction_phrases = ["预测", "预测什么", "预测一下", "计算", "估计"] # 增加更多预测相关的词汇
+    for phrase in prediction_phrases:
+        if phrase in query:
+            parts = query.split(phrase, 1) # 只分割一次
+            if len(parts) > 1:
+                # 尝试从分割后的第二部分提取目标
+                remaining_query = parts[1].strip()
+                # 简单启发式：取第一个名词或关键短语作为目标
+                # 这里可以进一步增强，例如使用NLP库进行词性标注和实体识别
+                words = remaining_query.split()
+                if words:
+                    # 过滤掉一些非目标词汇，例如“的”、“值”等
+                    potential_target = words[0].strip(",.?!;:的的值")
+                    if potential_target and len(potential_target) > 1: # 避免单字符或标点作为目标
+                         prediction_target = potential_target
+                         break # 找到目标后停止搜索
+
+    # 尝试提取特征 (更灵活的方式)
+    # 查找“当...时”、“如果...”、“在...情况下”、“...是...”、“...为...”等模式
+    import re
+    # 匹配 "特征名 是/为 特征值" 或 "特征名 为 特征值" 等模式
+    # 使用正则表达式查找 "词语 是/为 词语" 的模式
+    feature_pattern = re.compile(r'(\S+)\s*[是为]\s*(\S+)')
     
-    # 尝试提取预测目标
-    if "预测" in query:
-        parts = query.split("预测")
-        if len(parts) > 1:
-            # 取预测后面的第一个词作为目标
-            words = parts[1].strip().split()
-            if words:
-                prediction_target = words[0].strip(",.?!;:")
+    # 检查整个查询字符串
+    matches = feature_pattern.findall(query)
     
-    # 尝试提取特征
-    feature_indicators = ["特征", "参数", "条件", "值", "是", "为"]
-    for indicator in feature_indicators:
-        if indicator in query:
-            parts = query.split(indicator)
-            for i in range(1, len(parts)):
-                # 尝试提取"X是Y"或"X为Y"这样的模式
-                words = parts[i].strip().split()
-                if len(words) >= 2:
-                    feature_name = words[0].strip(",.?!;:")
-                    feature_value = words[1].strip(",.?!;:")
-                    # 尝试将特征值转换为数值
-                    try:
-                        if '.' in feature_value:
-                            features[feature_name] = float(feature_value)
-                        else:
-                            features[feature_name] = int(feature_value)
-                    except ValueError:
-                        features[feature_name] = feature_value
-    
+    for name, value_str in matches:
+        feature_name = name.strip(",.?!;:")
+        feature_value_str = value_str.strip(",.?!;:")
+        
+        # 尝试将特征值转换为数值
+        try:
+            if '.' in feature_value_str:
+                features[feature_name] = float(feature_value_str)
+            else:
+                features[feature_name] = int(feature_value_str)
+        except ValueError:
+            # 如果不是数值，保留为字符串
+            features[feature_name] = feature_value_str
+            
+    # 进一步尝试从预测目标后的剩余查询中提取特征
+    # 如果找到了预测目标，只分析目标后的部分
+    if prediction_target:
+        prediction_phrases = [phrase.lower() for phrase in ["预测", "预测什么", "预测一下", "计算", "估计"]]
+        query_lower = query.lower()
+        remaining_query = query
+        for phrase in prediction_phrases:
+            if phrase in query_lower:
+                parts = query.split(phrase, 1)
+                if len(parts) > 1:
+                    remaining_query = parts[1].strip()
+                    break
+        
+        # 在剩余查询中查找特征模式
+        matches_remaining = feature_pattern.findall(remaining_query)
+        for name, value_str in matches_remaining:
+            feature_name = name.strip(",.?!;:")
+            feature_value_str = value_str.strip(",.?!;:")
+            
+            # 避免重复添加已提取的特征
+            if feature_name not in features:
+                 # 尝试将特征值转换为数值
+                try:
+                    if '.' in feature_value_str:
+                        features[feature_name] = float(feature_value_str)
+                    else:
+                        features[feature_name] = int(feature_value_str)
+                except ValueError:
+                    # 如果不是数值，保留为字符串
+                    features[feature_name] = feature_value_str
+
+    # 如果提取到了特征，返回特征字典，否则返回None
     return prediction_target, features if features else None
 
 
 def find_suitable_model(prediction_target: str) -> Optional[str]:
-    """
-    根据预测目标找到合适的模型
+    # /**
+    #  * 根据预测目标找到合适的模型。
+    #  *
+    #  * @param prediction_target 预测目标字符串。
+    #  * @returns 匹配到的模型名称，如果没有找到则返回None。
+    #  */
+    # 导入模型选择函数
+    from ml_models import select_model_for_task
     
-    参数:
-        prediction_target: 预测目标
-        
-    返回:
-        模型名称
-    """
-    # 导入模型列表函数
-    from ml_models import list_available_models
+    # 直接调用 ml_models 中的模型选择函数
+    # 将预测目标作为任务描述传入
+    model_name = select_model_for_task(prediction_target)
     
-    # 获取所有可用模型
-    models = list_available_models()
-    
-    # 根据预测目标匹配模型
-    for model in models:
-        model_metadata = model.get("metadata", {})
-        target_name = model_metadata.get("target_name", "")
-        description = model_metadata.get("description", "")
-        
-        # 检查目标名称或描述是否匹配预测目标
-        if (prediction_target.lower() in target_name.lower() or 
-            prediction_target.lower() in description.lower()):
-            return model["name"]
-    
-    # 如果没有找到匹配的模型，返回None
-    return None
+    return model_name
 
 
 def make_prediction_with_model(model_name: str, features: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    使用指定模型进行预测
-    
-    参数:
-        model_name: 模型名称
-        features: 特征字典
-        
-    返回:
-        预测结果字典
-    """
+    # /**
+    #  * 使用指定模型进行预测。
+    #  *
+    #  * @param model_name 模型名称。
+    #  * @param features 特征字典，用于模型预测。
+    #  * @returns 包含预测结果和相关信息的字典，结构与 integrate_ml_with_rag 期望的 ml_prediction_info 参数一致。
+    #  */
     # 检查模型是否已缓存
     if model_name not in _ML_MODELS_CACHE:
         # 加载模型
-        model, preprocessors, metadata = load_model(model_name)
-        _ML_MODELS_CACHE[model_name] = (model, preprocessors, metadata)
+        try:
+            model, preprocessors, metadata = load_model(model_name)
+            _ML_MODELS_CACHE[model_name] = (model, preprocessors, metadata)
+        except FileNotFoundError:
+            print(f"错误: 未找到模型文件 '{model_name}'.pkl")
+            return {"error": f"模型 '{model_name}' 未找到"}
+        except Exception as e:
+            print(f"加载模型 '{model_name}' 时出错: {str(e)}")
+            return {"error": f"加载模型 '{model_name}' 失败: {str(e)}"}
     else:
         model, preprocessors, metadata = _ML_MODELS_CACHE[model_name]
     
     # 使用模型进行预测
-    prediction_result = predict(model_name=model_name, input_data=features)
-    
-    return prediction_result
+    try:
+        prediction_output = predict(model_name=model_name, input_data=features)
+        
+        # 提取预测结果，假设输入是单个数据点，取predictions列表的第一个元素
+        prediction_value = prediction_output.get("predictions", [None])[0]
+        
+        # 构建返回字典，与integrate_ml_with_rag的期望结构对齐
+        # 注意：ml_models.predict 目前不直接返回 feature_importance 或 model_metrics
+        # 如果需要这些信息，可能需要在训练时保存到metadata并在load_model时加载
+        return {
+            "prediction": prediction_value,
+            "model_name": model_name,
+            "feature_importance": None, # 预测时通常不计算特征重要性
+            "model_metrics": None # 预测时通常不计算模型指标
+            # "raw_prediction_output": prediction_output # 可以选择保留原始输出用于调试
+        }
+        
+    except Exception as e:
+        print(f"使用模型 '{model_name}' 进行预测时出错: {str(e)}")
+        return {"error": f"预测失败: {str(e)}"}
 
 
 def enhanced_direct_query_llm(query: str, ml_context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:

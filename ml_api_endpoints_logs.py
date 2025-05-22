@@ -180,8 +180,13 @@ def add_deployment_log(deployment_id: str, log_entry: Dict[str, Any]) -> Dict[st
 def get_deployment_metrics(deployment_id: str) -> Dict[str, Any]:
     """
     获取指定部署的性能指标。
-    注意: 当前实现包含一个从 'ml_api_endpoints' 导入 '_get_all_deployments' 的操作，
-    这可能与 'ml_api_endpoints.py' 中对此文件的导入形成循环依赖，建议重构以避免此问题。
+    此函数会尝试从部署的日志文件 ({deployment_id}.json) 中解析和聚合真实的性能指标，
+    例如请求总数、平均响应时间和错误率。
+    期望日志条目中包含 type='request_metric', response_time_ms, level, 和 status_code 字段来计算这些指标。
+    其他指标（如CPU/内存使用率、正常运行时间百分比）当前仍为模拟数据。
+
+    注意: 当前实现包含一个从 'deployment_utils' 导入 '_get_all_deployments' 的操作。
+    如果 'deployment_utils' 或其依赖间接导入此模块，可能需要注意循环依赖问题。
 
     Args:
         deployment_id (str): 部署ID。
@@ -191,20 +196,13 @@ def get_deployment_metrics(deployment_id: str) -> Dict[str, Any]:
                         如果失败，包含 'success': False 和错误信息。
     """
     logger.info(f"Fetching metrics for deployment ID: {deployment_id}")
-    # 此处为示例实现，实际应从日志、监控系统或数据库中获取真实指标
-    # 例如，可以解析日志文件中的请求响应时间、错误率等
 
-    # 模拟指标数据
-    # 在实际应用中，这些数据应该动态生成或从存储中读取
     if not deployment_id or not deployment_id.strip():
         return {
             "success": False,
             "error": "部署ID不能为空"
         }
 
-    # 尝试从日志文件中聚合一些基本指标，或者从专门的指标存储中获取
-    # 这里我们先返回一些模拟数据
-    # 检查部署是否存在 (可以复用 get_deployment_logs 中的逻辑或 _get_all_deployments)
     from deployment_utils import _get_all_deployments
     deployments = _get_all_deployments()
     deployment = next((dep for dep in deployments if dep['id'] == deployment_id), None)
@@ -215,33 +213,41 @@ def get_deployment_metrics(deployment_id: str) -> Dict[str, Any]:
             "error": f"找不到部署ID: {deployment_id}"
         }
 
-    # 模拟指标
-    # TODO: 实现真实的指标收集逻辑
-    # 例如，可以分析日志文件中的请求数量、平均响应时间、错误率等
-    # log_file_path = os.path.join(DEPLOYMENTS_LOG_DIR, f"{deployment_id}.json")
-    # request_count = 0
-    # total_response_time = 0
-    # error_count = 0
-    # if os.path.exists(log_file_path):
-    #     with open(log_file_path, 'r', encoding='utf-8') as f:
-    #         log_data = json.load(f)
-    #         logs = log_data.get('logs', [])
-    #         # 假设日志条目中有 'type' (e.g., 'request', 'error') 和 'response_time_ms'
-    #         for log_entry in logs:
-    #             if log_entry.get('type') == 'request':
-    #                 request_count += 1
-    #                 total_response_time += log_entry.get('response_time_ms', 0)
-    #             elif log_entry.get('level') == 'ERROR' or log_entry.get('type') == 'error':
-    #                 error_count += 1
-    # avg_response_time = (total_response_time / request_count) if request_count > 0 else 0
-    # error_rate = (error_count / request_count) * 100 if request_count > 0 else 0
+    # 从日志文件聚合真实指标
+    log_file_path = os.path.join(DEPLOYMENTS_LOG_DIR, f"{deployment_id}.json")
+    request_count = 0
+    total_response_time_ms = 0.0
+    error_count = 0
 
-    # 简化版模拟数据
-    import random
-    request_count = random.randint(100, 1000)
-    avg_response_time = random.uniform(50, 500) # ms
-    error_rate = random.uniform(0, 5) # percentage
-    uptime_percentage = random.uniform(99, 100)
+    if os.path.exists(log_file_path):
+        try:
+            with open(log_file_path, 'r', encoding='utf-8') as f:
+                log_data = json.load(f)
+            
+            logs = log_data.get('logs', [])
+            for log_entry in logs:
+                # 假设 'request_metric' 类型的日志包含性能数据
+                if log_entry.get('type') == 'request_metric':
+                    request_count += 1
+                    total_response_time_ms += float(log_entry.get('response_time_ms', 0.0))
+                    # 假设 'level': 'ERROR' 或非200的 status_code 表示请求处理错误
+                    if log_entry.get('level') == 'ERROR' or \
+                       (log_entry.get('status_code') is not None and \
+                        not str(log_entry.get('status_code')).startswith('2')):
+                        error_count += 1
+        except json.JSONDecodeError as je:
+            logger.error(f"解析日志文件 {log_file_path} 时出错: {str(je)}")
+        except Exception as ex:
+            logger.error(f"读取或处理日志文件 {log_file_path} 时出错: {str(ex)}")
+
+    avg_response_time_ms = (total_response_time_ms / request_count) if request_count > 0 else 0.0
+    error_rate_percent = (error_count / request_count) * 100 if request_count > 0 else 0.0
+
+    # 其他指标可以暂时保留模拟数据或后续实现
+    import random # 保留 random 导入，因为其他指标仍使用它
+    uptime_percentage = random.uniform(99, 100) # 模拟
+    cpu_usage_percent = random.uniform(10, 70) # 模拟
+    memory_usage_mb = random.uniform(100, 500) # 模拟
 
     return {
         "success": True,
@@ -249,11 +255,11 @@ def get_deployment_metrics(deployment_id: str) -> Dict[str, Any]:
         "model_name": deployment.get('model_name', 'unknown'),
         "metrics": {
             "total_requests": request_count,
-            "avg_response_time_ms": round(avg_response_time, 2),
-            "error_rate_percent": round(error_rate, 2),
+            "avg_response_time_ms": round(avg_response_time_ms, 2),
+            "error_rate_percent": round(error_rate_percent, 2),
             "uptime_percentage": round(uptime_percentage, 2),
-            "cpu_usage_percent": random.uniform(10, 70), # 模拟
-            "memory_usage_mb": random.uniform(100, 500) # 模拟
+            "cpu_usage_percent": round(cpu_usage_percent, 2),
+            "memory_usage_mb": round(memory_usage_mb, 2)
         },
         "last_updated": datetime.datetime.now().isoformat()
     }

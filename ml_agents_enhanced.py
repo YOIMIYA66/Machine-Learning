@@ -228,4 +228,59 @@ def enhanced_query_ml_agent(query: str, use_existing_model: bool = True,
         # 返回集成结果
         return integrated_result
     
-    return result
+    # 检查是否是预测或模拟请求
+    # 简单的启发式：检查查询中是否包含“预测”、“模拟”或“当...时预测”等关键词
+    if any(keyword in query for keyword in ['预测', '模拟']) or ('当' in query and '时' in query and '预测' in query):
+        try:
+            # 尝试从查询中提取预测目标和特征
+            prediction_target, features = extract_prediction_info(query)
+
+            if prediction_target and features:
+                # 查找适合该预测任务的模型
+                # 优先使用用户已选模型（如果前端传递了），如果没有，则尝试自动选择或查找匹配目标列的模型
+                # 注意：当前enhanced_query_ml_agent没有接收selected_model参数，这里先尝试根据目标查找
+                model_name = find_suitable_model(prediction_target)
+
+                if model_name:
+                    # 使用模型进行预测
+                    prediction_result = make_prediction_with_model(model_name, features)
+
+                    # 将预测结果添加到ml_context中，以便LLM生成回答
+                    ml_context_for_llm = {
+                        "model_name": model_name,
+                        "prediction": prediction_result.get("prediction"),
+                        "features_used": features,
+                        "model_metrics": prediction_result.get("metrics"),
+                        "feature_importance": prediction_result.get("feature_importance")
+                    }
+
+                    # 使用增强版LLM生成回答，包含预测结果
+                    # 注意：这里直接调用enhanced_direct_query_llm，而不是通过RAG流程
+                    llm_response = enhanced_direct_query_llm(query, ml_context=ml_context_for_llm)
+
+                    # 将LLM的回答和可能的其他结果合并到最终结果中
+                    result["answer"] = llm_response.get("answer", result.get("answer", ""))
+                    result["ml_enhanced"] = True
+                    # 将预测结果、模型指标和特征重要性添加到最终结果中，以便前端结构化展示
+                    result["prediction"] = prediction_result.get("prediction")
+                    result["model_metrics"] = prediction_result.get("metrics")
+                    result["feature_importance"] = prediction_result.get("feature_importance")
+
+                    return result # 返回包含预测结果的增强结果
+
+                else:
+                    result["answer"] = result.get("answer", "") + "\n\n抱歉，未能找到适合进行预测的模型。" # 如果找不到模型，更新回答
+            else:
+                 result["answer"] = result.get("answer", "") + "\n\n抱歉，未能从您的查询中提取出完整的预测所需特征信息。请提供明确的特征名称和值。" # 如果提取特征失败，更新回答
+        except Exception as e:
+            print(f"处理预测请求时出错: {str(e)}")
+            traceback.print_exc() # 打印详细错误信息
+            result["answer"] = result.get("answer", "") + "\n\n处理预测请求时发生错误: {}".format(str(e)) # 发生错误时更新回答
+
+    return result # 对于非预测请求或处理失败的情况，返回原始或部分更新的结果
+
+
+def enhanced_direct_query_llm(query: str, ml_context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """
+    增强版的直接大模型查询，可以包含机器学习上下文
+    """

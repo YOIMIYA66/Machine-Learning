@@ -247,14 +247,18 @@ def chat_endpoint():
                 # 回退到标准ML代理
                 result = query_ml_agent(user_query, use_existing_model=use_existing_model)
             
-            # 返回结果，保留特征分析数据
-            return jsonify({
+            # 返回结果，保留特征分析数据和预测结果
+            response_data = {
                 "answer": result["answer"],
                 "source_documents": [],
                 "is_ml_query": True,
                 "feature_analysis": result.get("feature_analysis", {}),
                 "ml_model_used": result.get("model_used", "未知模型")
-            })
+            }
+            # 如果结果中包含预测，添加到响应中
+            if "prediction" in result:
+                response_data["prediction"] = result["prediction"]
+            return jsonify(response_data)
         else:
             app.logger.info(f"使用增强版RAG系统处理常规/知识类查询")
             try:
@@ -315,6 +319,14 @@ def chat_endpoint():
                 result["is_direct_answer"] = direct_llm_response.get("is_direct_answer", True)
                 result["ml_enhanced_llm"] = direct_llm_response.get("ml_enhanced", False)
             
+            # 如果结果中包含预测、模型指标或特征重要性，添加到响应中
+            if "prediction" in result:
+                result["prediction"] = result["prediction"]
+            if "model_metrics" in result:
+                result["model_metrics"] = result["model_metrics"]
+            if "feature_importance" in result:
+                result["feature_importance"] = result["feature_importance"]
+
             return jsonify(result)
     except Exception as e:
         app.logger.error(f"/api/chat 接口发生错误: {e}", exc_info=True)

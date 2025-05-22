@@ -1160,6 +1160,19 @@ function displayChatResponse(data, userQuery) {
         } else {
             responseText.innerHTML = formatAnswer(data.answer);
         }
+
+        // 显示预测结果（如果存在）
+        if (data.prediction !== undefined && data.prediction !== null) {
+            let predictionHtml = '';
+            if (typeof data.prediction === 'number') {
+                predictionHtml = data.prediction.toFixed(4); // 格式化数字，保留4位小数
+            } else if (typeof data.prediction === 'string') {
+                predictionHtml = escapeHtml(data.prediction);
+            } else {
+                predictionHtml = `<pre class="whitespace-pre-wrap text-sm">${escapeHtml(JSON.stringify(data.prediction, null, 2))}</pre>`; // 格式化JSON对象或数组
+            }
+            responseText.innerHTML += `<div class="mt-4 p-3 bg-blue-100 text-blue-800 rounded-md"><strong class="font-semibold">预测结果:</strong> ${predictionHtml}</div>`;
+        }
     }
     
     if (visualizationArea) {
@@ -1170,7 +1183,51 @@ function displayChatResponse(data, userQuery) {
             visualizationArea.classList.add('hidden');
         }
     }
-    
+
+    // 显示模型指标（如果存在）
+    const metricsContainer = DOM.modelMetricsContainer();
+    const metricsMessage = DOM.modelMetricsMessage();
+    if (metricsContainer && metricsMessage) {
+        if (data.model_metrics && Object.keys(data.model_metrics).length > 0) {
+            metricsMessage.classList.add('hidden');
+            let metricsHtml = '<h4 class="font-semibold mb-2">模型评估指标:</h4><ul class="list-disc pl-5">';
+            for (const metric in data.model_metrics) {
+                metricsHtml += `<li><strong>${escapeHtml(metric)}:</strong> ${escapeHtml(JSON.stringify(data.model_metrics[metric]))}</li>`;
+            }
+            metricsHtml += '</ul>';
+            metricsContainer.innerHTML = metricsHtml;
+        } else {
+            metricsMessage.classList.remove('hidden');
+            metricsContainer.innerHTML = ''; // Clear previous content
+        }
+    }
+
+    // 显示特征重要性（如果存在，且没有可视化图表）
+    const featureImportanceChart = DOM.featureImportanceChart();
+    const featureImportanceMessage = DOM.featureImportanceMessage();
+    const featureImportanceData = data.feature_analysis?.advanced_analysis?.feature_importance || data.feature_importance;
+
+    if (featureImportanceChart && featureImportanceMessage) {
+        // Check if feature importance chart was already rendered via visualization_data
+        if (!activeCharts['featureImportanceChart'] && featureImportanceData && featureImportanceData.feature_names && featureImportanceData.importance_values) {
+             featureImportanceMessage.classList.add('hidden');
+             let importanceHtml = '<h4 class="font-semibold mb-2">特征重要性:</h4><ul class="list-disc pl-5">';
+             // Display top N features, e.g., top 10
+             const numFeaturesToShow = Math.min(featureImportanceData.feature_names.length, 10);
+             for (let i = 0; i < numFeaturesToShow; i++) {
+                 importanceHtml += `<li><strong>${escapeHtml(featureImportanceData.feature_names[i])}:</strong> ${featureImportanceData.importance_values[i].toFixed(4)}</li>`;
+             }
+             importanceHtml += '</ul>';
+             // Use the chart container to display the list if no chart is rendered
+             featureImportanceChart.innerHTML = importanceHtml;
+        } else if (!activeCharts['featureImportanceChart']) { // No chart and no data to list
+             featureImportanceMessage.classList.remove('hidden');
+             featureImportanceChart.innerHTML = ''; // Clear previous content
+        } else { // Chart was rendered, hide message
+             featureImportanceMessage.classList.add('hidden');
+        }
+    }
+
     if (sourceArea && sourceList && sourceMsg) {
         if (data.source_documents && data.source_documents.length > 0) {
             sourceArea.classList.remove('hidden');
