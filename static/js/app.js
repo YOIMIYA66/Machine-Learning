@@ -1212,10 +1212,11 @@ function escapeHtml(unsafe) {
  */
 function initExampleQueries() {
     const examples = [
-        { text: "这份数据的基本统计特性是什么？", mode: "data_analysis" },
-        { text: "哪些特征与目标变量最为相关？", mode: "data_analysis" },
-        { text: "使用[选择的模型]对数据进行预测，并评估其性能。", mode: "data_analysis" },
-        { text: "解释一下什么是K均值聚类算法。", mode: "general_llm" },
+        { text: "你好，请介绍一下你自己。", mode: "general_llm" },
+        { text: "我上传了新的数据集，请帮我预览一下数据概况。", mode: "data_analysis" },
+        { text: "使用当前选择的[选择的模型]模型，分析这份数据的主要特征。", mode: "model_specific_analysis" }, // Assuming a new mode or adapting data_analysis
+        { text: "请为我生成一段Python代码，演示如何使用逻辑回归进行二分类。", mode: "general_llm" }, // Or a specific code generation mode
+        { text: "解释一下什么是过拟合，以及如何避免它？", mode: "general_llm" }
     ];
     const listEl = DOM.exampleQueryList();
     if (!listEl) return;
