@@ -23,206 +23,461 @@ logger = logging.getLogger(__name__)
 LEARNING_PATHS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'learning_paths')
 os.makedirs(LEARNING_PATHS_DIR, exist_ok=True)
 
-# 学习主题和模块数据 (示例数据，实际应用中可能来自数据库)
-LEARNING_TOPICS = {
-    "machine_learning": {
-        "display_name": "机器学习",
-        "description": "机器学习基础与应用",
-        "modules": [
+# 知识图谱和学习资源目录
+KNOWLEDGE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'knowledge')
+os.makedirs(KNOWLEDGE_DIR, exist_ok=True)
+
+# 默认知识图谱文件
+DEFAULT_KNOWLEDGE_GRAPH = os.path.join(KNOWLEDGE_DIR, 'knowledge_graph.json')
+
+# 如果知识图谱文件不存在，创建一个简单的示例
+if not os.path.exists(DEFAULT_KNOWLEDGE_GRAPH):
+    default_graph = {
+        "domains": [
             {
-                "id": "ml_intro",
-                "title": "机器学习导论",
-                "description": "了解机器学习的基本概念、应用场景和常见算法类型",
-                "difficulty": "beginner",
-                "estimated_hours": 3,
-                "prerequisites": []
+                "id": "ml",
+                "name": "机器学习",
+                "topics": [
+                    {
+                        "id": "ml_basics",
+                        "name": "机器学习基础",
+                        "difficulty": "beginner",
+                        "modules": [
+                            {
+                                "id": "ml_intro",
+                                "name": "机器学习介绍",
+                                "description": "机器学习的基本概念和类型",
+                                "estimated_hours": 2,
+                                "resources": ["video:intro_to_ml", "article:ml_overview"],
+                                "prerequisites": []
+                            },
+                            {
+                                "id": "ml_workflow",
+                                "name": "机器学习工作流程",
+                                "description": "机器学习项目的端到端流程",
+                                "estimated_hours": 3,
+                                "resources": ["video:ml_workflow", "notebook:ml_pipeline"],
+                                "prerequisites": ["ml_intro"]
+                            }
+                        ]
+                    },
+                    {
+                        "id": "supervised_learning",
+                        "name": "监督学习",
+                        "difficulty": "intermediate",
+                        "modules": [
+                            {
+                                "id": "linear_regression",
+                                "name": "线性回归",
+                                "description": "线性回归模型的原理和实现",
+                                "estimated_hours": 4,
+                                "resources": ["video:linear_regression", "notebook:linear_regression_impl"],
+                                "prerequisites": ["ml_workflow"]
+                            },
+                            {
+                                "id": "classification",
+                                "name": "分类算法",
+                                "description": "常见分类算法介绍和应用",
+                                "estimated_hours": 5,
+                                "resources": ["video:classification_intro", "notebook:classification_algorithms"],
+                                "prerequisites": ["linear_regression"]
+                            }
+                        ]
+                    },
+                    {
+                        "id": "unsupervised_learning",
+                        "name": "无监督学习",
+                        "difficulty": "intermediate",
+                        "modules": [
+                            {
+                                "id": "clustering",
+                                "name": "聚类算法",
+                                "description": "常见聚类算法介绍和应用",
+                                "estimated_hours": 4,
+                                "resources": ["video:clustering_intro", "notebook:clustering_algorithms"],
+                                "prerequisites": ["ml_workflow"]
+                            }
+                        ]
+                    },
+                    {
+                        "id": "deep_learning",
+                        "name": "深度学习",
+                        "difficulty": "advanced",
+                        "modules": [
+                            {
+                                "id": "neural_networks",
+                                "name": "神经网络基础",
+                                "description": "神经网络的基本概念和结构",
+                                "estimated_hours": 6,
+                                "resources": ["video:neural_networks_intro", "notebook:simple_neural_network"],
+                                "prerequisites": ["linear_regression", "classification"]
+                            },
+                            {
+                                "id": "cnn",
+                                "name": "卷积神经网络",
+                                "description": "CNN的原理和应用",
+                                "estimated_hours": 8,
+                                "resources": ["video:cnn_intro", "notebook:cnn_implementation"],
+                                "prerequisites": ["neural_networks"]
+                            }
+                        ]
+                    }
+                ]
             },
             {
-                "id": "data_preprocessing",
-                "title": "数据预处理",
-                "description": "学习数据清洗、特征工程和数据转换的基本技术",
-                "difficulty": "beginner",
-                "estimated_hours": 5,
-                "prerequisites": ["ml_intro"]
-            },
-            {
-                "id": "supervised_learning",
-                "title": "监督学习算法",
-                "description": "掌握线性回归、逻辑回归、决策树等基础算法",
-                "difficulty": "intermediate",
-                "estimated_hours": 8,
-                "prerequisites": ["data_preprocessing"]
-            },
-            {
-                "id": "unsupervised_learning",
-                "title": "无监督学习算法",
-                "description": "学习聚类、降维等无监督学习方法",
-                "difficulty": "intermediate",
-                "estimated_hours": 6,
-                "prerequisites": ["supervised_learning"]
-            },
-            {
-                "id": "model_evaluation",
-                "title": "模型评估与优化",
-                "description": "学习模型评估指标、交叉验证和超参数调优",
-                "difficulty": "intermediate",
-                "estimated_hours": 5,
-                "prerequisites": ["supervised_learning"]
-            },
-            {
-                "id": "ensemble_methods",
-                "title": "集成学习方法",
-                "description": "掌握随机森林、Boosting等集成学习算法",
-                "difficulty": "advanced",
-                "estimated_hours": 6,
-                "prerequisites": ["model_evaluation"]
-            },
-            {
-                "id": "ml_project",
-                "title": "机器学习项目实践",
-                "description": "从数据收集到部署，完成一个完整的机器学习项目",
-                "difficulty": "advanced",
-                "estimated_hours": 12,
-                "prerequisites": ["ensemble_methods"]
+                "id": "data_science",
+                "name": "数据科学",
+                "topics": [
+                    {
+                        "id": "data_preprocessing",
+                        "name": "数据预处理",
+                        "difficulty": "beginner",
+                        "modules": [
+                            {
+                                "id": "data_cleaning",
+                                "name": "数据清洗",
+                                "description": "数据清洗和处理的技术和方法",
+                                "estimated_hours": 3,
+                                "resources": ["video:data_cleaning", "notebook:data_cleaning_techniques"],
+                                "prerequisites": []
+                            },
+                            {
+                                "id": "feature_engineering",
+                                "name": "特征工程",
+                                "description": "特征选择和转换的方法",
+                                "estimated_hours": 4,
+                                "resources": ["video:feature_engineering", "notebook:feature_engineering_examples"],
+                                "prerequisites": ["data_cleaning"]
+                            }
+                        ]
+                    },
+                    {
+                        "id": "data_visualization",
+                        "name": "数据可视化",
+                        "difficulty": "intermediate",
+                        "modules": [
+                            {
+                                "id": "visualization_basics",
+                                "name": "可视化基础",
+                                "description": "数据可视化的基本原则和工具",
+                                "estimated_hours": 3,
+                                "resources": ["video:visualization_intro", "notebook:basic_visualization"],
+                                "prerequisites": ["data_cleaning"]
+                            },
+                            {
+                                "id": "advanced_visualization",
+                                "name": "高级可视化技术",
+                                "description": "交互式和高级可视化方法",
+                                "estimated_hours": 5,
+                                "resources": ["video:advanced_viz", "notebook:interactive_visualization"],
+                                "prerequisites": ["visualization_basics"]
+                            }
+                        ]
+                    }
+                ]
             }
         ]
-    },
-    "deep_learning": {
-        "display_name": "深度学习",
-        "description": "深度学习原理与应用",
-        "modules": [
-            {
-                "id": "dl_intro",
-                "title": "深度学习导论",
-                "description": "了解深度学习的基本概念、历史和应用",
-                "difficulty": "beginner",
-                "estimated_hours": 4,
-                "prerequisites": ["machine_learning.supervised_learning"]
-            },
-            {
-                "id": "neural_networks",
-                "title": "神经网络基础",
-                "description": "学习神经网络的结构、前向传播和反向传播算法",
-                "difficulty": "intermediate",
-                "estimated_hours": 8,
-                "prerequisites": ["dl_intro"]
-            },
-            # 更多模块...
-        ]
     }
-}
+    
+    with open(DEFAULT_KNOWLEDGE_GRAPH, 'w', encoding='utf-8') as f:
+        json.dump(default_graph, f, ensure_ascii=False, indent=2)
 
-
-def generate_learning_path(user_id: str, goal: str, prior_knowledge: str, weekly_hours: float) -> Dict[str, Any]:
+def load_knowledge_graph(graph_path: str = DEFAULT_KNOWLEDGE_GRAPH) -> Dict:
     """
-    基于用户目标和背景生成个性化学习路径
+    加载知识图谱
+    
+    Args:
+        graph_path: 知识图谱文件路径
+        
+    Returns:
+        知识图谱数据
+    """
+    try:
+        with open(graph_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        logger.error(f"加载知识图谱失败: {str(e)}")
+        raise
+
+def generate_learning_path(user_id: str, goal: str, prior_knowledge: List[str], 
+                         weekly_hours: int, max_modules: int = 20) -> Dict[str, Any]:
+    """
+    生成个性化学习路径
     
     Args:
         user_id: 用户ID
-        goal: 学习目标描述
-        prior_knowledge: 用户已有知识水平
-        weekly_hours: 每周计划学习时间
+        goal: 学习目标
+        prior_knowledge: 已有知识点列表
+        weekly_hours: 每周可用学习时间(小时)
+        max_modules: 最大模块数量
         
     Returns:
-        包含个性化学习路径的字典
-    """
-    logger.info(f"为用户 {user_id} 生成学习路径，目标: {goal}")
-    
-    # 生成路径ID
-    path_id = str(uuid.uuid4())
-    
-    # 此处应该调用大模型API来分析用户目标，选择合适的主题和模块
-    # 以下为简化实现，实际应用中可能基于LLM分析
-    
-    # 基于目标关键词选择主题
-    selected_topic = "machine_learning"  # 默认选择机器学习
-    if "深度" in goal or "neural" in goal.lower() or "deep" in goal.lower():
-        selected_topic = "deep_learning"
-    
-    # 获取主题信息
-    topic_info = LEARNING_TOPICS.get(selected_topic, LEARNING_TOPICS["machine_learning"])
-    
-    # 基于先验知识选择起始模块
-    all_modules = topic_info["modules"]
-    
-    # 根据先验知识水平确定起始模块
-    if "高级" in prior_knowledge or "advanced" in prior_knowledge.lower():
-        # 高级用户可以跳过基础模块
-        starting_module_index = min(2, len(all_modules) - 1)
-    elif "中级" in prior_knowledge or "intermediate" in prior_knowledge.lower():
-        # 中级用户可以跳过入门模块
-        starting_module_index = min(1, len(all_modules) - 1)
-    else:
-        # 初学者从头开始
-        starting_module_index = 0
-    
-    # 根据起始模块和依赖关系，生成模块序列
-    selected_modules = all_modules[starting_module_index:]
-    
-    # 计算总学习时间和预计完成日期
-    total_hours = sum(module["estimated_hours"] for module in selected_modules)
-    weeks_needed = total_hours / weekly_hours
-    
-    # 创建今天的日期对象
-    today = datetime.datetime.now().date()
-    
-    # 计算预计完成日期
-    estimated_completion_date = today + datetime.timedelta(days=int(weeks_needed * 7))
-    
-    # 构建学习路径
-    learning_path = {
-        "path_id": path_id,
-        "user_id": user_id,
-        "created_at": datetime.datetime.now().isoformat(),
-        "goal": goal,
-        "prior_knowledge": prior_knowledge,
-        "weekly_hours": weekly_hours,
-        "topic": {
-            "id": selected_topic,
-            "name": topic_info["display_name"],
-            "description": topic_info["description"]
-        },
-        "modules": selected_modules,
-        "total_hours": total_hours,
-        "estimated_completion_date": estimated_completion_date.isoformat(),
-        "weeks_needed": round(weeks_needed, 1),
-        "progress": {
-            "completed_modules": [],
-            "current_module": selected_modules[0]["id"] if selected_modules else None,
-            "completion_percentage": 0,
-            "last_updated": datetime.datetime.now().isoformat()
-        }
-    }
-    
-    # 保存学习路径
-    save_learning_path(path_id, learning_path)
-    
-    return learning_path
-
-
-def save_learning_path(path_id: str, learning_path: Dict[str, Any]) -> bool:
-    """
-    将学习路径保存到文件
-    
-    Args:
-        path_id: 路径ID
-        learning_path: 学习路径数据
-        
-    Returns:
-        保存是否成功
+        学习路径对象
     """
     try:
-        file_path = os.path.join(LEARNING_PATHS_DIR, f"{path_id}.json")
-        with open(file_path, 'w', encoding='utf-8') as f:
-            json.dump(learning_path, f, ensure_ascii=False, indent=2)
-        logger.info(f"学习路径 {path_id} 已保存")
-        return True
+        logger.info(f"为用户 {user_id} 生成学习路径，目标: {goal}")
+        
+        # 加载知识图谱
+        knowledge_graph = load_knowledge_graph()
+        
+        # 解析学习目标，获取相关领域和主题
+        target_domains, target_topics = _parse_learning_goal(goal, knowledge_graph)
+        
+        # 获取所有模块列表
+        all_modules = _get_all_modules(knowledge_graph)
+        
+        # 根据先验知识标记已完成的模块
+        completed_modules = _get_completed_modules(prior_knowledge, all_modules)
+        
+        # 为目标主题构建学习路径
+        modules_to_learn = _build_learning_path(target_topics, all_modules, completed_modules, max_modules)
+        
+        # 估算完成时间
+        total_hours = sum([m.get('estimated_hours', 0) for m in modules_to_learn])
+        weeks_to_complete = round(total_hours / weekly_hours, 1)
+        
+        # 创建学习路径对象
+        path_id = f"path_{uuid.uuid4().hex[:8]}"
+        learning_path = {
+            "path_id": path_id,
+            "user_id": user_id,
+            "created_at": datetime.datetime.now().isoformat(),
+            "goal": goal,
+            "prior_knowledge": prior_knowledge,
+            "weekly_hours": weekly_hours,
+            "modules": modules_to_learn,
+            "total_modules": len(modules_to_learn),
+            "completed_modules": [],
+            "current_module_id": modules_to_learn[0]['id'] if modules_to_learn else None,
+            "estimated_total_hours": total_hours,
+            "estimated_weeks": weeks_to_complete,
+            "progress_percentage": 0,
+            "last_updated": datetime.datetime.now().isoformat()
+        }
+        
+        # 保存学习路径
+        _save_learning_path(learning_path)
+        
+        return learning_path
     except Exception as e:
-        logger.error(f"保存学习路径 {path_id} 时出错: {str(e)}")
-        return False
+        logger.error(f"生成学习路径失败: {str(e)}")
+        raise
 
+def _parse_learning_goal(goal: str, knowledge_graph: Dict) -> tuple:
+    """
+    解析学习目标，返回相关领域和主题
+    
+    Args:
+        goal: 学习目标
+        knowledge_graph: 知识图谱
+        
+    Returns:
+        (目标领域列表, 目标主题列表)
+    """
+    # 这里是简化实现，实际应用中可以使用NLP技术进行更精确的解析
+    goal_lower = goal.lower()
+    
+    target_domains = []
+    target_topics = []
+    
+    # 关键词映射
+    keyword_mappings = {
+        "机器学习": ["ml"],
+        "深度学习": ["deep_learning"],
+        "神经网络": ["neural_networks", "deep_learning"],
+        "监督学习": ["supervised_learning"],
+        "无监督学习": ["unsupervised_learning"],
+        "聚类": ["clustering", "unsupervised_learning"],
+        "分类": ["classification", "supervised_learning"],
+        "回归": ["linear_regression", "supervised_learning"],
+        "数据科学": ["data_science"],
+        "数据清洗": ["data_cleaning", "data_preprocessing"],
+        "特征工程": ["feature_engineering", "data_preprocessing"],
+        "数据可视化": ["data_visualization"],
+        "卷积神经网络": ["cnn", "deep_learning"]
+    }
+    
+    # 检查关键词匹配
+    for keyword, topics in keyword_mappings.items():
+        if keyword in goal_lower:
+            for topic_id in topics:
+                # 添加主题
+                if topic_id not in target_topics:
+                    target_topics.append(topic_id)
+                
+                # 寻找对应的领域
+                for domain in knowledge_graph.get('domains', []):
+                    domain_id = domain.get('id')
+                    for topic in domain.get('topics', []):
+                        if topic.get('id') == topic_id and domain_id not in target_domains:
+                            target_domains.append(domain_id)
+    
+    # 默认情况，如果没有匹配到任何关键词，返回机器学习领域
+    if not target_domains:
+        target_domains = ["ml"]
+        target_topics = ["ml_basics"]
+    
+    return target_domains, target_topics
 
-def get_user_learning_path(user_id: str) -> List[Dict[str, Any]]:
+def _get_all_modules(knowledge_graph: Dict) -> List[Dict]:
+    """
+    从知识图谱中获取所有学习模块
+    
+    Args:
+        knowledge_graph: 知识图谱
+        
+    Returns:
+        所有模块列表
+    """
+    all_modules = []
+    
+    for domain in knowledge_graph.get('domains', []):
+        domain_id = domain.get('id')
+        domain_name = domain.get('name')
+        
+        for topic in domain.get('topics', []):
+            topic_id = topic.get('id')
+            topic_name = topic.get('name')
+            topic_difficulty = topic.get('difficulty')
+            
+            for module in topic.get('modules', []):
+                # 复制模块并添加额外信息
+                module_copy = module.copy()
+                module_copy['domain_id'] = domain_id
+                module_copy['domain_name'] = domain_name
+                module_copy['topic_id'] = topic_id
+                module_copy['topic_name'] = topic_name
+                module_copy['difficulty'] = topic_difficulty
+                
+                all_modules.append(module_copy)
+    
+    return all_modules
+
+def _get_completed_modules(prior_knowledge: List[str], all_modules: List[Dict]) -> List[str]:
+    """
+    根据先验知识确定已完成的模块
+    
+    Args:
+        prior_knowledge: 先验知识列表
+        all_modules: 所有模块列表
+        
+    Returns:
+        已完成的模块ID列表
+    """
+    completed_module_ids = []
+    
+    # 直接匹配模块ID
+    for module in all_modules:
+        module_id = module.get('id')
+        if module_id in prior_knowledge:
+            completed_module_ids.append(module_id)
+    
+    # 匹配模块名称（不区分大小写）
+    for knowledge_item in prior_knowledge:
+        knowledge_lower = knowledge_item.lower()
+        for module in all_modules:
+            if module.get('id') in completed_module_ids:
+                continue
+                
+            if module.get('name', '').lower() == knowledge_lower:
+                completed_module_ids.append(module.get('id'))
+    
+    return completed_module_ids
+
+def _build_learning_path(target_topics: List[str], all_modules: List[Dict], 
+                       completed_modules: List[str], max_modules: int) -> List[Dict]:
+    """
+    构建学习路径
+    
+    Args:
+        target_topics: 目标主题ID列表
+        all_modules: 所有模块列表
+        completed_modules: 已完成的模块ID列表
+        max_modules: 最大模块数量
+        
+    Returns:
+        学习路径模块列表
+    """
+    # 收集所有目标主题的模块
+    target_modules = []
+    for module in all_modules:
+        if module.get('topic_id') in target_topics:
+            target_modules.append(module)
+    
+    # 确保添加先决条件模块
+    modules_to_add = target_modules.copy()
+    i = 0
+    while i < len(modules_to_add):
+        module = modules_to_add[i]
+        for prereq_id in module.get('prerequisites', []):
+            # 检查先决条件是否已经在列表中或已完成
+            if prereq_id not in completed_modules and not any(m.get('id') == prereq_id for m in modules_to_add):
+                # 寻找先决条件模块并添加
+                for m in all_modules:
+                    if m.get('id') == prereq_id:
+                        modules_to_add.append(m)
+                        break
+        i += 1
+    
+    # 按难度和依赖关系排序
+    difficulty_order = {"beginner": 0, "intermediate": 1, "advanced": 2}
+    
+    # 创建依赖图
+    dependency_graph = {}
+    for module in modules_to_add:
+        module_id = module.get('id')
+        dependency_graph[module_id] = set(module.get('prerequisites', []))
+    
+    # 拓扑排序
+    sorted_modules = []
+    no_prereqs = [m for m in modules_to_add if not m.get('prerequisites', [])]
+    
+    # 先按难度排序无先决条件的模块
+    no_prereqs.sort(key=lambda m: difficulty_order.get(m.get('difficulty'), 1))
+    
+    while no_prereqs:
+        # 获取下一个没有依赖的模块
+        next_module = no_prereqs.pop(0)
+        module_id = next_module.get('id')
+        
+        if module_id in completed_modules:
+            continue
+            
+        sorted_modules.append(next_module)
+        
+        # 移除当前模块作为其他模块的依赖
+        for m in modules_to_add:
+            m_id = m.get('id')
+            if m_id != module_id and module_id in m.get('prerequisites', []):
+                dependency_graph[m_id].remove(module_id)
+                if not dependency_graph[m_id] and m not in no_prereqs and m_id not in completed_modules:
+                    no_prereqs.append(m)
+                    # 重新按难度排序
+                    no_prereqs.sort(key=lambda x: difficulty_order.get(x.get('difficulty'), 1))
+    
+    # 限制模块数量
+    return sorted_modules[:max_modules]
+
+def _save_learning_path(learning_path: Dict) -> None:
+    """
+    保存学习路径
+    
+    Args:
+        learning_path: 学习路径对象
+    """
+    path_id = learning_path.get('path_id')
+    user_id = learning_path.get('user_id')
+    
+    # 创建用户目录
+    user_dir = os.path.join(LEARNING_PATHS_DIR, user_id)
+    os.makedirs(user_dir, exist_ok=True)
+    
+    # 保存学习路径
+    path_file = os.path.join(user_dir, f"{path_id}.json")
+    with open(path_file, 'w', encoding='utf-8') as f:
+        json.dump(learning_path, f, ensure_ascii=False, indent=2)
+
+def get_user_learning_paths(user_id: str) -> List[Dict]:
     """
     获取用户的所有学习路径
     
@@ -230,82 +485,122 @@ def get_user_learning_path(user_id: str) -> List[Dict[str, Any]]:
         user_id: 用户ID
         
     Returns:
-        用户的学习路径列表
+        学习路径列表
     """
-    paths = []
-    
     try:
-        for filename in os.listdir(LEARNING_PATHS_DIR):
+        logger.info(f"获取用户 {user_id} 的学习路径")
+        
+        user_dir = os.path.join(LEARNING_PATHS_DIR, user_id)
+        if not os.path.exists(user_dir):
+            return []
+            
+        paths = []
+        for filename in os.listdir(user_dir):
             if filename.endswith('.json'):
-                file_path = os.path.join(LEARNING_PATHS_DIR, filename)
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    path_data = json.load(f)
-                    if path_data.get('user_id') == user_id:
-                        paths.append(path_data)
+                path_file = os.path.join(user_dir, filename)
+                with open(path_file, 'r', encoding='utf-8') as f:
+                    path = json.load(f)
+                    paths.append(path)
         
         # 按创建时间排序，最新的在前
-        paths.sort(key=lambda x: x.get('created_at', ''), reverse=True)
+        paths.sort(key=lambda p: p.get('created_at', ''), reverse=True)
         
         return paths
     except Exception as e:
-        logger.error(f"获取用户 {user_id} 的学习路径时出错: {str(e)}")
-        return []
+        logger.error(f"获取用户学习路径失败: {str(e)}")
+        raise
 
-
-def update_path_progress(path_id: str, completed_module_id: Optional[str] = None, 
-                        current_module_id: Optional[str] = None) -> Dict[str, Any]:
+def get_user_learning_path(user_id: str) -> List[Dict]:
     """
-    更新学习路径的进度
+    获取用户的所有学习路径（兼容函数）
     
     Args:
-        path_id: 路径ID
-        completed_module_id: 完成的模块ID (可选)
-        current_module_id: 当前进行的模块ID (可选)
+        user_id: 用户ID
+        
+    Returns:
+        学习路径列表
+    """
+    return get_user_learning_paths(user_id)
+
+def get_learning_path(path_id: str) -> Dict:
+    """
+    获取指定的学习路径
+    
+    Args:
+        path_id: 学习路径ID
+        
+    Returns:
+        学习路径对象
+    """
+    try:
+        logger.info(f"获取学习路径 {path_id}")
+        
+        # 遍历所有用户目录查找
+        for user_id in os.listdir(LEARNING_PATHS_DIR):
+            user_dir = os.path.join(LEARNING_PATHS_DIR, user_id)
+            if os.path.isdir(user_dir):
+                path_file = os.path.join(user_dir, f"{path_id}.json")
+                if os.path.exists(path_file):
+                    with open(path_file, 'r', encoding='utf-8') as f:
+                        return json.load(f)
+        
+        raise ValueError(f"未找到学习路径: {path_id}")
+    except Exception as e:
+        logger.error(f"获取学习路径失败: {str(e)}")
+        raise
+
+def update_path_progress(path_id: str, completed_module_id: Optional[str] = None, 
+                        current_module_id: Optional[str] = None) -> Dict:
+    """
+    更新学习路径进度
+    
+    Args:
+        path_id: 学习路径ID
+        completed_module_id: 完成的模块ID
+        current_module_id: 当前学习的模块ID
         
     Returns:
         更新后的学习路径
     """
     try:
-        # 读取现有路径
-        file_path = os.path.join(LEARNING_PATHS_DIR, f"{path_id}.json")
-        if not os.path.exists(file_path):
-            raise FileNotFoundError(f"学习路径 {path_id} 不存在")
-            
-        with open(file_path, 'r', encoding='utf-8') as f:
-            learning_path = json.load(f)
+        logger.info(f"更新学习路径 {path_id} 进度")
         
-        # 更新进度信息
-        progress = learning_path["progress"]
+        # 获取学习路径
+        path = get_learning_path(path_id)
+        user_id = path.get('user_id')
         
-        # 如果提供了完成的模块ID，将其添加到已完成模块列表
-        if completed_module_id and completed_module_id not in progress["completed_modules"]:
-            progress["completed_modules"].append(completed_module_id)
+        # 添加完成的模块
+        if completed_module_id:
+            if completed_module_id not in path.get('completed_modules', []):
+                path['completed_modules'].append(completed_module_id)
         
-        # 如果提供了当前模块ID，更新当前模块
+        # 更新当前模块
         if current_module_id:
-            progress["current_module"] = current_module_id
-            
-        # 计算完成百分比
-        total_modules = len(learning_path["modules"])
+            path['current_module_id'] = current_module_id
+        
+        # 更新进度百分比
+        total_modules = path.get('total_modules', 0)
+        completed_count = len(path.get('completed_modules', []))
+        
         if total_modules > 0:
-            progress["completion_percentage"] = round(len(progress["completed_modules"]) / total_modules * 100, 1)
-        else:
-            progress["completion_percentage"] = 0
-            
+            path['progress_percentage'] = round((completed_count / total_modules) * 100, 1)
+        
         # 更新时间戳
-        progress["last_updated"] = datetime.datetime.now().isoformat()
+        path['last_updated'] = datetime.datetime.now().isoformat()
         
-        # 保存更新后的路径
-        save_learning_path(path_id, learning_path)
+        # 保存更新后的学习路径
+        user_dir = os.path.join(LEARNING_PATHS_DIR, user_id)
+        path_file = os.path.join(user_dir, f"{path_id}.json")
+        with open(path_file, 'w', encoding='utf-8') as f:
+            json.dump(path, f, ensure_ascii=False, indent=2)
         
-        return learning_path
+        return path
     except Exception as e:
-        logger.error(f"更新学习路径 {path_id} 的进度时出错: {str(e)}")
+        logger.error(f"更新学习路径进度失败: {str(e)}")
         raise
 
-
-def predict_module_mastery(user_id: str, module_id: str, weekly_hours: float, 
-                          focus_level: str = "medium") -> Dict[str, Any]:
+def predict_module_mastery(user_id: str, module_id: str, weekly_hours: int, 
+                         focus_level: str = "medium") -> Dict:
     """
     预测用户掌握特定模块的概率
     
@@ -313,163 +608,128 @@ def predict_module_mastery(user_id: str, module_id: str, weekly_hours: float,
         user_id: 用户ID
         module_id: 模块ID
         weekly_hours: 每周学习时间
-        focus_level: 学习专注程度 (low, medium, high)
+        focus_level: 专注度 (low, medium, high)
         
     Returns:
-        包含预测结果的字典
+        预测结果
     """
     try:
-        # 查找模块信息
-        module_info = None
-        module_topic = None
+        logger.info(f"预测用户 {user_id} 掌握模块 {module_id} 的概率")
         
-        for topic_id, topic_data in LEARNING_TOPICS.items():
-            for module in topic_data["modules"]:
-                if module["id"] == module_id:
-                    module_info = module
-                    module_topic = topic_id
-                    break
-            if module_info:
+        # 导入预测模块
+        from ml_predictor import predict_learning_outcome
+        
+        # 加载知识图谱
+        knowledge_graph = load_knowledge_graph()
+        
+        # 获取所有模块
+        all_modules = _get_all_modules(knowledge_graph)
+        
+        # 查找目标模块
+        target_module = None
+        for module in all_modules:
+            if module.get('id') == module_id:
+                target_module = module
                 break
-                
-        if not module_info:
-            raise ValueError(f"模块 {module_id} 不存在")
         
-        # 获取用户学习路径
-        user_paths = get_user_learning_path(user_id)
+        if not target_module:
+            raise ValueError(f"未找到模块: {module_id}")
         
-        # 计算用户已完成的相关模块数量
+        # 获取用户的学习路径
+        user_paths = get_user_learning_paths(user_id)
+        
+        # 确定用户的先验知识水平
         completed_modules = []
-        if user_paths:
-            for path in user_paths:
-                completed_modules.extend(path["progress"]["completed_modules"])
+        for path in user_paths:
+            completed_modules.extend(path.get('completed_modules', []))
         
-        # 计算已完成的前置条件比例
-        prerequisites = module_info.get("prerequisites", [])
-        if prerequisites:
-            completed_prereqs = sum(1 for prereq in prerequisites if prereq in completed_modules)
-            prereq_completion_ratio = completed_prereqs / len(prerequisites)
+        # 简单估计先验知识水平
+        prior_knowledge_count = len(set(completed_modules))
+        if prior_knowledge_count > 10:
+            prior_knowledge_level = "advanced"
+        elif prior_knowledge_count > 5:
+            prior_knowledge_level = "intermediate"
+        elif prior_knowledge_count > 0:
+            prior_knowledge_level = "basic"
         else:
-            prereq_completion_ratio = 1.0  # 没有前置条件
+            prior_knowledge_level = "none"
         
-        # 基于学习时间和专注度计算基础概率
-        base_probability = 0.5  # 基础概率
-        
-        # 调整系数
-        time_factor = min(1.0, weekly_hours / 10.0) * 0.3  # 每周学习10小时以上获得最大时间加成
-        
-        focus_factors = {
-            "low": 0.1,
-            "medium": 0.2,
-            "high": 0.3
-        }
-        focus_factor = focus_factors.get(focus_level, 0.2)
-        
-        difficulty_factors = {
-            "beginner": 0.2,
-            "intermediate": 0.1,
-            "advanced": 0.0
-        }
-        difficulty_factor = difficulty_factors.get(module_info.get("difficulty", "intermediate"), 0.1)
-        
-        # 计算最终概率
-        mastery_probability = base_probability + time_factor + focus_factor + difficulty_factor + prereq_completion_ratio * 0.2
-        mastery_probability = min(0.95, max(0.05, mastery_probability))  # 限制在5%-95%之间
-        
-        # 构建结果
-        result = {
-            "user_id": user_id,
-            "module_id": module_id,
-            "module_title": module_info["title"],
-            "weekly_hours": weekly_hours,
+        # 准备预测参数
+        learning_parameters = {
+            "weekly_study_hours": weekly_hours,
+            "prior_knowledge_level": prior_knowledge_level,
             "focus_level": focus_level,
-            "mastery_probability": round(mastery_probability * 100, 1),  # 转换为百分比
-            "factors": {
-                "time_factor": round(time_factor * 100, 1),
-                "focus_factor": round(focus_factor * 100, 1),
-                "difficulty_factor": round(difficulty_factor * 100, 1),
-                "prereq_completion": round(prereq_completion_ratio * 100, 1)
-            },
-            "predicted_at": datetime.datetime.now().isoformat()
+            "content_difficulty": target_module.get('difficulty', 'intermediate')
         }
         
-        return result
+        # 预测掌握概率
+        prediction = predict_learning_outcome(module_id, learning_parameters, "mastery_probability")
+        
+        return prediction
     except Exception as e:
-        logger.error(f"预测模块掌握概率时出错: {str(e)}")
+        logger.error(f"预测模块掌握概率失败: {str(e)}")
         raise
 
-
-def predict_completion_time(user_id: str, path_id: str, weekly_hours: float) -> Dict[str, Any]:
+def predict_completion_time(user_id: str, path_id: str, weekly_hours: int) -> Dict:
     """
-    预测完成学习路径所需的时间
+    预测完成学习路径的时间
     
     Args:
         user_id: 用户ID
-        path_id: 路径ID
+        path_id: 学习路径ID
         weekly_hours: 每周学习时间
         
     Returns:
-        包含预测结果的字典
+        预测结果
     """
     try:
-        # 读取学习路径
-        file_path = os.path.join(LEARNING_PATHS_DIR, f"{path_id}.json")
-        if not os.path.exists(file_path):
-            raise FileNotFoundError(f"学习路径 {path_id} 不存在")
-            
-        with open(file_path, 'r', encoding='utf-8') as f:
-            learning_path = json.load(f)
-            
-        # 确认用户ID匹配
-        if learning_path["user_id"] != user_id:
-            raise ValueError("用户ID不匹配")
-            
-        # 获取路径中的所有模块
-        modules = learning_path["modules"]
+        logger.info(f"预测用户 {user_id} 完成学习路径 {path_id} 的时间")
         
-        # 获取已完成的模块
-        completed_modules = learning_path["progress"]["completed_modules"]
+        # 导入预测模块
+        from ml_predictor import predict_learning_outcome
         
-        # 计算剩余模块的总学习时间
-        remaining_hours = 0
-        for module in modules:
-            if module["id"] not in completed_modules:
-                remaining_hours += module["estimated_hours"]
-                
-        # 计算预计完成时间
-        if weekly_hours <= 0:
-            raise ValueError("每周学习时间必须大于0")
-            
-        weeks_needed = remaining_hours / weekly_hours
-        days_needed = int(weeks_needed * 7)
+        # 获取学习路径
+        path = get_learning_path(path_id)
         
-        # 计算预计完成日期
-        today = datetime.datetime.now().date()
-        estimated_completion_date = today + datetime.timedelta(days=days_needed)
+        # 检查是否是该用户的路径
+        if path.get('user_id') != user_id:
+            raise ValueError("学习路径不属于该用户")
         
-        # 构建结果
-        result = {
-            "user_id": user_id,
+        # 获取未完成的模块
+        completed_modules = path.get('completed_modules', [])
+        remaining_modules = [m for m in path.get('modules', []) if m.get('id') not in completed_modules]
+        
+        if not remaining_modules:
+            return {
+                "path_id": path_id,
+                "user_id": user_id,
+                "prediction_type": "completion_time",
+                "remaining_modules": 0,
+                "predicted_hours": 0,
+                "predicted_weeks": 0,
+                "confidence_interval_weeks": [0, 0],
+                "timestamp": datetime.datetime.now().isoformat()
+            }
+        
+        # 估算总学习时间
+        total_estimated_hours = sum([m.get('estimated_hours', 0) for m in remaining_modules])
+        
+        # 根据每周学习时间计算周数
+        predicted_weeks = total_estimated_hours / weekly_hours
+        
+        # 95%置信区间 (简化版)
+        confidence_interval = [max(0.5, predicted_weeks * 0.8), predicted_weeks * 1.2]
+        
+        return {
             "path_id": path_id,
-            "path_name": f"{learning_path['topic']['name']} 学习路径",
-            "total_modules": len(modules),
-            "completed_modules": len(completed_modules),
-            "remaining_modules": len(modules) - len(completed_modules),
-            "original_total_hours": learning_path["total_hours"],
-            "remaining_hours": remaining_hours,
-            "weekly_hours": weekly_hours,
-            "weeks_needed": round(weeks_needed, 1),
-            "days_needed": days_needed,
-            "estimated_completion_date": estimated_completion_date.isoformat(),
-            "prediction_scenarios": [
-                {"weekly_hours": max(1, weekly_hours - 5), "weeks_needed": round(remaining_hours / max(1, weekly_hours - 5), 1)},
-                {"weekly_hours": weekly_hours, "weeks_needed": round(weeks_needed, 1)},
-                {"weekly_hours": weekly_hours + 5, "weeks_needed": round(remaining_hours / (weekly_hours + 5), 1)}
-            ],
-            "predicted_at": datetime.datetime.now().isoformat()
+            "user_id": user_id,
+            "prediction_type": "completion_time",
+            "remaining_modules": len(remaining_modules),
+            "predicted_hours": round(total_estimated_hours, 1),
+            "predicted_weeks": round(predicted_weeks, 1),
+            "confidence_interval_weeks": [round(ci, 1) for ci in confidence_interval],
+            "timestamp": datetime.datetime.now().isoformat()
         }
-        
-        return result
     except Exception as e:
-        logger.error(f"预测完成时间时出错: {str(e)}")
+        logger.error(f"预测完成时间失败: {str(e)}")
         raise 

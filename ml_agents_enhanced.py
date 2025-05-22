@@ -229,7 +229,7 @@ def enhanced_query_ml_agent(query: str, use_existing_model: bool = True,
         return integrated_result
     
     # 检查是否是预测或模拟请求
-    # 简单的启发式：检查查询中是否包含“预测”、“模拟”或“当...时预测”等关键词
+    # 简单的启发式：检查查询中是否包含"预测"、"模拟"或"当...时预测"等关键词
     if any(keyword in query for keyword in ['预测', '模拟']) or ('当' in query and '时' in query and '预测' in query):
         try:
             # 尝试从查询中提取预测目标和特征
@@ -284,3 +284,200 @@ def enhanced_direct_query_llm(query: str, ml_context: Optional[Dict[str, Any]] =
     """
     增强版的直接大模型查询，可以包含机器学习上下文
     """
+
+def extract_prediction_info(query: str) -> Tuple[Optional[str], Optional[Dict]]:
+    """
+    从用户查询中提取预测目标和特征信息
+    
+    参数:
+        query: 用户查询字符串
+        
+    返回:
+        (预测目标, 特征字典)
+    """
+    try:
+        # 初始化返回值
+        prediction_target = None
+        features = {}
+        
+        # 提取预测目标
+        # 查找常见的目标提示词
+        target_keywords = ["预测", "预估", "估计", "计算", "判断"]
+        target_found = False
+        
+        for keyword in target_keywords:
+            if keyword in query:
+                parts = query.split(keyword)
+                if len(parts) > 1:
+                    # 假设预测目标跟在关键词后面
+                    target_candidate = parts[1].split()[0].strip()
+                    if target_candidate:
+                        prediction_target = target_candidate
+                        target_found = True
+                        break
+        
+        # 如果没有通过关键词找到，尝试寻找被引号包围的可能目标
+        if not target_found:
+            import re
+            quoted_terms = re.findall(r'["\'](.*?)["\']', query)
+            if quoted_terms:
+                prediction_target = quoted_terms[0]
+        
+        # 提取特征信息
+        # 查找常见的特征表达模式
+        feature_patterns = [
+            r'(\w+)\s*[=:：]\s*(\d+\.?\d*|\w+)',  # 变量=值
+            r'(\w+)\s*为\s*(\d+\.?\d*|\w+)',      # 变量为值
+            r'(\w+)\s*是\s*(\d+\.?\d*|\w+)',      # 变量是值
+            r'当\s*(\w+)\s*[为是]\s*(\d+\.?\d*|\w+)'  # 当变量为/是值
+        ]
+        
+        import re
+        for pattern in feature_patterns:
+            matches = re.findall(pattern, query)
+            for match in matches:
+                feature_name, feature_value = match
+                # 尝试将数值转换为浮点数
+                try:
+                    if feature_value.replace('.', '', 1).isdigit():
+                        feature_value = float(feature_value)
+                except:
+                    pass  # 如果不是数字，保持原样
+                
+                features[feature_name] = feature_value
+        
+        return prediction_target, features
+    
+    except Exception as e:
+        print(f"提取预测信息时出错: {str(e)}")
+        return None, None
+
+def find_suitable_model(prediction_target: str) -> Optional[str]:
+    """
+    根据预测目标找到适合的模型
+    
+    参数:
+        prediction_target: 预测目标字段名
+        
+    返回:
+        适合的模型名称，如果没有找到则返回None
+    """
+    try:
+        # 从ml_models模块导入列出可用模型的函数
+        from ml_models import list_available_models
+        
+        # 获取所有可用模型
+        available_models = list_available_models()
+        
+        # 首先，寻找名称中包含目标字段的模型
+        target_models = []
+        for model in available_models:
+            model_name = model.get("name", "").lower()
+            if prediction_target.lower() in model_name:
+                target_models.append(model.get("name"))
+        
+        # 如果找到了包含目标字段的模型，返回第一个
+        if target_models:
+            return target_models[0]
+        
+        # 如果没有找到匹配的模型，尝试根据目标字段推断模型类型
+        # 例如，某些字段名称可能暗示分类或回归任务
+        regression_keywords = ["价格", "收入", "销量", "数量", "分数", "得分", "年龄", "工资"]
+        classification_keywords = ["类别", "分类", "类型", "是否", "标签", "等级"]
+        
+        is_regression = any(keyword in prediction_target.lower() for keyword in regression_keywords)
+        is_classification = any(keyword in prediction_target.lower() for keyword in classification_keywords)
+        
+        # 根据推断的任务类型选择模型
+        for model in available_models:
+            model_type = model.get("type", "").lower()
+            model_name = model.get("name", "")
+            
+            if is_regression and "regression" in model_type:
+                return model_name
+            elif is_classification and ("classifier" in model_type or "classification" in model_type):
+                return model_name
+        
+        # 如果仍然没有找到，返回任何可用的机器学习模型
+        for model in available_models:
+            if "model" in model.get("name", "").lower():
+                return model.get("name")
+        
+        # 如果有任何模型，返回第一个
+        if available_models:
+            return available_models[0].get("name")
+        
+        # 没有可用模型
+        return None
+    
+    except Exception as e:
+        print(f"查找适合模型时出错: {str(e)}")
+        return None
+
+def make_prediction_with_model(model_name: str, features: Dict) -> Dict:
+    """
+    使用指定模型对给定特征进行预测
+    
+    参数:
+        model_name: 模型名称
+        features: 特征字典 {特征名: 特征值}
+        
+    返回:
+        包含预测结果、特征重要性和模型指标的字典
+    """
+    try:
+        # 导入需要的函数
+        from ml_models import load_model, predict, explain_model_prediction
+        
+        # 准备输入数据格式
+        input_data = pd.DataFrame([features])
+        
+        # 加载模型
+        model, model_metadata = load_model(model_name)
+        if not model:
+            return {
+                "error": f"无法加载模型 {model_name}",
+                "predictions": None
+            }
+        
+        # 进行预测
+        prediction_result = predict(model_name=model_name, input_data=features)
+        
+        # 提取预测结果
+        predictions = prediction_result.get("predictions")
+        
+        # 尝试解释预测结果
+        try:
+            explanation = explain_model_prediction(model=model, 
+                                                 features=features, 
+                                                 prediction=predictions[0] if isinstance(predictions, list) else predictions)
+            
+            feature_importance = explanation.get("feature_importance", {})
+        except Exception as e:
+            print(f"解释预测结果时出错: {str(e)}")
+            feature_importance = {}
+        
+        # 获取模型指标
+        metrics = {}
+        if "accuracy" in prediction_result:
+            metrics["accuracy"] = prediction_result["accuracy"]
+        if "mse" in prediction_result:
+            metrics["mse"] = prediction_result["mse"]
+        if "r2" in prediction_result:
+            metrics["r2"] = prediction_result["r2"]
+        
+        # 返回结果
+        return {
+            "predictions": predictions,
+            "feature_importance": feature_importance,
+            "metrics": metrics,
+            "model_used": model_name
+        }
+    
+    except Exception as e:
+        print(f"使用模型进行预测时出错: {str(e)}")
+        traceback.print_exc()  # 打印详细错误信息
+        return {
+            "error": f"预测过程中出错: {str(e)}",
+            "predictions": None
+        }

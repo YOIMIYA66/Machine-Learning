@@ -579,13 +579,14 @@
         <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 page-header">
             <h1 class="text-2xl md:text-3xl font-bold flex items-center">
                 <i class="fas fa-brain mr-3 text-3xl md:text-4xl" aria-hidden="true"></i>
-                AI机器学习助手 Pro
+                启航者 AI - 学习导航助手
             </h1>
             <nav class="tabs tabs-boxed main-tabs" role="tablist" aria-label="主要导航">
-                <a id="tab-link-dialogue" class="tab tab-active" data-tab="dialogue" role="tab" aria-selected="true" aria-controls="tab-content-dialogue">对话</a>
+                <a id="tab-link-dialogue" class="tab tab-active" data-tab="dialogue" role="tab" aria-selected="true" aria-controls="tab-content-dialogue">学习导航</a>
+                <a id="tab-link-learningPath" class="tab" data-tab="learningPath" role="tab" aria-selected="false" aria-controls="tab-content-learningPath">我的路径</a>
                 <a id="tab-link-dataUpload" class="tab" data-tab="dataUpload" role="tab" aria-selected="false" aria-controls="tab-content-dataUpload">数据与模型</a>
+                <a id="tab-link-techLab" class="tab" data-tab="techLab" role="tab" aria-selected="false" aria-controls="tab-content-techLab">技术实验室</a>
                 <a id="tab-link-results" class="tab" data-tab="results" role="tab" aria-selected="false" aria-controls="tab-content-results">分析结果</a>
-                <a id="tab-link-tools" class="tab" data-tab="tools" role="tab" aria-selected="false" aria-controls="tab-content-tools">高级工具</a>
             </nav>
         </header>
 
@@ -638,6 +639,159 @@
                     </button>
                 </div>
                 <p id="modeSpecificInfo" class="text-xs text-muted mt-4" aria-live="polite"></p>
+            </section>
+        </div>
+
+        <div id="tab-content-learningPath" class="tab-content-area hidden" role="tabpanel" aria-labelledby="tab-link-learningPath">
+            <section class="content-card p-6 mb-6 animate__animated animate__fadeInUp">
+                <h3 class="text-lg font-medium text-label flex items-center mb-5">
+                    <i class="fas fa-map-signs mr-2.5 text-primary-hex" aria-hidden="true"></i>
+                    我的个性化学习路径
+                </h3>
+                
+                <div id="emptyLearningPathMessage" class="text-center py-8">
+                    <i class="fas fa-route text-6xl text-muted mb-4 opacity-50"></i>
+                    <p class="text-muted">您尚未创建学习路径。请在"学习导航"标签页与AI对话，设定您的学习目标。</p>
+                    <button id="createPathBtn" class="btn btn-primary mt-4">
+                        <i class="fas fa-plus-circle mr-2"></i>创建学习路径
+                    </button>
+                </div>
+                
+                <div id="learningPathContent" class="hidden">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-3">
+                        <div>
+                            <h4 id="pathTitle" class="text-xl font-medium">机器学习基础路径</h4>
+                            <p id="pathDescription" class="text-sm text-muted mt-1">从零开始学习机器学习的基础知识和核心算法</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button id="editPathBtn" class="btn btn-sm btn-outline">
+                                <i class="fas fa-edit mr-1"></i>编辑
+                            </button>
+                            <button id="refreshPredictionsBtn" class="btn btn-sm btn-primary-outline">
+                                <i class="fas fa-sync-alt mr-1"></i>更新预测
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col md:flex-row gap-6 mb-6">
+                        <div class="stats shadow flex-1 bg-base-100">
+                            <div class="stat">
+                                <div class="stat-title">总体进度</div>
+                                <div class="stat-value" id="overallProgress">30%</div>
+                                <div class="stat-desc" id="progressDesc">已完成2/6个模块</div>
+                            </div>
+                        </div>
+                        <div class="stats shadow flex-1 bg-base-100">
+                            <div class="stat">
+                                <div class="stat-title">预计完成时间</div>
+                                <div class="stat-value" id="estimatedCompletionTime">25.5小时</div>
+                                <div class="stat-desc" id="completionTimeDesc">基于每周10小时学习强度</div>
+                            </div>
+                        </div>
+                        <div class="stats shadow flex-1 bg-base-100">
+                            <div class="stat">
+                                <div class="stat-title">整体掌握概率</div>
+                                <div class="stat-value" id="masteryProbability">78%</div>
+                                <div class="stat-desc" id="masteryDesc">基于您的学习计划与背景</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="my-6">
+                        <h4 class="text-lg font-medium mb-4">学习模块</h4>
+                        <div id="learningModules" class="space-y-4">
+                            <!-- 模块将通过JavaScript动态生成 -->
+                            <div class="module-item p-4 border border-base-300 rounded-lg bg-base-100 relative">
+                                <div class="absolute top-0 left-0 h-full w-1 bg-success rounded-l-lg"></div>
+                                <div class="flex flex-col md:flex-row justify-between">
+                                    <div>
+                                        <h5 class="font-medium">1. 机器学习导论</h5>
+                                        <p class="text-sm text-muted mt-1">了解机器学习的基本概念、应用场景和常见算法类型</p>
+                                    </div>
+                                    <div class="mt-3 md:mt-0 flex flex-col items-end">
+                                        <span class="badge badge-success">已完成</span>
+                                        <span class="text-xs text-muted mt-1">预计学习时间: 2小时</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="module-item p-4 border border-base-300 rounded-lg bg-base-100 relative">
+                                <div class="absolute top-0 left-0 h-full w-1 bg-primary rounded-l-lg"></div>
+                                <div class="flex flex-col md:flex-row justify-between">
+                                    <div>
+                                        <h5 class="font-medium">2. 数据预处理</h5>
+                                        <p class="text-sm text-muted mt-1">学习数据清洗、特征工程和数据转换的基本技术</p>
+                                    </div>
+                                    <div class="mt-3 md:mt-0 flex flex-col items-end">
+                                        <span class="badge badge-primary">进行中</span>
+                                        <span class="text-xs text-muted mt-1">预计学习时间: 4.5小时</span>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <div class="w-full bg-base-200 rounded-full h-2.5">
+                                        <div class="bg-primary h-2.5 rounded-full" style="width: 65%"></div>
+                                    </div>
+                                    <div class="flex justify-between text-xs text-muted mt-1">
+                                        <span>65%</span>
+                                        <span>剩余约1.6小时</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="module-item p-4 border border-base-300 rounded-lg bg-base-100 relative">
+                                <div class="absolute top-0 left-0 h-full w-1 bg-neutral-content/30 rounded-l-lg"></div>
+                                <div class="flex flex-col md:flex-row justify-between">
+                                    <div>
+                                        <h5 class="font-medium">3. 监督学习算法</h5>
+                                        <p class="text-sm text-muted mt-1">掌握线性回归、逻辑回归、决策树等基础算法</p>
+                                    </div>
+                                    <div class="mt-3 md:mt-0 flex flex-col items-end">
+                                        <span class="badge badge-outline">未开始</span>
+                                        <span class="text-xs text-muted mt-1">预计学习时间: 8小时</span>
+                                    </div>
+                                </div>
+                                <div class="mt-3 flex items-center gap-2">
+                                    <button class="btn btn-xs btn-outline">开始学习</button>
+                                    <div class="tooltip" data-tip="预测您掌握此模块的概率">
+                                        <span class="flex items-center gap-1 text-xs">
+                                            <i class="fas fa-graduation-cap text-primary-hex"></i>
+                                            掌握概率: 82%
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8">
+                        <h4 class="text-lg font-medium mb-4">学习预测分析</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="p-4 border border-base-300 rounded-lg bg-base-100">
+                                <h5 class="font-medium mb-3">完成时间预测</h5>
+                                <canvas id="completionTimeChart" width="400" height="200"></canvas>
+                                <p class="text-xs text-muted mt-3">不同学习强度下的预计完成时间</p>
+                            </div>
+                            <div class="p-4 border border-base-300 rounded-lg bg-base-100">
+                                <h5 class="font-medium mb-3">掌握概率分析</h5>
+                                <canvas id="masteryProbabilityChart" width="400" height="200"></canvas>
+                                <p class="text-xs text-muted mt-3">影响掌握概率的主要因素</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-center mt-8">
+                        <div class="form-control w-full max-w-md">
+                            <label class="label">
+                                <span class="label-text font-medium">调整每周学习时间</span>
+                            </label>
+                            <div class="flex items-center gap-4">
+                                <input type="range" min="1" max="20" value="10" class="range range-primary" id="weeklyStudyHoursSlider" />
+                                <span class="badge badge-primary p-3" id="weeklyStudyHoursValue">10小时/周</span>
+                            </div>
+                            <button id="updateLearningParamsBtn" class="btn btn-primary mt-4">更新学习参数</button>
+                        </div>
+                    </div>
+                </div>
             </section>
         </div>
 
@@ -702,11 +856,335 @@
             </section>
         </div>
 
+        <div id="tab-content-techLab" class="tab-content-area hidden" role="tabpanel" aria-labelledby="tab-link-techLab">
+            <section class="content-card p-6 mb-6 animate__animated animate__fadeInUp">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-5 gap-3">
+                    <h3 class="text-lg font-medium text-label flex items-center">
+                        <i class="fas fa-flask mr-2.5 text-primary-hex" aria-hidden="true"></i>
+                        技术实验室 - ML模型集成与效果对比
+                    </h3>
+                </div>
+                
+                <div class="text-sm text-muted mb-6">
+                    <p>本实验室允许您探索不同机器学习模型在特定学习预测任务上的表现，以及模型集成如何提高预测准确性。选择下方的设置开始模拟实验。</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                    <div class="content-card p-4 no-hover-effect">
+                        <h4 class="text-base font-medium mb-4">场景设置</h4>
+                        
+                        <div class="form-control w-full mb-4">
+                            <label class="label">
+                                <span class="label-text font-medium">预测目标</span>
+                            </label>
+                            <select id="predictionTargetSelect" class="select select-bordered w-full">
+                                <option value="mastery_probability">掌握概率预测 (分类)</option>
+                                <option value="completion_time">完成时间预测 (回归)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-control w-full mb-4">
+                            <label class="label">
+                                <span class="label-text font-medium">学习场景</span>
+                            </label>
+                            <select id="learningScenarioSelect" class="select select-bordered w-full">
+                                <option value="scenario_1">基础场景: 初学者学习线性回归</option>
+                                <option value="scenario_2">进阶场景: 有基础学习深度神经网络</option>
+                                <option value="scenario_3">专业场景: 资深者学习强化学习</option>
+                                <option value="custom">自定义场景...</option>
+                            </select>
+                        </div>
+                        
+                        <div id="customScenarioParams" class="border rounded-lg p-4 mb-4 hidden">
+                            <h5 class="text-sm font-medium mb-3">自定义场景参数</h5>
+                            
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text text-xs">学习内容难度</span>
+                                    </label>
+                                    <select id="contentDifficultySelect" class="select select-bordered select-sm">
+                                        <option value="low">入门</option>
+                                        <option value="medium" selected>中等</option>
+                                        <option value="high">高级</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text text-xs">先验知识水平</span>
+                                    </label>
+                                    <select id="priorKnowledgeSelect" class="select select-bordered select-sm">
+                                        <option value="none">无基础</option>
+                                        <option value="basic" selected>基础</option>
+                                        <option value="intermediate">中级</option>
+                                        <option value="advanced">高级</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text text-xs">每周学习时间 (小时)</span>
+                                    </label>
+                                    <input type="number" id="weeklyHoursInput" min="1" max="40" value="10" class="input input-bordered input-sm" />
+                                </div>
+                                
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text text-xs">学习专注程度</span>
+                                    </label>
+                                    <select id="focusLevelSelect" class="select select-bordered select-sm">
+                                        <option value="low">低</option>
+                                        <option value="medium" selected>中</option>
+                                        <option value="high">高</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="content-card p-4 no-hover-effect">
+                        <h4 class="text-base font-medium mb-4">模型选择</h4>
+                        
+                        <div id="modelSelectionContainer">
+                            <div class="flex justify-between items-center mb-3">
+                                <h5 class="text-sm font-medium">基础模型</h5>
+                                <button id="addModelBtn" class="btn btn-xs btn-outline">
+                                    <i class="fas fa-plus"></i>添加模型
+                                </button>
+                            </div>
+                            
+                            <div id="baseModelsContainer" class="space-y-3 mb-5">
+                                <div class="model-select-item flex items-center gap-3 border rounded-lg p-3">
+                                    <div class="form-control grow">
+                                        <select class="select select-bordered select-sm w-full base-model-select">
+                                            <option value="" disabled selected>选择模型...</option>
+                                            <option value="linear_regression">线性回归</option>
+                                            <option value="logistic_regression">逻辑回归</option>
+                                            <option value="decision_tree">决策树</option>
+                                            <option value="random_forest">随机森林</option>
+                                            <option value="svm">支持向量机</option>
+                                            <option value="knn">K近邻</option>
+                                        </select>
+                                    </div>
+                                    <button class="btn btn-xs btn-circle btn-ghost remove-model-btn">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="my-4">
+                                <h5 class="text-sm font-medium mb-3">集成策略</h5>
+                                <div class="form-control">
+                                    <div class="flex gap-3 flex-wrap">
+                                        <label class="cursor-pointer flex items-center gap-2">
+                                            <input type="radio" name="ensembleStrategy" value="voting" class="radio radio-sm radio-primary" checked />
+                                            <span class="label-text">投票法</span>
+                                        </label>
+                                        <label class="cursor-pointer flex items-center gap-2">
+                                            <input type="radio" name="ensembleStrategy" value="averaging" class="radio radio-sm radio-primary" />
+                                            <span class="label-text">平均法</span>
+                                        </label>
+                                        <label class="cursor-pointer flex items-center gap-2">
+                                            <input type="radio" name="ensembleStrategy" value="stacking" class="radio radio-sm radio-primary" />
+                                            <span class="label-text">堆叠法</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="stackingOptionsContainer" class="border rounded-lg p-3 hidden">
+                                <h6 class="text-xs font-medium mb-2">选择元模型</h6>
+                                <select id="metaModelSelect" class="select select-bordered select-sm w-full">
+                                    <option value="linear_regression">线性回归</option>
+                                    <option value="ridge">岭回归</option>
+                                    <option value="logistic_regression">逻辑回归</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-center mb-8">
+                    <button id="runSimulationBtn" class="btn btn-primary px-8">
+                        <i class="fas fa-play-circle mr-2"></i>运行模拟
+                    </button>
+                </div>
+                
+                <div id="simulationResultsSection" class="hidden border-t border-base-300 pt-6">
+                    <h4 class="text-lg font-medium mb-4">模拟结果</h4>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        <div class="p-4 border border-base-300 rounded-lg bg-base-100">
+                            <h5 class="font-medium mb-3">预测结果对比</h5>
+                            <canvas id="modelComparisonChart" width="400" height="250"></canvas>
+                        </div>
+                        
+                        <div class="p-4 border border-base-300 rounded-lg bg-base-100">
+                            <h5 class="font-medium mb-3">模型性能指标</h5>
+                            <div id="performanceMetricsTable" class="overflow-x-auto">
+                                <table class="table table-compact w-full">
+                                    <thead>
+                                        <tr>
+                                            <th>模型</th>
+                                            <th>准确率/MSE</th>
+                                            <th>精确率/R²</th>
+                                            <th>召回率/MAE</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="metricsTableBody">
+                                        <!-- 通过JavaScript填充 -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-base-100 border border-base-300 rounded-lg p-4 mb-6">
+                        <h5 class="font-medium mb-3">结果分析</h5>
+                        <div id="simulationAnalysisText" class="prose prose-sm max-w-none">
+                            <p>运行模拟后，AI将在此处分析不同模型的预测结果和性能表现...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <button id="exportSimulationDataBtn" class="btn btn-outline">
+                            <i class="fas fa-file-export mr-2"></i>导出数据
+                        </button>
+                        
+                        <div class="flex gap-3">
+                            <button id="resetSimulationBtn" class="btn btn-ghost">
+                                <i class="fas fa-redo mr-2"></i>重置
+                            </button>
+                            <button id="saveSimulationBtn" class="btn btn-primary">
+                                <i class="fas fa-save mr-2"></i>保存实验
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="content-card p-6 mb-6 animate__animated animate__fadeInUp">
+                <h3 class="text-lg font-medium text-label flex items-center mb-5">
+                    <i class="fas fa-book-open mr-2.5 text-accent-hex" aria-hidden="true"></i>
+                    模型文档 - 核心学习预测引擎
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="stats shadow border border-base-200 bg-base-100">
+                        <div class="stat">
+                            <div class="stat-title">可用模型</div>
+                            <div class="stat-value">7</div>
+                            <div class="stat-desc">分类和回归模型</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stats shadow border border-base-200 bg-base-100">
+                        <div class="stat">
+                            <div class="stat-title">集成策略</div>
+                            <div class="stat-value">3</div>
+                            <div class="stat-desc">投票、平均、堆叠</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stats shadow border border-base-200 bg-base-100">
+                        <div class="stat">
+                            <div class="stat-title">预测任务</div>
+                            <div class="stat-value">2</div>
+                            <div class="stat-desc">掌握度和时间预测</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tabs tabs-boxed mb-5">
+                    <a class="tab tab-active" id="tab-docs-models">模型说明</a>
+                    <a class="tab" id="tab-docs-ensemble">集成学习</a>
+                    <a class="tab" id="tab-docs-features">特征工程</a>
+                </div>
+                
+                <div id="modelDocsContent" class="bg-base-100 border border-base-300 rounded-lg p-5">
+                    <h4 class="text-lg font-medium mb-4">机器学习模型概览</h4>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="table w-full">
+                            <thead>
+                                <tr>
+                                    <th>模型名称</th>
+                                    <th>类型</th>
+                                    <th>适用任务</th>
+                                    <th>特点</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>线性回归</td>
+                                    <td>回归</td>
+                                    <td>完成时间预测</td>
+                                    <td>简单、可解释性强、适合线性关系</td>
+                                    <td>
+                                        <button class="btn btn-xs btn-outline view-model-docs-btn" data-model="linear_regression">
+                                            查看详情
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>逻辑回归</td>
+                                    <td>分类</td>
+                                    <td>掌握概率预测</td>
+                                    <td>输出概率值、适合二分类</td>
+                                    <td>
+                                        <button class="btn btn-xs btn-outline view-model-docs-btn" data-model="logistic_regression">
+                                            查看详情
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>决策树</td>
+                                    <td>分类/回归</td>
+                                    <td>两种任务均可</td>
+                                    <td>可捕捉非线性关系、易解释</td>
+                                    <td>
+                                        <button class="btn btn-xs btn-outline view-model-docs-btn" data-model="decision_tree">
+                                            查看详情
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>随机森林</td>
+                                    <td>分类/回归</td>
+                                    <td>两种任务均可</td>
+                                    <td>集成多棵决策树、减少过拟合</td>
+                                    <td>
+                                        <button class="btn btn-xs btn-outline view-model-docs-btn" data-model="random_forest">
+                                            查看详情
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div id="modelDetailModal" class="modal">
+                        <div class="modal-box">
+                            <h3 id="modelDetailTitle" class="font-bold text-lg">模型详情</h3>
+                            <div id="modelDetailContent" class="py-4">
+                                <!-- 通过JavaScript填充 -->
+                            </div>
+                            <div class="modal-action">
+                                <button class="btn" id="closeModelDetailBtn">关闭</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
         <div id="tab-content-results" class="tab-content-area hidden" role="tabpanel" aria-labelledby="tab-link-results">
             <div id="loadingSpinnerContainer" class="flex flex-col items-center justify-center py-12 hidden" role="status" aria-live="assertive"> <span class="loading loading-spinner loading-lg text-primary-hex"></span> <p class="text-neutral-content-hex mt-5 text-base">AI思考中，结果生成可能需要一些时间，请耐心等候...</p> </div>
             <section id="responseSection" class="content-card p-6 mb-6 hidden animate__animated animate__fadeInUp no-hover-effect" aria-live="polite">
                 <h3 class="text-xl font-medium text-label flex items-center mb-5"> <i class="fas fa-lightbulb text-secondary-hex mr-2.5" aria-hidden="true"></i> AI分析结果 </h3>
-                <div id="responseText" class="prose prose-sm sm:prose-base max-w-none"> <p class="text-muted">暂无分析结果，请先在“对话”标签页提交您的问题。</p> </div>
+                <div id="responseText" class="prose prose-sm sm:prose-base max-w-none"> <p class="text-muted">暂无分析结果，请先在"对话"标签页提交您的问题。</p> </div>
                 <div id="visualizationDisplayArea" class="mt-8 pt-6 border-t border-base-300 hidden">
                     <h4 class="text-lg font-medium text-label flex items-center mb-5"> <i class="fas fa-chart-bar text-primary-hex mr-2.5" aria-hidden="true"></i> 可视化结果 </h4>
                     <nav class="tabs tabs-boxed mb-5 result-viz-tabs" role="tablist" aria-label="可视化结果类型">
@@ -726,177 +1204,12 @@
                 </div>
             </section>
         </div>
-
-        <div id="tab-content-tools" class="tab-content-area hidden" role="tabpanel" aria-labelledby="tab-link-tools">
-            <section class="content-card p-6 mb-6 animate__animated animate__fadeInUp">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
-                    <h3 class="text-lg font-medium text-label flex items-center">
-                        <i class="fas fa-history mr-2.5 text-primary-hex" aria-hidden="true"></i> 模型版本控制
-                    </h3>
-                    <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                        <label for="versionModelSelector" class="sr-only">选择模型以查看版本</label>
-                        <select id="versionModelSelector" class="select select-sm select-bordered bg-base-100 text-neutral-content-hex border-base-300 flex-grow">
-                            <option value="" disabled selected>选择模型查看版本</option>
-                            <!-- JS populates this -->
-                        </select>
-                        <button type="button" id="createVersionBtn" class="btn btn-sm btn-primary-outline tooltip" data-tip="为当前选定模型创建新版本">
-                            <i class="fas fa-plus" aria-hidden="true"></i> 创建新版本
-                        </button>
-                    </div>
-                </div>
-                <div id="versionListContainer" class="mt-4 overflow-x-auto custom-scrollbar">
-                    <table class="table table-sm w-full text-neutral-content-hex" aria-label="模型版本历史">
-                        <thead>
-                            <tr class="border-b border-base-300 bg-base-100">
-                                <th>版本ID</th>
-                                <th>创建时间</th>
-                                <th class="w-1/3">描述</th>
-                                <th>性能指标</th>
-                                <th>操作</th>
-                            </tr>
-                        </thead>
-                        <tbody id="versionTableBody">
-                            <tr>
-                                <td colspan="5" class="text-center text-muted py-4">请先选择一个模型来查看其版本历史，或创建一个新版本。</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div id="versionMetadataForm" class="mt-6 hidden p-4 border border-base-200 rounded-lg bg-base-100/50">
-                    <h4 class="text-label font-medium mb-3 text-base">为模型 "<span id="versionFormModelName" class="font-bold text-primary-hex"></span>" 创建新版本</h4>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="form-control">
-                            <label class="label py-1" for="versionDescription"><span class="label-text text-label">版本描述 (可选)</span></label>
-                            <input type="text" id="versionDescription" class="styled-input input-sm" placeholder="例如: 调整了超参数alpha=0.1">
-                        </div>
-                        <div class="form-control">
-                            <label class="label py-1" for="versionPerformance"><span class="label-text text-label">性能指标 (可选)</span></label>
-                            <input type="text" id="versionPerformance" class="styled-input input-sm" placeholder="例如: 准确率 0.95, F1 0.92">
-                        </div>
-                    </div>
-                    <div class="flex justify-end mt-4 gap-2">
-                        <button type="button" id="cancelSaveVersionBtn" class="btn btn-sm btn-ghost">取消</button>
-                        <button type="button" id="saveVersionBtn" class="btn btn-sm btn-primary shiny-button"><i class="fas fa-save" aria-hidden="true"></i> 保存版本</button>
-                    </div>
-                </div>
-            </section>
-
-            <section class="content-card p-6 mb-6 animate__animated animate__fadeInUp">
-                <h3 class="text-lg font-medium text-label flex items-center mb-4"> <i class="fas fa-balance-scale mr-2.5 text-primary-hex" aria-hidden="true"></i> 模型比较 </h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <h4 id="compareModelsLabel" class="text-label font-medium mb-3">选择要比较的模型 (最多3个)</h4>
-                        <div id="compareModelsContainer" class="space-y-3" role="group" aria-labelledby="compareModelsLabel">
-                             <p class="text-muted text-sm compare-model-placeholder p-2 border border-dashed border-base-300 rounded-md">点击右侧 "+" 按钮添加模型进行比较。</p>
-                        </div>
-                         <button type="button" class="btn btn-sm btn-circle btn-outline btn-primary-outline add-compare-model-btn tooltip mt-2" data-tip="添加模型进行比较" aria-label="添加模型进行比较"> <i class="fas fa-plus" aria-hidden="true"></i> </button>
-                        <div class="form-control mt-4">
-                            <label class="label" for="compareTestDataSelect"><span class="label-text text-label">选择测试数据集</span></label>
-                            <select id="compareTestDataSelect" class="select select-bordered select-sm bg-base-100 text-neutral-content-hex border-base-300 w-full">
-                                <option value="" disabled selected>选择数据集</option>
-                                <option value="current_uploaded">当前已上传的数据集</option>
-                                <option value="air_data">航空公司客户数据</option>
-                                <option value="divorce_text">离婚诉讼文本</option>
-                                <option value="air_quality">北京市空气质量数据</option>
-                            </select>
-                        </div>
-                        <div class="form-control mt-4">
-                            <label class="label" for="compareTargetColumnSelect"><span class="label-text text-label">选择目标列</span></label>
-                            <select id="compareTargetColumnSelect" class="select select-bordered select-sm bg-base-100 text-neutral-content-hex border-base-300 w-full">
-                                <option value="" disabled selected>先选择数据集</option>
-                            </select>
-                        </div>
-                        <button type="button" id="startCompareBtn" class="btn btn-primary shiny-button gradient-animate mt-6 w-full"> <i class="fas fa-chart-bar" aria-hidden="true"></i> 开始比较 </button>
-                    </div>
-                    <div id="compareResultsContainer" class="rounded-lg p-4 min-h-[300px] flex items-center justify-center border border-base-300 bg-base-200/50" aria-live="polite">
-                        <p class="text-muted text-center">比较结果将在此处显示。请选择模型、测试数据和目标列后开始比较。</p>
-                    </div>
-                </div>
-            </section>
-
-            <section class="content-card p-6 mb-6 animate__animated animate__fadeInUp">
-                <h3 class="text-lg font-medium text-label flex items-center mb-4"> <i class="fas fa-cubes mr-2.5 text-primary-hex" aria-hidden="true"></i> 集成模型构建 </h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                     <div>
-                        <h4 id="ensembleModelsLabel" class="text-label font-medium mb-3">选择基础模型 (至少2个)</h4>
-                        <div id="ensembleModelsContainer" class="space-y-3" role="group" aria-labelledby="ensembleModelsLabel">
-                            <p class="text-muted text-sm ensemble-model-placeholder p-2 border border-dashed border-base-300 rounded-md">点击右侧 "+" 按钮添加基础模型。</p>
-                        </div>
-                        <button type="button" class="btn btn-sm btn-circle btn-outline btn-primary-outline add-ensemble-model-btn tooltip mt-2" data-tip="添加基础模型" aria-label="添加基础模型"> <i class="fas fa-plus" aria-hidden="true"></i> </button>
-                        <div class="form-control mt-4">
-                            <label class="label" for="ensembleTypeSelect"><span class="label-text text-label">选择集成类型</span></label>
-                            <select id="ensembleTypeSelect" class="select select-bordered select-sm bg-base-100 text-neutral-content-hex border-base-300 w-full">
-                                <option value="voting_classifier">投票分类器 (Voting Classifier)</option>
-                                <option value="voting_regressor">投票回归器 (Voting Regressor)</option>
-                                <option value="stacking_classifier">堆叠分类器 (Stacking Classifier)</option>
-                                <option value="stacking_regressor">堆叠回归器 (Stacking Regressor)</option>
-                                <option value="bagging_classifier">装袋分类器 (Bagging Classifier)</option>
-                                <option value="bagging_regressor">装袋回归器 (Bagging Regressor)</option>
-                            </select>
-                        </div>
-                        <div class="form-control mt-4">
-                            <label class="label" for="ensembleName"><span class="label-text text-label">集成模型名称</span></label>
-                            <input type="text" id="ensembleName" class="styled-input input-sm" placeholder="例如: my_advanced_ensemble_v1">
-                        </div>
-                        <button type="button" id="buildEnsembleBtn" class="btn btn-primary shiny-button gradient-animate mt-6 w-full"> <i class="fas fa-magic" aria-hidden="true"></i> 构建集成模型 </button>
-                    </div>
-                    <div id="ensembleResultContainer" class="rounded-lg p-4 min-h-[300px] flex items-center justify-center border border-base-300 bg-base-200/50" aria-live="polite">
-                        <p class="text-muted text-center">集成模型构建结果将在此处显示。</p>
-                    </div>
-                </div>
-            </section>
-
-            <section class="content-card p-6 mb-6 animate__animated animate__fadeInUp">
-                <h3 class="text-lg font-medium text-label flex items-center mb-4"> <i class="fas fa-rocket mr-2.5 text-primary-hex" aria-hidden="true"></i> 模型部署与监控 </h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div class="stats shadow-sm border border-base-200 rounded-lg"> <div class="stat"> <div class="stat-title">已部署模型</div> <div class="stat-value" id="deployedModelCount">0</div> </div> </div>
-                    <div class="stats shadow-sm border border-base-200 rounded-lg"> <div class="stat"> <div class="stat-title">平均响应(ms)</div> <div class="stat-value" id="avgResponseTime">N/A</div> </div> </div>
-                    <div class="stats shadow-sm border border-base-200 rounded-lg"> <div class="stat"> <div class="stat-title">总预测请求</div> <div class="stat-value" id="predictionRequests">0</div> </div> </div>
-                </div>
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div>
-                        <h4 class="text-label font-medium mb-3">部署新模型</h4>
-                        <div class="form-control">
-                            <label class="label" for="deployModelSelect"><span class="label-text text-label">选择要部署的模型</span></label>
-                            <select id="deployModelSelect" class="select select-bordered select-sm bg-base-100 text-neutral-content-hex border-base-300 w-full">
-                                <option value="" disabled selected>选择一个模型</option>
-                            </select>
-                        </div>
-                        <div class="form-control mt-4">
-                            <label class="label" for="deployEnvironmentSelect"><span class="label-text text-label">选择部署环境</span></label>
-                            <select id="deployEnvironmentSelect" class="select select-bordered select-sm bg-base-100 text-neutral-content-hex border-base-300 w-full">
-                                <option value="local_dev">本地开发 (Local Dev)</option>
-                                <option value="staging">预发布环境 (Staging)</option>
-                                <option value="production">生产环境 (Production)</option>
-                            </select>
-                        </div>
-                        <div class="form-control mt-4">
-                            <label class="label" for="deployEndpoint"><span class="label-text text-label">API端点名称</span></label>
-                            <input type="text" id="deployEndpoint" class="styled-input input-sm" placeholder="例如: /predict/customer_churn_v1.2">
-                        </div>
-                        <button type="button" id="deployModelBtn" class="btn btn-primary shiny-button gradient-animate mt-6 w-full tooltip" data-tip="将选定模型部署到指定环境的API端点"> <i class="fas fa-cloud-upload-alt" aria-hidden="true"></i> 部署模型 </button>
-                    </div>
-                     <div id="deploymentMonitorContainer" class="rounded-lg p-4 min-h-[300px] overflow-auto custom-scrollbar border border-base-300 bg-base-100/50">
-                        <div class="flex justify-between items-center mb-3">
-                            <h4 class="text-label font-medium">已部署模型监控</h4>
-                            <button type="button" id="refreshMonitorBtn" class="btn btn-sm btn-outline btn-primary-outline tooltip" data-tip="刷新监控列表和状态"> <i class="fas fa-sync-alt" aria-hidden="true"></i> 刷新 </button>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="table table-sm w-full text-neutral-content-hex" aria-label="已部署模型监控列表">
-                                <thead> <tr class="border-b border-base-300 bg-base-100"> <th>模型名称</th> <th>环境</th> <th>API端点</th> <th>状态</th> <th>操作</th> </tr> </thead>
-                                <tbody id="deploymentTableBody"> <tr> <td colspan="5" class="text-center text-muted py-4">暂无已部署模型。部署模型后，将在此处监控。</td> </tr> </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </div>
     </main>
 
     <footer class="text-center py-8 text-muted text-sm">
-        <p>© <span id="currentYear">2024</span> AI机器学习助手 Pro. 保留所有权利.</p>
-        <p class="mt-1 opacity-80">技术栈: Vanilla JS, Tailwind CSS, DaisyUI, Chart.js, Particles.js</p>
-        <p class="mt-2 text-xs opacity-60">精心设计，智能驱动未来</p>
+        <p>© <span id="currentYear">2024</span> 启航者 AI - 学习导航与智能预测引擎. 保留所有权利.</p>
+        <p class="mt-1 opacity-80">技术栈: Python, Flask, 百度文心大模型, LangChain, Scikit-learn, Pandas, Tailwind CSS, Chart.js</p>
+        <p class="mt-2 text-xs opacity-60">精心设计，智能驱动您的学习之旅</p>
     </footer>
 
     <script>

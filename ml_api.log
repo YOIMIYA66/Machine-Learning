@@ -1419,3 +1419,7 @@ NameError: name 'List' is not defined
 2025-05-22 22:09:20,675 - app - INFO - ¼ì²âµ½½Ì³ÌÉú³ÉÇëÇó: Ä£ÐÍ 'knn_classifier', Ä¿±êÁÐ 'ÖÊÁ¿µÈ¼¶'
 2025-05-22 22:09:56,518 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
 2025-05-22 22:09:56,519 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 22:09:56] "POST /api/chat HTTP/1.1" 200 -
+2025-05-22 22:10:43,806 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 22:10:43] "[31m[1mPOST /api/ml/compare_models HTTP/1.1[0m" 400 -
+2025-05-22 22:10:55,315 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 22:10:55] "[31m[1mPOST /api/ml/ensemble HTTP/1.1[0m" 400 -
+2025-05-22 22:20:25,439 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 22:20:25] "GET / HTTP/1.1" 200 -
+2025-05-22 22:20:25,792 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 22:20:25] "GET /static/js/app.js HTTP/1.1" 200 -

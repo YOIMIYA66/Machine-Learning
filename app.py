@@ -26,6 +26,21 @@ from rag_core_enhanced import enhanced_query_rag, enhanced_direct_query_llm
 from ml_agents_enhanced import enhanced_query_ml_agent
 from advanced_feature_analysis import integrate_ml_with_rag
 
+# 导入学习路径规划模块
+from learning_planner import (
+    generate_learning_path, 
+    get_user_learning_path, 
+    update_path_progress,
+    predict_module_mastery, 
+    predict_completion_time
+)
+
+# 导入技术实验室模块
+from tech_lab import (
+    get_available_models, get_model_details, create_experiment,
+    run_experiment, get_experiment, get_all_experiments
+)
+
 # Helper functions moved to the top
 def is_rag_result_poor(query, rag_result):
     """
@@ -817,215 +832,106 @@ def analyze_data_get_endpoint():
         return jsonify(result)
     except Exception as e:
         traceback_str = traceback.format_exc()
-        logger.error(f"分析数据失败: {str(e)}\n{traceback_str}")
+        app.logger.error(f"分析数据失败: {str(e)}\n{traceback_str}")
         return jsonify({"error": f"分析数据失败: {str(e)}"}), 500
+
+def load_dataframe(file_path):
+    """
+    加载数据文件到DataFrame
+    
+    支持的文件格式:
+    - CSV (.csv)
+    - Excel (.xlsx, .xls)
+    - JSON (.json)
+    
+    Args:
+        file_path: 数据文件路径
+        
+    Returns:
+        tuple: (DataFrame, error_message)
+        如果成功加载，error_message为None
+        如果加载失败，DataFrame为None，error_message包含错误信息
+    """
+    if not os.path.exists(file_path):
+        return None, f"文件不存在: {file_path}"
+    
+    try:
+        file_ext = os.path.splitext(file_path.lower())[1]
+        
+        # CSV文件处理
+        if file_ext == '.csv':
+            # 尝试不同的编码
+            encodings = ['utf-8', 'gbk', 'gb2312', 'latin-1']
+            
+            for encoding in encodings:
+                try:
+                    df = pd.read_csv(file_path, encoding=encoding, keep_default_na=False, 
+                                     na_values=['NaN', 'N/A', 'NA', 'nan', 'null'])
+                    return df, None
+                except UnicodeDecodeError:
+                    continue
+                except Exception as e:
+                    return None, f"读取CSV文件错误: {str(e)}"
+            
+            return None, "无法使用任何编码格式读取CSV文件"
+        
+        # Excel文件处理
+        elif file_ext in ['.xlsx', '.xls']:
+            try:
+                df = pd.read_excel(file_path, keep_default_na=False,
+                                  na_values=['NaN', 'N/A', 'NA', 'nan', 'null'])
+                return df, None
+            except Exception as e:
+                return None, f"读取Excel文件错误: {str(e)}"
+        
+        # JSON文件处理
+        elif file_ext == '.json':
+            try:
+                df = pd.read_json(file_path)
+                return df, None
+            except Exception as e:
+                return None, f"读取JSON文件错误: {str(e)}"
+        
+        else:
+            return None, f"不支持的文件格式: {file_ext}，仅支持CSV、Excel和JSON"
+    
+    except Exception as e:
+        return None, f"加载数据文件时发生错误: {str(e)}"
 
 @app.route('/api/ml/model_versions', methods=['POST'])
 def create_model_version_endpoint():
     """创建模型新版本的API端点"""
-    data = request.get_json()
-    if not data:
-        return jsonify({"success": False, "error": "请求体为空"}), 400
-
-    required_fields = ['model_name', 'version_info']
-    for field in required_fields:
-        if field not in data:
-            return jsonify({"success": False, "error": f"缺少必要字段 '{field}'"}), 400
-
-    try:
-        # 导入模型版本管理函数
-        from ml_api_endpoints import save_model_version
-
-        model_name = data['model_name']
-        version_info = data['version_info']
-
-        # 创建模型版本
-        result = save_model_version(
-            model_name=model_name,
-            version_info=version_info
-        )
-
-        if not result.get("success", False):
-            return jsonify(result), 400
-
-        return jsonify(result), 200
-    except Exception as e:
-        app.logger.error(f"/api/ml/model_versions 接口发生错误: {e}", exc_info=True)
-        return jsonify({"success": False, "error": f"创建模型版本时发生错误: {str(e)}"}), 500
+    return jsonify({"success": False, "error": "此功能已禁用"}), 404
 
 @app.route('/api/ml/model_versions/<model_name>', methods=['GET'])
 def get_model_versions_endpoint(model_name):
     """获取模型所有版本的API端点"""
-    try:
-        # 导入获取模型版本函数
-        from ml_api_endpoints import get_model_versions
-
-        # 获取模型版本
-        result = get_model_versions(model_name)
-
-        if not result.get("success", False):
-            return jsonify(result), 400
-
-        return jsonify(result), 200
-    except Exception as e:
-        app.logger.error(f"/api/ml/model_versions/{model_name} 接口发生错误: {e}", exc_info=True)
-        return jsonify({"success": False, "error": f"获取模型版本时发生错误: {str(e)}"}), 500
+    return jsonify({"success": False, "error": "此功能已禁用"}), 404
 
 @app.route('/api/ml/compare_models', methods=['POST'])
 def compare_models_endpoint():
     """比较多个模型性能的API端点"""
-    data = request.get_json()
-    if not data:
-        return jsonify({"success": False, "error": "请求体为空"}), 400
-
-    required_fields = ['model_names', 'test_data_path', 'target_column']
-    for field in required_fields:
-        if field not in data:
-            return jsonify({"success": False, "error": f"缺少必要字段 '{field}'"}), 400
-
-    try:
-        # 导入修复后的模型比较函数
-        from ml_api_endpoints_fix import compare_models_api
-
-        model_names_raw = data['model_names']
-        test_data_path = data['test_data_path']
-        target_column = data['target_column']
-
-        model_names = []
-        if isinstance(model_names_raw, str):
-            model_names = [name.strip() for name in model_names_raw.split(',') if name.strip()]
-        elif isinstance(model_names_raw, list):
-            #确保列表中的每个元素都是字符串
-            model_names = [str(name).strip() for name in model_names_raw if str(name).strip()]
-        
-        if not model_names or len(model_names) < 2:
-            return jsonify({"success": False, "error": "进行模型比较至少需要选择两个模型，并以正确格式提供 (列表或逗号分隔的字符串)。"}), 400
-
-        # 比较模型
-        result = compare_models_api(
-            model_names=model_names,
-            test_data_path=test_data_path,
-            target_column=target_column
-        )
-
-        if not result.get("success", False):
-            return jsonify(result), 400
-
-        return jsonify(result), 200
-    except Exception as e:
-        app.logger.error(f"/api/ml/compare_models 接口发生错误: {e}", exc_info=True)
-        return jsonify({"success": False, "error": f"比较模型时发生错误: {str(e)}"}), 500
+    return jsonify({"success": False, "error": "此功能已禁用"}), 404
 
 @app.route('/api/ml/ensemble', methods=['POST'])
 def build_ensemble_model_endpoint():
     """构建集成模型的API端点"""
-    data = request.get_json()
-    if not data:
-        return jsonify({"success": False, "error": "请求体为空"}), 400
-
-    required_fields = ['base_models', 'ensemble_type']
-    for field in required_fields:
-        if field not in data:
-            return jsonify({"success": False, "error": f"缺少必要字段 '{field}'"}), 400
-
-    try:
-        # 导入修复后的集成模型构建函数
-        from ml_api_endpoints_fix import build_ensemble_model
-
-        base_models = data['base_models']
-        ensemble_type = data['ensemble_type']
-        save_name = data.get('save_name')
-
-        # 构建集成模型
-        result = build_ensemble_model(
-            base_models=base_models,
-            ensemble_type=ensemble_type,
-            save_name=save_name
-        )
-
-        if not result.get("success", False):
-            return jsonify(result), 400
-
-        return jsonify(result), 201
-    except Exception as e:
-        app.logger.error(f"/api/ml/ensemble 接口发生错误: {e}", exc_info=True)
-        return jsonify({"success": False, "error": f"构建集成模型时发生错误: {str(e)}"}), 500
+    return jsonify({"success": False, "error": "此功能已禁用"}), 404
 
 @app.route('/api/ml/deploy', methods=['POST'])
 def deploy_model_endpoint():
     """部署模型的API端点 (后端生成端点)"""
-    data = request.get_json()
-    if not data:
-        return jsonify({"success": False, "error": "请求体为空"}), 400
-
-    required_fields = ['model_name', 'environment']
-    for field in required_fields:
-        if field not in data:
-            return jsonify({"success": False, "error": f"缺少必要字段 '{field}'"}), 400
-
-    try:
-        from ml_api_endpoints import deploy_model
-
-        model_name = data['model_name']
-        environment = data['environment']
-        
-        # 后端生成唯一的端点路径
-        model_name_slug = model_name.lower().replace(' ', '-').replace('_', '-')
-        unique_id = str(uuid.uuid4())[:8]
-        generated_endpoint = f"/api/predict/{model_name_slug}/{unique_id}"
-        
-        app.logger.info(f"为模型 '{model_name}' 在环境 '{environment}' 生成的部署端点: {generated_endpoint}")
-
-        # 部署模型，传递生成的端点
-        result = deploy_model(
-            model_name=model_name,
-            environment=environment,
-            endpoint=generated_endpoint
-        )
-
-        if not result.get("success", False):
-            return jsonify(result), 400
-
-        return jsonify(result), 201
-    except Exception as e:
-        app.logger.error(f"/api/ml/deploy 接口发生错误: {e}", exc_info=True)
-        return jsonify({"success": False, "error": f"部署模型时发生错误: {str(e)}"}), 500
+    return jsonify({"success": False, "error": "此功能已禁用"}), 404
 
 @app.route('/api/ml/deployments', methods=['GET'])
 def get_deployed_models_endpoint():
     """获取已部署模型列表的API端点"""
-    try:
-        # 导入获取已部署模型列表函数
-        from ml_api_endpoints import get_deployed_models
-
-        # 获取已部署模型列表
-        result = get_deployed_models()
-
-        if not result.get("success", False):
-            return jsonify(result), 400
-
-        return jsonify(result), 200
-    except Exception as e:
-        app.logger.error(f"/api/ml/deployments 接口发生错误: {e}", exc_info=True)
-        return jsonify({"success": False, "error": f"获取已部署模型列表时发生错误: {str(e)}"}), 500
+    return jsonify({"success": False, "error": "此功能已禁用"}), 404
 
 @app.route('/api/ml/undeploy/<deployment_id>', methods=['POST'])
 def undeploy_model_endpoint(deployment_id):
     """取消部署模型的API端点"""
-    try:
-        # 导入取消部署模型函数
-        from ml_api_endpoints import undeploy_model
-
-        # 取消部署模型
-        result = undeploy_model(deployment_id)
-
-        if not result.get("success", False):
-            return jsonify(result), 400
-
-        return jsonify(result), 200
-    except Exception as e:
-        app.logger.error(f"/api/ml/undeploy/{deployment_id} 接口发生错误: {e}", exc_info=True)
-        return jsonify({"success": False, "error": f"取消部署模型时发生错误: {str(e)}"}), 500
+    return jsonify({"success": False, "error": "此功能已禁用"}), 404
 
 @app.route('/api/ml/explain', methods=['POST'])
 def explain_model_endpoint():
@@ -1378,6 +1284,280 @@ def serve_static_file(filename):
     except Exception as e:
         app.logger.error(f"加载静态文件 {filename} 时出错: {e}")
         return f"无法加载文件 {filename}", 404
+
+# 添加学习路径相关API端点
+@app.route('/api/learning_path/create', methods=['POST'])
+def create_learning_path():
+    """创建学习路径API"""
+    try:
+        data = request.json
+        required_fields = ['user_id', 'goal', 'prior_knowledge', 'weekly_hours']
+        
+        # 验证请求数据
+        if not all(field in data for field in required_fields):
+            return jsonify({
+                'success': False,
+                'error': f'Missing required fields. Required: {", ".join(required_fields)}'
+            }), 400
+            
+        # 生成学习路径
+        learning_path = generate_learning_path(
+            user_id=data['user_id'],
+            goal=data['goal'],
+            prior_knowledge=data['prior_knowledge'],
+            weekly_hours=data['weekly_hours'],
+            max_modules=data.get('max_modules', 20)
+        )
+        
+        return jsonify({
+            'success': True,
+            'message': '学习路径创建成功',
+            'path': learning_path
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/learning_path/user/<user_id>', methods=['GET'])
+def get_user_paths(user_id):
+    """获取用户学习路径API"""
+    try:
+        paths = get_user_learning_path(user_id)
+        
+        return jsonify({
+            'success': True,
+            'paths': paths
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/learning_path/update_progress', methods=['POST'])
+def update_learning_progress():
+    """更新学习路径进度API"""
+    try:
+        data = request.json
+        
+        # 验证请求数据
+        if 'path_id' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'Missing required field: path_id'
+            }), 400
+            
+        # 更新进度
+        updated_path = update_path_progress(
+            path_id=data['path_id'],
+            completed_module_id=data.get('completed_module_id'),
+            current_module_id=data.get('current_module_id')
+        )
+        
+        return jsonify({
+            'success': True,
+            'message': '学习进度更新成功',
+            'path': updated_path
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/learning_path/predict/mastery', methods=['POST'])
+def predict_mastery():
+    """预测模块掌握程度API"""
+    try:
+        data = request.json
+        required_fields = ['user_id', 'module_id', 'weekly_hours']
+        
+        # 验证请求数据
+        if not all(field in data for field in required_fields):
+            return jsonify({
+                'success': False,
+                'error': f'Missing required fields. Required: {", ".join(required_fields)}'
+            }), 400
+            
+        # 预测掌握程度
+        prediction = predict_module_mastery(
+            user_id=data['user_id'],
+            module_id=data['module_id'],
+            weekly_hours=data['weekly_hours'],
+            focus_level=data.get('focus_level', 'medium')
+        )
+        
+        return jsonify({
+            'success': True,
+            'prediction': prediction
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/learning_path/predict/completion_time', methods=['POST'])
+def predict_path_completion():
+    """预测学习路径完成时间API"""
+    try:
+        data = request.json
+        required_fields = ['user_id', 'path_id', 'weekly_hours']
+        
+        # 验证请求数据
+        if not all(field in data for field in required_fields):
+            return jsonify({
+                'success': False,
+                'error': f'Missing required fields. Required: {", ".join(required_fields)}'
+            }), 400
+            
+        # 预测完成时间
+        prediction = predict_completion_time(
+            user_id=data['user_id'],
+            path_id=data['path_id'],
+            weekly_hours=data['weekly_hours']
+        )
+        
+        return jsonify({
+            'success': True,
+            'prediction': prediction
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+# 技术实验室API路由
+@app.route('/api/tech_lab/models', methods=['GET'])
+def get_models():
+    """获取可用模型API"""
+    try:
+        models = get_available_models()
+        
+        return jsonify({
+            'success': True,
+            'models': models
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/tech_lab/models/<model_id>', methods=['GET'])
+def get_model(model_id):
+    """获取模型详情API"""
+    try:
+        model = get_model_details(model_id)
+        
+        return jsonify({
+            'success': True,
+            'model': model
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/tech_lab/experiments', methods=['GET'])
+def get_experiments():
+    """获取所有实验API"""
+    try:
+        experiments = get_all_experiments()
+        
+        return jsonify({
+            'success': True,
+            'experiments': experiments
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/tech_lab/experiments/<experiment_id>', methods=['GET'])
+def get_experiment_details(experiment_id):
+    """获取实验详情API"""
+    try:
+        experiment = get_experiment(experiment_id)
+        
+        return jsonify({
+            'success': True,
+            'experiment': experiment
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/tech_lab/experiments/create', methods=['POST'])
+def create_new_experiment():
+    """创建实验API"""
+    try:
+        data = request.json
+        required_fields = ['name', 'model_id', 'experiment_type', 'config']
+        
+        # 验证请求数据
+        if not all(field in data for field in required_fields):
+            return jsonify({
+                'success': False,
+                'error': f'Missing required fields. Required: {", ".join(required_fields)}'
+            }), 400
+            
+        # 创建实验
+        experiment = create_experiment(
+            name=data['name'],
+            description=data.get('description', ''),
+            model_id=data['model_id'],
+            experiment_type=data['experiment_type'],
+            config=data['config']
+        )
+        
+        return jsonify({
+            'success': True,
+            'message': '实验创建成功',
+            'experiment': experiment
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/tech_lab/experiments/run', methods=['POST'])
+def run_experiment_api():
+    """运行实验API"""
+    try:
+        data = request.json
+        
+        # 验证请求数据
+        if 'experiment_id' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'Missing required field: experiment_id'
+            }), 400
+            
+        # 运行实验
+        experiment = run_experiment(
+            experiment_id=data['experiment_id'],
+            data_path=data.get('data_path')
+        )
+        
+        return jsonify({
+            'success': True,
+            'message': '实验运行成功',
+            'experiment': experiment
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 # 初始化应用程序
 def init_app():
