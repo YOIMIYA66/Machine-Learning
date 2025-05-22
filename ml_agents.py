@@ -1997,13 +1997,22 @@ Input: {input}
     if use_existing_model:
         model_preference_text = "\n重要提示：当前设置为优先使用已训练好的模型。除非用户明确要求或没有合适的现有模型，否则请不要重新训练模型。\n"
 
-    final_prompt_template = "Test: {test_var}" # Simplified for testing
-    # model_preference_text is not used in this simplified template
+    # model_preference_text is already defined above.
+    # prompt_template_base is already defined above and contains the necessary placeholders:
+    # """
+    # {tools}
+    # Tool Names: {tool_names}
+    # Input: {input}
+    # {agent_scratchpad}
+    # """
+
+    # Combine model preference text with the base template
+    effective_template_str = model_preference_text + prompt_template_base
 
     prompt = PromptTemplate(
-        input_variables=["test_var"],
-        template=final_prompt_template,
-        validate_template=False # Explicitly set to False for this test
+        template=effective_template_str,
+        input_variables=["input", "agent_scratchpad", "tools", "tool_names"]
+        # Using default validate_template=True is recommended
     )
 
     # 创建代理

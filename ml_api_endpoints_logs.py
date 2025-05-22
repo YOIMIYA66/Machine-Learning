@@ -40,7 +40,7 @@ def get_deployment_logs(deployment_id: str, limit: int = 100, offset: int = 0) -
             }
             
         # 获取所有部署信息
-        from ml_api_endpoints import _get_all_deployments
+        from deployment_utils import _get_all_deployments
         deployments = _get_all_deployments()
         
         # 查找部署记录
@@ -124,7 +124,7 @@ def add_deployment_log(deployment_id: str, log_entry: Dict[str, Any]) -> Dict[st
             }
         
         # 获取所有部署信息
-        from ml_api_endpoints import _get_all_deployments
+        from deployment_utils import _get_all_deployments
         deployments = _get_all_deployments()
         
         # 查找部署记录
@@ -205,8 +205,7 @@ def get_deployment_metrics(deployment_id: str) -> Dict[str, Any]:
     # 尝试从日志文件中聚合一些基本指标，或者从专门的指标存储中获取
     # 这里我们先返回一些模拟数据
     # 检查部署是否存在 (可以复用 get_deployment_logs 中的逻辑或 _get_all_deployments)
-    # 注意：此处的导入可能导致循环依赖，如果 ml_api_endpoints 也导入此文件中的函数
-    from ml_api_endpoints import _get_all_deployments
+    from deployment_utils import _get_all_deployments
     deployments = _get_all_deployments()
     deployment = next((dep for dep in deployments if dep['id'] == deployment_id), None)
 

@@ -19,6 +19,8 @@ from ml_models import (
 
 # 导入部署日志相关函数
 from ml_api_endpoints_logs import get_deployment_logs, add_deployment_log
+# 导入部署工具函数
+from deployment_utils import _get_all_deployments, _save_deployments
 
 # 配置日志
 logging.basicConfig(
@@ -28,78 +30,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger('ml_api_endpoints')
 
-# 部署模型存储
-DEPLOYMENTS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'deployments.json')
-DEPLOYMENTS_BACKUP_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'deployments_backup.json')
 
-# 确保部署文件存在
-def _ensure_deployments_file():
-    """确保部署文件存在，如果不存在则创建"""
-    if not os.path.exists(DEPLOYMENTS_FILE):
-        try:
-            with open(DEPLOYMENTS_FILE, 'w', encoding='utf-8') as f:
-                json.dump([], f, ensure_ascii=False, indent=2)
-            logger.info("创建新的部署文件")
-        except Exception as e:
-            logger.error(f"创建部署文件时出错: {str(e)}")
-            raise
-
-# 备份部署文件
-def _backup_deployments_file():
-    """创建部署文件的备份"""
-    try:
-        if os.path.exists(DEPLOYMENTS_FILE):
-            with open(DEPLOYMENTS_FILE, 'r', encoding='utf-8') as src:
-                data = json.load(src)
-                with open(DEPLOYMENTS_BACKUP_FILE, 'w', encoding='utf-8') as dst:
-                    json.dump(data, dst, ensure_ascii=False, indent=2)
-            logger.info("已创建部署文件备份")
-    except Exception as e:
-        logger.error(f"备份部署文件时出错: {str(e)}")
-
-# 获取所有部署
-def _get_all_deployments() -> List[Dict[str, Any]]:
-    """获取所有已部署的模型信息"""
-    _ensure_deployments_file()
-    try:
-        with open(DEPLOYMENTS_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except json.JSONDecodeError:
-        logger.error("部署文件格式错误，尝试从备份恢复")
-        try:
-            # 尝试从备份恢复
-            if os.path.exists(DEPLOYMENTS_BACKUP_FILE):
-                with open(DEPLOYMENTS_BACKUP_FILE, 'r', encoding='utf-8') as f:
-                    data = json.load(f)
-                # 恢复主文件
-                with open(DEPLOYMENTS_FILE, 'w', encoding='utf-8') as f:
-                    json.dump(data, f, ensure_ascii=False, indent=2)
-                logger.info("已从备份恢复部署文件")
-                return data
-        except Exception as backup_error:
-            logger.error(f"从备份恢复失败: {str(backup_error)}")
-        
-        # 如果无法恢复，重置为空列表
-        with open(DEPLOYMENTS_FILE, 'w', encoding='utf-8') as f:
-            json.dump([], f, ensure_ascii=False, indent=2)
-        return []
-    except Exception as e:
-        logger.error(f"读取部署文件时出错: {str(e)}")
-        return []
-
-# 保存部署信息
-def _save_deployments(deployments: List[Dict[str, Any]]):
-    """保存部署信息到文件"""
-    _ensure_deployments_file()
-    # 先创建备份
-    _backup_deployments_file()
-    try:
-        with open(DEPLOYMENTS_FILE, 'w', encoding='utf-8') as f:
-            json.dump(deployments, f, ensure_ascii=False, indent=2)
-        logger.info(f"已保存{len(deployments)}个部署信息")
-    except Exception as e:
-        logger.error(f"保存部署信息时出错: {str(e)}")
-        raise
 
 # API端点实现
 def save_model_version(model_name: str, version_info: Dict[str, Any]) -> Dict[str, Any]:
