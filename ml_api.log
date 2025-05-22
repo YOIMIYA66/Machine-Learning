@@ -1173,3 +1173,106 @@ ImportError: cannot import name 'get_deployment_metrics' from 'ml_api_endpoints_
 2025-05-22 09:42:40,454 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
 2025-05-22 09:42:40,454 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:42:40] "GET /api/ml/deployments HTTP/1.1" 200 -
 2025-05-22 09:42:40,951 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:42:40] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -
+2025-05-22 09:43:35,395 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:43:35] "GET / HTTP/1.1" 200 -
+2025-05-22 09:43:35,644 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:43:35] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2025-05-22 09:43:35,732 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-22 09:43:35,733 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-22 09:43:35,733 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:43:35] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-22 09:43:35,995 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:43:35] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -
+2025-05-22 09:43:51,427 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:43:51] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-22 09:43:51,761 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:43:51] "POST /api/ml/analyze HTTP/1.1" 200 -
+2025-05-22 09:43:58,016 - app - INFO - API½ÓÊÕµ½²éÑ¯: 'ÎÒÉÏ´«ÁËÐÂµÄÊý¾Ý¼¯£¬Çë°ïÎÒÔ¤ÀÀÒ»ÏÂÊý¾Ý¸Å¿ö¡£'
+2025-05-22 09:43:58,023 - app - INFO - ¼ì²âµ½Êý¾Ý¸ÅÀÀÇëÇó¡£ÓÃ»§²éÑ¯: ÎÒÉÏ´«ÁËÐÂµÄÊý¾Ý¼¯£¬Çë°ïÎÒÔ¤ÀÀÒ»ÏÂÊý¾Ý¸Å¿ö¡£, Êý¾ÝÂ·¾¶: C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\uploads\±±¾©ÊÐ¿ÕÆøÖÊÁ¿Êý¾Ý_processed.csv
+2025-05-22 09:44:11,362 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-22 09:44:11,371 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:44:11] "POST /api/chat HTTP/1.1" 200 -
+2025-05-22 09:44:54,760 - app - INFO - API½ÓÊÕµ½²éÑ¯: '»ùÓÚÎÒÉÏ´«µÄÊý¾Ý¼¯£¬Çë½øÐÐÌ½Ë÷ÐÔÊý¾Ý·ÖÎö£¬²¢×Ü½áÖ÷Òª·¢ÏÖ¡£'
+2025-05-22 09:44:54,761 - app - INFO - ¼ì²âµ½½Ì³ÌÉú³ÉÇëÇó: Ä£ÐÍ 'logistic_regression', Ä¿±êÁÐ 'PM2.5'
+2025-05-22 09:45:29,264 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-22 09:45:29,265 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:45:29] "POST /api/chat HTTP/1.1" 200 -
+2025-05-22 09:45:35,537 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:45:35] "GET / HTTP/1.1" 200 -
+2025-05-22 09:45:36,052 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:45:36] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2025-05-22 09:45:36,325 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-22 09:45:36,325 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-22 09:45:36,325 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:45:36] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-22 09:45:36,374 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:45:36] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -
+2025-05-22 09:49:36,440 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:49:36] "GET / HTTP/1.1" 200 -
+2025-05-22 09:49:36,677 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:49:36] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-22 09:49:36,906 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-22 09:49:36,906 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-22 09:49:36,908 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:49:36] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-22 09:49:37,046 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:49:37] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -
+2025-05-22 09:50:17,849 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:50:17] "GET / HTTP/1.1" 200 -
+2025-05-22 09:50:18,189 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:50:18] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2025-05-22 09:50:18,440 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-22 09:50:18,441 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-22 09:50:18,441 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:50:18] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-22 09:50:18,514 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:50:18] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -
+2025-05-22 09:51:24,891 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:51:24] "GET / HTTP/1.1" 200 -
+2025-05-22 09:51:25,145 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:51:25] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-22 09:51:25,230 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-22 09:51:25,230 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-22 09:51:25,230 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:51:25] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-22 09:51:25,467 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:51:25] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -
+2025-05-22 09:53:48,797 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:53:48] "GET / HTTP/1.1" 200 -
+2025-05-22 09:53:49,065 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:53:49] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-22 09:53:49,135 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-22 09:53:49,135 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-22 09:53:49,135 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:53:49] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-22 09:53:49,385 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:53:49] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -
+2025-05-22 09:54:08,594 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:54:08] "GET / HTTP/1.1" 200 -
+2025-05-22 09:54:08,849 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:54:08] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2025-05-22 09:54:09,283 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-22 09:54:09,283 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-22 09:54:09,283 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:54:09] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-22 09:57:29,965 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:57:29] "GET / HTTP/1.1" 200 -
+2025-05-22 09:57:30,225 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:57:30] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-22 09:57:30,504 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-22 09:57:30,504 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-22 09:57:30,504 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:57:30] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-22 09:57:30,577 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:57:30] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -
+2025-05-22 09:58:37,008 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:58:37] "GET / HTTP/1.1" 200 -
+2025-05-22 09:58:37,262 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:58:37] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-22 09:58:37,354 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-22 09:58:37,354 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-22 09:58:37,354 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:58:37] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-22 09:58:37,605 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:58:37] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -
+2025-05-22 10:04:32,815 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:04:32] "GET / HTTP/1.1" 200 -
+2025-05-22 10:04:33,064 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:04:33] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-22 10:04:33,154 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-22 10:04:33,154 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-22 10:04:33,155 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:04:33] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-22 10:04:33,406 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:04:33] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -
+2025-05-22 10:05:47,421 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:05:47] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-22 10:05:47,523 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:05:47] "POST /api/ml/analyze HTTP/1.1" 200 -
+2025-05-22 10:06:06,425 - app - INFO - API½ÓÊÕµ½²éÑ¯: 'Ê¹ÓÃ[Ä£ÐÍÃû³Æ]Ä£ÐÍ¶Ô[Ä¿±êÁÐÃû]½øÐÐÊ¹ÓÃÒÑÓÐÄ£ÐÍÔ¤²â£¬²¢Õ¹Ê¾½á¹û¡£'
+2025-05-22 10:06:06,426 - app - INFO - ¼ì²âµ½½Ì³ÌÉú³ÉÇëÇó: Ä£ÐÍ 'knn_classifier', Ä¿±êÁÐ 'SO2'
+2025-05-22 10:06:45,771 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-22 10:06:45,772 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:06:45] "POST /api/chat HTTP/1.1" 200 -
+2025-05-22 10:10:59,144 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:10:59] "GET / HTTP/1.1" 200 -
+2025-05-22 10:10:59,386 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:10:59] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-22 10:10:59,648 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-22 10:10:59,649 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-22 10:10:59,649 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:10:59] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-22 10:10:59,755 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:10:59] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -
+2025-05-22 10:12:39,003 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:12:39] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-22 10:12:39,129 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:12:39] "POST /api/ml/analyze HTTP/1.1" 200 -
+2025-05-22 10:12:44,549 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:12:44] "GET / HTTP/1.1" 200 -
+2025-05-22 10:12:44,897 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:12:44] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-22 10:12:45,158 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-22 10:12:45,158 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-22 10:12:45,158 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:12:45] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-22 10:12:45,215 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:12:45] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -
+2025-05-22 10:12:51,219 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:12:51] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-22 10:12:51,571 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:12:51] "POST /api/ml/analyze HTTP/1.1" 200 -
+2025-05-22 10:16:42,697 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:16:42] "GET / HTTP/1.1" 200 -
+2025-05-22 10:16:42,950 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:16:42] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-22 10:16:43,222 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-22 10:16:43,222 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-22 10:16:43,222 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:16:43] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-22 10:16:43,307 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:16:43] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -
+2025-05-22 10:19:19,388 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:19:19] "GET / HTTP/1.1" 200 -
+2025-05-22 10:19:19,644 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:19:19] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-22 10:19:19,722 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-22 10:19:19,722 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-22 10:19:19,722 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:19:19] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-22 10:19:19,970 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 10:19:19] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -

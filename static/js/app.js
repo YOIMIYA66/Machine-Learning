@@ -54,43 +54,43 @@ const FIXED_MODEL_DETAILS = {
         "internal_name": "linear_regression",
         "display_name": "线性回归模型",
         "icon_class": "fa-chart-line",
-        "description": "线性回归是一种基本的统计模型，用于预测连续型变量。它通过建立自变量与因变量之间的线性关系，找出最佳拟合直线，适用于简单的数值预测任务。"
+        "description": "用于连续变量预测的基本线性模型。"
     },
     "logistic_regression": {
         "internal_name": "logistic_regression",
         "display_name": "逻辑回归模型",
         "icon_class": "fa-code-branch",
-        "description": "逻辑回归是一种用于二分类问题的统计模型，通过Sigmoid函数将线性模型的输出转换为概率值。它计算效率高，易于实现，适合处理线性可分的分类问题。"
+        "description": "用于二分类问题的概率模型。"
     },
     "knn_classifier": {
         "internal_name": "knn_classifier",
         "display_name": "K-近邻法预测模型(KNN)",
         "icon_class": "fa-project-diagram",
-        "description": "K-近邻算法是一种基于实例的学习方法，通过计算新样本与训练集中所有样本的距离，选取最近的K个邻居进行投票或平均，从而进行分类或回归预测。"
+        "description": "基于最近邻样本进行分类或回归的算法。"
     },
     "decision_tree": {
         "internal_name": "decision_tree",
         "display_name": "决策树",
         "icon_class": "fa-sitemap",
-        "description": "决策树是一种树形结构的分类模型，通过一系列条件判断将数据划分为不同类别。它直观易懂，可解释性强，能够处理非线性关系，但容易过拟合。"
+        "description": "使用树形结构进行决策的分类模型。"
     },
     "svm_classifier": {
         "internal_name": "svm_classifier",
         "display_name": "向量机模型",
         "icon_class": "fa-vector-square",
-        "description": "支持向量机(SVM)是一种强大的分类算法，通过寻找最优超平面来区分不同类别的数据点。它在高维空间中表现良好，可以通过核函数处理非线性问题，适合小型复杂数据集。"
+        "description": "通过最优超平面进行分类的算法。"
     },
     "naive_bayes": {
         "internal_name": "naive_bayes",
         "display_name": "朴素贝叶斯分类器",
         "icon_class": "fa-percentage",
-        "description": "朴素贝叶斯是基于贝叶斯定理的概率分类器，假设特征之间相互独立。它训练速度快，需要较少的训练数据，特别适合文本分类和多分类问题，但对特征相关性较强的数据效果可能不佳。"
+        "description": "基于贝叶斯定理的快速分类器。"
     },
     "kmeans": {
         "internal_name": "kmeans",
         "display_name": "K-Means 模型",
         "icon_class": "fa-object-group",
-        "description": "K-Means是一种常用的聚类算法，通过迭代优化将数据点分配到K个簇中。它实现简单，计算效率高，适合大规模数据集的无监督学习，但对初始聚类中心敏感，且难以处理非球形簇。"
+        "description": "将数据分成K个簇的聚类算法。"
     }
 };
 
@@ -622,6 +622,13 @@ function createTargetColumnSelector(columns, columnTypes) {
 /**
  * 加载并显示可用模型，实现类似图片效果的布局、样式和悬停提示。
  */
+/**
+ * 异步加载并显示所有可用的机器学习模型。
+ * 此函数会从 FIXED_MODEL_DETAILS 获取模型数据，按类别组织它们，
+ * 并为每个模型动态创建卡片元素，然后将它们添加到DOM中。
+ * 卡片支持点击翻转以显示更多信息，并有悬停提示。
+ * 同时会更新模型总数徽章。
+ */
 async function loadAvailableModels() {
     const gridContainer = DOM.modelGrid();
     const modelCountBadge = DOM.modelCountBadge();
@@ -692,28 +699,57 @@ async function loadAvailableModels() {
             categorySection.appendChild(categoryGrid);
 
             categorizedModels[categoryKey].forEach(model => {
+                /**
+                 * @type {HTMLDivElement} card - 模型卡片元素
+                 */
                 const card = document.createElement('div');
-                // 卡片基础样式 (参考图片：浅色背景，圆角，阴影)
-                card.className = 'model-card bg-base-100 p-4 border border-base-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 ease-in-out cursor-pointer flex flex-col items-center justify-center text-center h-40'; // 固定高度，内容居中
+                // 简化类名，主要依赖 index.html 中的 .model-card CSS 定义
+                card.className = 'model-card'; 
                 card.setAttribute('data-model-name', model.internal_name);
-                card.setAttribute('tabindex', '0');
+                card.setAttribute('tabindex', '0'); // For accessibility
                 card.setAttribute('role', 'button');
                 card.setAttribute('aria-label', `选择模型 ${escapeHtml(model.display_name)}`);
 
                 const iconColor = getModelIconColor(model.internal_name);
                 const modelCategoryName = getCategoryDisplayName(getCategoryForModel(model.internal_name));
 
+                // 卡片内部结构，包含正面和背面，用于翻转效果
+                // Tailwind CSS 类用于布局和基本样式，具体翻转和精细样式在 index.html 中定义
                 card.innerHTML = `
-                    <i class="fas ${escapeHtml(model.icon_class)} text-3xl mb-2" style="color: ${iconColor};"></i>
-                    <h4 class="font-semibold text-sm leading-tight">${escapeHtml(model.display_name)}</h4>
-                    <p class="text-xs text-gray-500 mt-1">${escapeHtml(modelCategoryName)}</p>
+                    <div class="model-card-inner">
+                        <div class="model-card-front">
+                            <i class="fas ${escapeHtml(model.icon_class)}" style="color: ${iconColor};"></i>
+                            <h4>${escapeHtml(model.display_name)}</h4>
+                            <p>${escapeHtml(modelCategoryName)}</p>
+                        </div>
+                        <div class="model-card-back">
+                            <h4>${escapeHtml(model.display_name)}</h4>
+                            <p>${escapeHtml(model.description || '暂无详细描述。')}</p>
+                        </div>
+                    </div>
                 `;
                 
-                // 添加悬停事件监听以显示/隐藏提示框
+                /**
+                 * 处理模型卡片点击事件，用于翻转卡片。
+                 * 注意：此处的翻转与模型选择是分离的。模型选择在 initModelSelectionDelegation 中处理。
+                 * @param {MouseEvent} event - 点击事件对象
+                 */
+                card.addEventListener('click', (event) => {
+                    // 确保点击的是卡片本身或其子元素，而不是其他交互元素（如果未来添加的话）
+                    if (event.target.closest('.model-card')) {
+                        const currentCard = event.target.closest('.model-card');
+                        // 如果卡片已被选中，则不执行翻转，保持正面显示
+                        if (!currentCard.classList.contains('selected-model-card')) {
+                            currentCard.classList.toggle('is-flipped');
+                        }
+                    }
+                });
+                
+                // 添加悬停和焦点事件监听器以显示/隐藏模型详情提示框
                 card.addEventListener('mouseenter', (event) => showModelTooltip(event.currentTarget, model));
                 card.addEventListener('mouseleave', hideModelTooltip);
-                card.addEventListener('focus', (event) => showModelTooltip(event.currentTarget, model)); // 辅助功能：聚焦时也显示
-                card.addEventListener('blur', hideModelTooltip); // 辅助功能：失焦时隐藏
+                card.addEventListener('focus', (event) => showModelTooltip(event.currentTarget, model));
+                card.addEventListener('blur', hideModelTooltip);
 
                 categoryGrid.appendChild(card);
             });
@@ -899,12 +935,12 @@ function updateQueryInputState() {
         } else { // Data uploaded and analyzed, allow queries
             placeholder = `基于 ${escapeHtml(currentData.fileName || '已上传数据')} 进行分析或提问...`;
             labelText = `<i class='fas fa-brain mr-2'></i> 基于 ${escapeHtml(currentData.fileName || '已上传数据')} 分析:`;
-            infoText = `数据已就绪: <strong>${escapeHtml(currentData.fileName || '已上传数据')}</strong>。您现在可以提问了。`;
+            infoText = `数据已就绪: ${escapeHtml(currentData.fileName || '已上传数据')}。您现在可以提问了。`;
             // Model and target column are now optional for enabling the query
         }
     }
     input.disabled = disabled; btn.disabled = disabled;
-    input.placeholder = placeholder; label.textContent = labelText; info.textContent = infoText;
+    input.placeholder = placeholder; label.innerHTML = labelText; info.textContent = infoText;
 }
 
 /**
@@ -1347,13 +1383,16 @@ function escapeHtml(unsafe) {
  */
 function initExampleQueries() {
     const examples = [
-        { text: "你好，请介绍一下你自己。", mode: "general_llm" },
-        { text: "我上传了新的数据集，请帮我预览一下数据概况。", mode: "data_analysis" },
-        { text: "基于我上传的数据集，请进行探索性数据分析，并总结主要发现。", mode: "data_analysis" },
-        { text: "请分析我上传数据中的用户行为，并找出潜在的模式。", mode: "data_analysis" },
-        { text: "针对我上传的数据，提出三个有价值的分析问题。", mode: "data_analysis" },
-        { text: "请为我生成一段Python代码，演示如何使用逻辑回归进行二分类。", mode: "general_llm" },
-        { text: "解释一下什么是过拟合，以及如何避免它？", mode: "general_llm" }
+        { text: "这份数据适合用什么模型进行分析？", query: "根据当前数据特点，推荐合适的分析模型。", mode: "data_analysis" },
+        { text: "如果我想预测[目标列名]，哪些特征最重要？", query: "如果目标是[目标列名]，请分析各特征的重要性。", mode: "data_analysis" },
+        { text: "使用[模型名称]模型对[目标列名]进行预测，并展示结果。", query: "请使用[模型名称]模型，以[目标列名]为目标进行预测，并告诉我预测结果和评估指标。", mode: "data_analysis" },
+        { text: "请解释[模型名称]模型的原理及其优缺点。", query: "详细解释一下[模型名称]模型的工作原理、适用场景以及主要的优缺点是什么？", mode: "general_llm" }, // Changed mode to general_llm as it's a knowledge question
+        { text: "如何解读当前模型的[具体指标，如AUC或R方]？", query: "当前模型训练结果中的[具体指标，如AUC或R方]代表什么意义？这个数值表现如何？", mode: "data_analysis" },
+        { text: "机器学习和传统编程有什么区别？", query: "机器学习与传统编程的主要区别是什么？", mode: "general_llm" },
+        { text: "什么是监督学习和无监督学习？请举例说明。", query: "请解释监督学习和无监督学习的概念，并分别给出一个实际应用的例子。", mode: "general_llm" },
+        { text: "在进行数据预处理时，通常需要注意哪些方面？", query: "数据预处理的关键步骤和常见注意事项有哪些？", mode: "general_llm" },
+        { text: "如何避免模型训练中的过拟合问题？", query: "在模型训练过程中，有哪些常用的方法可以有效防止或减轻过拟合现象？", mode: "general_llm" },
+        { text: "请介绍几种常见的模型评估指标及其适用场景。", query: "介绍几种常用的机器学习模型评估指标（例如准确率、精确率、召回率、F1分数、RMSE等），并说明它们各自适合在什么场景下使用。", mode: "general_llm" }
     ];
     const listEl = DOM.exampleQueryList();
     if (!listEl) return;

@@ -79,47 +79,259 @@
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
         .content-card:hover:not(.no-hover-effect):not(.selected-model-card) {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            transform: translateY(-5px) scale(1.02); /* Slightly more pronounced hover */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Softer, larger shadow */
         }
         .selected-model-card {
-            transform: translateY(-3px) scale(1.01);
-            box-shadow: 0 6px 25px rgba(var(--primary-rgb), 0.35);
-            /* border: 2px solid var(--primary-hex) !important; */ /* Border handled by front face now */
+            transform: translateY(-7px) scale(1.06); /* Slightly more pronounced pop effect */
+            box-shadow:
+                0 0 0 1.5px rgba(var(--primary-rgb), 0.35), /* Thinner, slightly softer ring */
+                0 7px 25px rgba(var(--primary-rgb), 0.18), /* Adjusted ambient shadow for depth */
+                0 20px 60px rgba(var(--primary-rgb), 0.28); /* More diffused and deeper main shadow */
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
-        .selected-model-card .model-card-inner {
-            /* Prevent flip on selected card if it should look static like the image */
-            /* transform: rotateY(0deg) !important; */ 
-        }
+        /* Styles for the front of a selected card - potentially remove or adjust if back is primary selected view */
+        /*
         .selected-model-card .model-card-front {
-            background-color: #E0F2FE !important; /* Light sky blue, adjust if var(--primary-hex) is better */
-            border: 2px solid #3B82F6 !important; /* Tailwind Sky-500 border */
-            color: #0C4A6E !important; /* Darker blue text for contrast on light blue */
+            background-color: var(--primary-hex) !important; 
+            border: 2px solid var(--primary-focus-hex) !important; 
+            color: var(--primary-content-hex) !important; 
         }
         .selected-model-card .model-card-front h4,
-        .selected-model-card .model-card-front p {
-            color: #0C4A6E !important; /* Darker blue text */
+        .selected-model-card .model-card-front p,
+        .selected-model-card .model-card-front .model-category-badge { 
+            color: var(--primary-content-hex) !important;
         }
-        /* Icons on selected cards will now use their original color by default */
-        .selected-model-card .model-card-front p.text-gray-500 { /* Ensure subtitle also changes color if it was gray */
-             color: #0C4A6E !important; 
-             opacity: 0.9;
+        .selected-model-card .model-card-front i { 
+            color: var(--primary-content-hex) !important; 
         }
-        .selected-model-card .model-card-front p.text-gray-500 { /* Ensure subtitle also changes color */
-             color: #0C4A6E !important; 
-             opacity: 0.9;
+        .selected-model-card .model-card-front p.text-gray-500 { 
+             color: rgba(var(--primary-content-rgb), 0.85) !important; 
+             opacity: 1; 
         }
-        .selected-model-card .model-card-back { 
-            /* Optionally hide back or style differently if selection shouldn't flip */
-            border-color: transparent; 
+        */
+
+        .selected-model-card .model-card-inner {
+            /* transform: rotateY(0deg) !important; */ /* Keep flip for consistency unless design dictates otherwise */
+        }
+        .selected-model-card .model-card-front {
+            background-color: var(--primary-hex) !important; /* Use primary color for selected front */
+            border: 2px solid var(--primary-focus-hex) !important; /* Darker border for contrast */
+            color: var(--primary-content-hex) !important; /* White text on primary bg */
+        }
+        .selected-model-card .model-card-front h4,
+        .selected-model-card .model-card-front p,
+        .selected-model-card .model-card-front .model-category-badge { /* Ensure all text elements change color */
+            color: var(--primary-content-hex) !important;
+        }
+        .selected-model-card .model-card-front .model-icon i {
+            color: var(--primary-content-hex) !important; /* Make icon white on selected card */
+        }
+        .selected-model-card .model-card-front p.text-gray-500 { /* Subtitle specific override */
+             color: rgba(var(--primary-content-rgb), 0.85) !important; /* Slightly transparent white */
+             opacity: 1; /* Reset opacity if previously set */
+        }
+        .selected-model-card .model-card-back {
+            background: var(--primary-hex) !important; /* Use shorthand to ensure solid color and override gradients */
+            color: var(--primary-content-hex) !important;
+            border: 2px solid var(--primary-focus-hex) !important; /* Consistent with selected front */
         }
 
-        .model-card { perspective: 1000px; transition: transform 0.6s, box-shadow 0.3s; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; height: auto; min-height: 140px; /* Adjusted min-height */ padding: 0.75rem; /* Added padding */ box-sizing: border-box; }
-        .model-card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s; transform-style: preserve-3d; }
-        .model-card:hover .model-card-inner, .model-card.is-flipped .model-card-inner { transform: rotateY(180deg); }
-        .model-card-front, .model-card-back { position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden; border-radius: calc(0.75rem - 2px); display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 1rem; box-sizing: border-box; text-align: center; }
-        .model-card-front { background-color: #F9FAFB; /* Lighter gray like image */ border: 1px solid var(--base-300-hex); color: var(--base-content-hex); }
-        .model-card-back { background-color: var(--primary-hex); border: 1px solid var(--primary-focus-hex); color: var(--primary-content-hex); transform: rotateY(180deg); }
+        .model-card { 
+            perspective: 1000px; 
+            transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1), border-color 0.3s ease; /* Added border-color transition */
+            cursor: pointer; 
+            position: relative; 
+            width: 100%; 
+            height: 210px; /* Slightly taller cards */
+            border-radius: 0.875rem; /* Slightly more rounded */
+            border: 1px solid transparent; /* Prepare for border color change on hover */
+        }
+        .model-card:hover:not(.selected-model-card) {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 8px 22px rgba(var(--primary-rgb), 0.1), 0 4px 12px rgba(var(--primary-rgb), 0.08); /* Enhanced themed shadow */
+            border-color: rgba(var(--primary-rgb), 0.45); /* Slightly more prominent border */
+        }
+        .model-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); /* Slower flip */
+            transform-style: preserve-3d;
+            box-shadow: 0 6px 10px -4px rgba(0,0,0,0.08), 0 2px 4px -3px rgba(0,0,0,0.05); /* Even softer initial shadow */
+            border-radius: inherit; /* Inherit from .model-card */
+        }
+        .model-card:hover .model-card-inner:not(.no-flip),
+        .model-card.is-flipped .model-card-inner:not(.no-flip) {
+            transform: rotateY(180deg);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.18), 0 5px 10px rgba(0,0,0,0.08); /* More pronounced shadow on flip */
+        }
+        .model-card-front, .model-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: inherit; /* Inherit from .model-card */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 1.25rem; /* Adjusted padding */
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        /* Base transition for icon within model card front */
+        .model-card-front i {
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), filter 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), color 0.3s ease;
+        }
+
+        /* Icon animation on hover for non-selected cards */
+        .model-card:not(.selected-model-card):hover .model-card-front i {
+            transform: scale(1.15); /* Slightly larger scale for more impact */
+            filter: drop-shadow(0 0 6px rgba(var(--primary-rgb), 0.45)); /* Adjusted glow */
+        }
+        .model-card-front {
+            background: linear-gradient(145deg, #FFFFFF 0%, #FDFEFF 45%, #F7FAFC 100%); /* Brighter, cooler, three-stop gradient */
+            border: 1px solid var(--base-300-hex);
+            color: var(--base-content-hex);
+            transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 1.25rem; /* Adjusted padding for front */
+        }
+
+        .model-card-front i {
+            font-size: 2.25rem; /* Slightly smaller than 2.5rem to fit better */
+            margin-bottom: 0.6rem; /* Space below icon */
+        }
+
+        .model-card-front h4 {
+            font-size: 0.9rem; /* Card title font size */
+            line-height: 1.35;
+            font-weight: 600; /* Semibold */
+            color: var(--base-content-hex);
+            margin-bottom: 0.2rem;
+        }
+
+        .model-card-front p { /* Category subtitle */
+            font-size: 0.7rem;
+            color: #6B7280; /* Tailwind gray-500 */
+        }
+        /* Enhanced hover for non-selected cards */
+        .model-card:hover:not(.selected-model-card) .model-card-front {
+            border-color: rgba(var(--primary-rgb), 0.6); /* Slightly softer border color */
+            box-shadow: 0 0 15px rgba(var(--primary-rgb), 0.1), 0 0 5px rgba(var(--primary-rgb), 0.05); /* More subtle, layered glow */
+            background-color: #FDFEFF; /* Slightly lighter than base-100, with a hint of theme blue */
+            /* Ensure smooth transition for these properties is handled by .model-card-front base transition */
+        }
+        .model-card-back::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(60deg, transparent 35%, rgba(255,255,255,0.1) 50%, transparent 65%); /* Softer gradient */
+            background-size: 200% 200%; /* Slightly smaller bg size for slower perceived movement */
+            animation: shine 3.5s linear infinite; /* Slower animation */
+            opacity: 0.5; /* Reduced opacity for subtlety */
+        }
+        @keyframes shine {
+            0% { transform: translateX(-75%) translateY(-75%) rotate(10deg); }
+            50% { transform: translateX(-25%) translateY(-25%) rotate(-10deg); }
+            100% { transform: translateX(-75%) translateY(-75%) rotate(10deg); }
+        }
+        .model-card-back {
+            background: linear-gradient(135deg, var(--primary-hex) 0%, var(--primary-focus-hex) 100%);
+            border: 1px solid var(--primary-focus-hex);
+            color: var(--primary-content-hex);
+            transform: rotateY(180deg);
+            position: relative;
+            overflow: hidden;
+            padding: 1.25rem; /* Adjusted padding for back */
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Center content vertically */
+            align-items: center; /* Center content horizontally by default */
+        }
+
+        .model-card-back h4 {
+            font-size: 0.9rem; /* Card title on back */
+            line-height: 1.35;
+            font-weight: 600;
+            color: var(--primary-content-hex);
+            margin-bottom: 0.5rem;
+            text-align: center; /* Center title on back */
+            width: 100%;
+        }
+
+        .model-card-back p { /* Description on back */
+            font-size: 0.75rem; /* Slightly smaller for potentially longer text */
+            line-height: 1.5;
+            color: rgba(var(--primary-content-rgb), 0.9);
+            text-align: left; /* Left-align description */
+            width: 100%;
+            max-height: 100px; /* Limit height and allow scroll if needed */
+            overflow-y: auto; /* Add scroll for long descriptions */
+            /* Custom scrollbar (optional, webkit only) */
+            scrollbar-width: thin;
+            scrollbar-color: rgba(var(--primary-content-rgb),0.4) transparent;
+        }
+        .model-card-back p::-webkit-scrollbar {
+            width: 6px;
+        }
+        .model-card-back p::-webkit-scrollbar-thumb {
+            background-color: rgba(var(--primary-content-rgb),0.4);
+            border-radius: 3px;
+        }
+        .model-card-back p::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .model-card-back::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.12) 50%, transparent 70%);
+            background-size: 250% 250%;
+            animation: shine 2.5s linear infinite;
+            opacity: 0.7;
+        }
+        @keyframes shine {
+            0% { transform: translateX(-60%) translateY(-60%) rotate(0deg); }
+            100% { transform: translateX(-40%) translateY(-40%) rotate(360deg); }
+        }
+        /* Styles for the description paragraph on the back of the card */
+        .model-card-back h4 + p { /* Targets the paragraph directly after the h4 title */
+            font-size: 0.8rem; /* Slightly smaller for potentially more text */
+            line-height: 1.45;
+            margin-top: 0.75rem; /* More space from title */
+            padding: 0.6rem;
+            background: rgba(255,255,255,0.1); /* Slightly lighter background on dark card back */
+            border-radius: 0.375rem;
+            backdrop-filter: blur(3px);
+            max-height: 85px; /* Increased max-height for description */
+            overflow-y: auto;
+            /* Custom scrollbar (simple version) */
+            scrollbar-width: thin;
+            scrollbar-color: rgba(var(--primary-content-rgb), 0.5) transparent;
+        }
+        /* For Webkit browsers (Chrome, Safari) */
+        .model-card-back h4 + p::-webkit-scrollbar {
+            width: 6px;
+        }
+        .model-card-back h4 + p::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .model-card-back h4 + p::-webkit-scrollbar-thumb {
+            background-color: rgba(var(--primary-content-rgb), 0.5);
+            border-radius: 3px;
+        }
         .model-card-back h4, .model-card-back p { color: var(--primary-content-hex); }
         .model-card-back .btn-outline { border-color: var(--primary-content-hex); color: var(--primary-content-hex); }
         .model-card-back .btn-outline:hover { background-color: var(--primary-content-hex); color: var(--primary-hex); }
