@@ -1,6 +1,8 @@
 # ml_api_endpoints_fix.py
 # 这个文件包含修复后的API端点函数，用于解决compare_models和ensemble API的400错误
 
+from typing import List, Optional
+
 # 导入原始ml_api_endpoints.py中的所有函数
 from ml_api_endpoints_logs import get_deployment_logs, get_deployment_metrics
 from ml_api_endpoints import (

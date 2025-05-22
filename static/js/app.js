@@ -48,7 +48,7 @@ const MODEL_CATEGORIES = {
     "ensemble": ["voting_classifier", "voting_regressor", "stacking_classifier", "stacking_regressor", "bagging_classifier", "bagging_regressor"]
 };
 
-// 固定模型详细信息
+// 固定模型详细信息 - 用于数据与模型页面
 const FIXED_MODEL_DETAILS = {
     "linear_regression": {
         "internal_name": "linear_regression",
@@ -93,6 +93,21 @@ const FIXED_MODEL_DETAILS = {
         "description": "将数据分成K个簇的聚类算法。"
     }
 };
+
+// 动态获取ml_models目录中的模型 - 用于高级工具页面
+async function getDynamicModels() {
+    try {
+        const response = await fetch('/api/models/ml_models');
+        if (!response.ok) {
+            throw new Error('获取模型列表失败');
+        }
+        const data = await response.json();
+        return data.models || [];
+    } catch (error) {
+        console.error('获取动态模型列表错误:', error);
+        return [];
+    }
+}
 
 // 根据模型内部名称获取其所属类别键名
 function getCategoryForModel(modelInternalName) {

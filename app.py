@@ -159,6 +159,45 @@ def query_endpoint():
         app.logger.error(f"处理查询时出错: {str(e)}")
         return jsonify({"error": f"服务器错误: {str(e)}"}), 500
 
+@app.route('/api/models/ml_models', methods=['GET'])
+def get_ml_models():
+    """
+    获取ml_models目录中的模型列表
+    
+    返回:
+        JSON格式的模型列表
+    """
+    try:
+        model_dir = os.path.join(os.path.dirname(__file__), 'ml_models')
+        
+        # 确保目录存在
+        if not os.path.exists(model_dir):
+            os.makedirs(model_dir)
+            return jsonify({"models": [], "message": "ml_models目录已创建"})
+            
+        # 获取所有模型文件，支持多种格式
+        model_files = [f for f in os.listdir(model_dir) 
+                      if f.endswith(('.pkl', '.joblib', '.h5', '.keras')) 
+                      and os.path.isfile(os.path.join(model_dir, f))]
+        
+        # 提取模型名称(去掉扩展名)
+        model_names = [os.path.splitext(f)[0] for f in model_files]
+        
+        # 添加模型描述信息
+        models_info = [
+            {
+                "name": name,
+                "path": os.path.join(model_dir, f),
+                "size": os.path.getsize(os.path.join(model_dir, f)),
+                "last_modified": os.path.getmtime(os.path.join(model_dir, f))
+            } 
+            for name, f in zip(model_names, model_files)
+        ]
+        
+        return jsonify({"models": models_info})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/api/chat', methods=['POST'])
 def chat_endpoint():
     """处理聊天请求的API端点。"""
