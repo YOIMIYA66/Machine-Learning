@@ -231,7 +231,42 @@ def enhanced_direct_query_llm(query: str, ml_context: Optional[Dict[str, Any]] =
     llm = BaiduErnieLLM(api_key=AI_STUDIO_API_KEY)
     
     # 构建提示
-    if ml_context:
+    if ml_context and ml_context.get('generate_tutorial'):
+        # 为教程生成构建特定提示
+        data_preview_str = "数据预览:\n"
+        if ml_context.get('data_preview'):
+            try:
+                preview_df = pd.DataFrame(ml_context['data_preview'])
+                data_preview_str += preview_df.to_string(index=False, max_rows=5)
+            except Exception as e:
+                data_preview_str += f"(无法格式化预览: {str(e)})\n{json.dumps(ml_context['data_preview'], indent=2, ensure_ascii=False)}"
+        else:
+            data_preview_str += "无可用数据预览。"
+
+        prompt = f"""您是一位机器学习辅导老师。请根据以下信息，为用户生成一份详细的教程，解释如何使用Python的sklearn库来实现指定的机器学习模型。
+
+用户信息：
+- 选择的模型: {ml_context.get('model_name', '未指定')}
+- 选择的目标列: {ml_context.get('target_column', '未指定')}
+- {data_preview_str}
+
+教程应包含以下内容：
+1.  对所选机器学习模型 ({ml_context.get('model_name', '未指定')}) 的基本原理、适用场景、优点和缺点的详细介绍。
+2.  对用户提供的数据集（基于以上预览）进行简要分析，特别是目标列 '{ml_context.get('target_column', '未指定')}' 的特性（例如，是分类还是回归，数据类型等）。
+3.  提供一个使用sklearn库实现所选模型的完整Python代码示例。代码应包含：
+    a.  必要的库导入 (如 pandas, sklearn.model_selection, 以及选定模型的sklearn实现)。
+    b.  假设数据已加载到名为 `df` 的Pandas DataFrame中，展示如何准备特征 (X) 和目标 (y)。明确指出如何处理目标列 '{ml_context.get('target_column', '未指定')}'。
+    c.  数据预处理步骤的建议（例如，处理缺失值、分类特征编码、数值特征缩放等），并提供相关代码片段（如果适用）。
+    d.  将数据划分为训练集和测试集。
+    e.  初始化、训练选定的模型。
+    f.  （如果适用）使用训练好的模型在测试集上进行预测。
+    g.  （如果适用）展示如何评估模型性能（例如，分类任务的准确率、精确率、召回率、F1分数、混淆矩阵；回归任务的MSE, R2分数等）。
+4.  对代码中每个关键步骤进行清晰的解释。
+5.  总结，并给出一些关于如何进一步改进模型或应用的建议。
+
+请确保教程内容详实、易于理解，并且代码示例可以直接运行（假设用户已安装必要的库并将数据加载到`df`中）。
+"""
+    elif ml_context:
         # 如果有机器学习上下文，将其添加到提示中
         prompt = f"""请回答以下问题，并参考提供的机器学习模型信息：
 

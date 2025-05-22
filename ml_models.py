@@ -429,19 +429,17 @@ def list_available_models() -> List[Dict[str, Any]]:  # 修改返回类型提示
                 model_type = metadata.get("model_type", model_type_from_obj)
 
                 # 准备模型元数据字典
+                detail_info = MODEL_DETAILS.get(model_type, {})
                 model_info = {
                     "name": model_name,
                     "type": model_type,
                     "path": os.path.join(MODELS_DIR, filename),
-                    # "model": model_obj, # <--- 移除或注释掉这一行
-                    # 添加其他可序列化的元数据，例如模型参数（如果存储在metadata中）
-                    "params": metadata.get("model_params", {}),  # 示例
-                    "description": metadata.get("description", f"{model_type} model"),  # 示例
-                    "created_at": metadata.get("created_at", None),  # 示例
-                    # 以下是您前端模型卡片可能需要的字段
-                    "internal_name": model_name,  # 与前端 data-model-name 对应
-                    "display_name": metadata.get("display_name", model_name.replace("_", " ").title()),  # 示例显示名称
-                    "icon_class": metadata.get("icon_class", "fa-brain"),  # 示例图标
+                    "params": metadata.get("model_params", {}),
+                    "display_name": detail_info.get("display_name", model_name.replace("_", " ").title()),
+                    "icon_class": detail_info.get("icon_class", "fa-brain"),
+                    "description": detail_info.get("description", f"A {model_type} model."),
+                    "created_at": metadata.get("created_at", None),
+                    "internal_name": model_name, # 与前端 data-model-name 对应
                 }
 
                 # 确保所有值都是可序列化的

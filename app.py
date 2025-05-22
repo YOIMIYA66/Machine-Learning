@@ -181,7 +181,35 @@ def chat_endpoint():
     is_ml_query = any(keyword in user_query for keyword in ml_keywords)
     is_ml_ops = any(op in user_query for op in ml_ops_keywords)
     try:
-        if is_ml_query and is_ml_ops:
+        # 检查是否为教程生成请求
+        if (data.get('mode') == 'data_analysis' and
+            data.get('data_preview') and
+            data.get('model_name') and
+            data.get('target_column')):
+            
+            app.logger.info(f"检测到教程生成请求: 模型 '{data.get('model_name')}', 目标列 '{data.get('target_column')}'")
+            llm_ml_context = {
+                'data_preview': data.get('data_preview'),
+                'model_name': data.get('model_name'),
+                'target_column': data.get('target_column'),
+                'generate_tutorial': True
+            }
+            
+            try:
+                # user_query 也传递给LLM，以便它了解用户的原始意图
+                direct_llm_response = enhanced_direct_query_llm(user_query, llm_ml_context)
+                return jsonify({
+                    "answer": direct_llm_response.get("answer", "未能生成教程内容。"),
+                    "source_documents": [], 
+                    "is_ml_query": True, 
+                    "is_tutorial": True, 
+                    "ml_model_used": data.get('model_name')
+                })
+            except Exception as e:
+                app.logger.error(f"教程生成LLM调用失败: {str(e)}", exc_info=True)
+                return jsonify({"error": f"生成教程时出错: {str(e)}"}), 500
+        
+        elif is_ml_query and is_ml_ops:
             app.logger.info(f"检测到机器学习操作类查询，将使用增强版ML Agent处理")
             try:
                 # 尝试使用增强版ML代理
@@ -701,9 +729,19 @@ def compare_models_endpoint():
         # 导入修复后的模型比较函数
         from ml_api_endpoints_fix import compare_models_api
 
-        model_names = data['model_names']
+        model_names_raw = data['model_names']
         test_data_path = data['test_data_path']
         target_column = data['target_column']
+
+        model_names = []
+        if isinstance(model_names_raw, str):
+            model_names = [name.strip() for name in model_names_raw.split(',') if name.strip()]
+        elif isinstance(model_names_raw, list):
+            #确保列表中的每个元素都是字符串
+            model_names = [str(name).strip() for name in model_names_raw if str(name).strip()]
+        
+        if not model_names or len(model_names) < 2:
+            return jsonify({"success": False, "error": "进行模型比较至少需要选择两个模型，并以正确格式提供 (列表或逗号分隔的字符串)。"}), 400
 
         # 比较模型
         result = compare_models_api(

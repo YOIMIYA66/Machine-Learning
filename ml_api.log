@@ -1056,3 +1056,47 @@ ImportError: cannot import name 'get_deployment_logs' from 'ml_api_endpoints' (C
 2025-05-21 22:51:45,924 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
 2025-05-21 22:51:45,926 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
 2025-05-21 22:51:45,927 - werkzeug - INFO - 127.0.0.1 - - [21/May/2025 22:51:45] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-21 23:18:11,358 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-21 23:18:11,359 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-21 23:18:11,359 - werkzeug - INFO - 127.0.0.1 - - [21/May/2025 23:18:11] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-21 23:18:45,230 - werkzeug - INFO - 127.0.0.1 - - [21/May/2025 23:18:45] "GET / HTTP/1.1" 200 -
+2025-05-21 23:18:45,391 - werkzeug - INFO - 127.0.0.1 - - [21/May/2025 23:18:45] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2025-05-21 23:18:45,590 - werkzeug - INFO - 127.0.0.1 - - [21/May/2025 23:18:45] "GET /api/ml/models HTTP/1.1" 200 -
+2025-05-21 23:18:45,675 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-21 23:18:45,675 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-21 23:18:45,675 - werkzeug - INFO - 127.0.0.1 - - [21/May/2025 23:18:45] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-21 23:18:45,698 - werkzeug - INFO - 127.0.0.1 - - [21/May/2025 23:18:45] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -
+2025-05-21 23:18:57,294 - app - ERROR - /api/ml/ensemble ½Ó¿Ú·¢Éú´íÎó: cannot import name 'get_deployment_metrics' from 'ml_api_endpoints' (C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\ml_api_endpoints.py)
+Traceback (most recent call last):
+  File "C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\app.py", line 737, in build_ensemble_model_endpoint
+    from ml_api_endpoints_fix import build_ensemble_model
+  File "C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\ml_api_endpoints_fix.py", line 5, in <module>
+    from ml_api_endpoints import (
+ImportError: cannot import name 'get_deployment_metrics' from 'ml_api_endpoints' (C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\ml_api_endpoints.py)
+2025-05-21 23:18:57,304 - werkzeug - INFO - 127.0.0.1 - - [21/May/2025 23:18:57] "[35m[1mPOST /api/ml/ensemble HTTP/1.1[0m" 500 -
+2025-05-21 23:19:27,760 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-21 23:19:27,766 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-21 23:19:27,766 - werkzeug - INFO - 127.0.0.1 - - [21/May/2025 23:19:27] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-21 23:19:37,911 - app - ERROR - /api/ml/ensemble ½Ó¿Ú·¢Éú´íÎó: cannot import name 'get_deployment_metrics' from 'ml_api_endpoints' (C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\ml_api_endpoints.py)
+Traceback (most recent call last):
+  File "C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\app.py", line 737, in build_ensemble_model_endpoint
+    from ml_api_endpoints_fix import build_ensemble_model
+  File "C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\ml_api_endpoints_fix.py", line 5, in <module>
+    from ml_api_endpoints import (
+ImportError: cannot import name 'get_deployment_metrics' from 'ml_api_endpoints' (C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\ml_api_endpoints.py)
+2025-05-21 23:19:37,922 - werkzeug - INFO - 127.0.0.1 - - [21/May/2025 23:19:37] "[35m[1mPOST /api/ml/ensemble HTTP/1.1[0m" 500 -
+2025-05-22 08:08:50,715 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-22 08:08:50,717 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-22 08:08:50,718 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 08:08:50] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-22 08:09:10,296 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 08:09:10] "GET / HTTP/1.1" 200 -
+2025-05-22 08:09:10,518 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 08:09:10] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2025-05-22 08:09:10,601 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-22 08:09:10,601 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-22 08:09:10,602 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 08:09:10] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-22 08:09:10,735 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 08:09:10] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -
+2025-05-22 08:12:46,301 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 08:12:46] "GET / HTTP/1.1" 200 -
+2025-05-22 08:12:46,512 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 08:12:46] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-22 08:12:46,622 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-22 08:12:46,622 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-22 08:12:46,622 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 08:12:46] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-22 08:12:46,679 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 08:12:46] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -

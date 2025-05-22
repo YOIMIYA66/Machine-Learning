@@ -47,6 +47,88 @@ const MODEL_CATEGORIES = {
     "ensemble": ["voting_classifier", "voting_regressor", "stacking_classifier", "stacking_regressor", "bagging_classifier", "bagging_regressor"]
 };
 
+// 固定模型详细信息
+const FIXED_MODEL_DETAILS = {
+    "linear_regression": {
+        "internal_name": "linear_regression",
+        "display_name": "线性回归模型",
+        "icon_class": "fa-chart-line",
+        "description": "线性回归是一种基本的统计模型，用于预测连续型变量。它通过建立自变量与因变量之间的线性关系，找出最佳拟合直线，适用于简单的数值预测任务。"
+    },
+    "logistic_regression": {
+        "internal_name": "logistic_regression",
+        "display_name": "逻辑回归模型",
+        "icon_class": "fa-code-branch",
+        "description": "逻辑回归是一种用于二分类问题的统计模型，通过Sigmoid函数将线性模型的输出转换为概率值。它计算效率高，易于实现，适合处理线性可分的分类问题。"
+    },
+    "knn_classifier": {
+        "internal_name": "knn_classifier",
+        "display_name": "K-近邻法预测模型(KNN)",
+        "icon_class": "fa-project-diagram",
+        "description": "K-近邻算法是一种基于实例的学习方法，通过计算新样本与训练集中所有样本的距离，选取最近的K个邻居进行投票或平均，从而进行分类或回归预测。"
+    },
+    "decision_tree": {
+        "internal_name": "decision_tree",
+        "display_name": "决策树",
+        "icon_class": "fa-sitemap",
+        "description": "决策树是一种树形结构的分类模型，通过一系列条件判断将数据划分为不同类别。它直观易懂，可解释性强，能够处理非线性关系，但容易过拟合。"
+    },
+    "svm_classifier": {
+        "internal_name": "svm_classifier",
+        "display_name": "向量机模型",
+        "icon_class": "fa-vector-square",
+        "description": "支持向量机(SVM)是一种强大的分类算法，通过寻找最优超平面来区分不同类别的数据点。它在高维空间中表现良好，可以通过核函数处理非线性问题，适合小型复杂数据集。"
+    },
+    "naive_bayes": {
+        "internal_name": "naive_bayes",
+        "display_name": "朴素贝叶斯分类器",
+        "icon_class": "fa-percentage",
+        "description": "朴素贝叶斯是基于贝叶斯定理的概率分类器，假设特征之间相互独立。它训练速度快，需要较少的训练数据，特别适合文本分类和多分类问题，但对特征相关性较强的数据效果可能不佳。"
+    },
+    "kmeans": {
+        "internal_name": "kmeans",
+        "display_name": "K-Means 模型",
+        "icon_class": "fa-object-group",
+        "description": "K-Means是一种常用的聚类算法，通过迭代优化将数据点分配到K个簇中。它实现简单，计算效率高，适合大规模数据集的无监督学习，但对初始聚类中心敏感，且难以处理非球形簇。"
+    }
+};
+
+// 根据模型内部名称获取其所属类别键名
+function getCategoryForModel(modelInternalName) {
+    // 此处MODEL_CATEGORIES应与后端ml_models.py中的定义保持一致或从后端获取
+    // 为简化，这里直接使用前端已有的MODEL_CATEGORIES
+    for (const category in MODEL_CATEGORIES) {
+        if (MODEL_CATEGORIES[category].includes(modelInternalName)) {
+            return category;
+        }
+    }
+    // Fallback for models not explicitly in MODEL_CATEGORIES but in FIXED_MODEL_DETAILS
+    const modelToCategoryMap = {
+        "linear_regression": "regression",
+        "logistic_regression": "classification",
+        "knn_classifier": "classification",
+        "decision_tree": "classification",
+        "svm_classifier": "classification",
+        "naive_bayes": "classification",
+        "kmeans": "clustering"
+    };
+    return modelToCategoryMap[modelInternalName] || "other"; // Default to 'other'
+}
+
+// 获取模型图标颜色（可根据需要扩展）
+function getModelIconColor(modelInternalName) {
+    const colors = {
+        "linear_regression": "var(--primary-hex)",       // Sky-600
+        "logistic_regression": "var(--secondary-hex)",   // Cyan-500
+        "knn_classifier": "#A855F7",                   // Purple-500
+        "decision_tree": "var(--accent-hex)",          // Emerald-500
+        "svm_classifier": "#EF4444",                   // Red-500
+        "naive_bayes": "#6366F1",                   // Indigo-500
+        "kmeans": "#EAB308"                        // Yellow-500
+    };
+    return colors[modelInternalName] || 'var(--neutral-content-hex)'; // Default color
+}
+
 // 获取模型类别显示名称
 function getCategoryDisplayName(key) {
     if (!key) return '其他';
@@ -467,73 +549,99 @@ function createTargetColumnSelector(columns, columnTypes) {
  * 加载并显示可用模型
  */
 async function loadAvailableModels() {
-    const grid = DOM.modelGrid();
-    const placeholder = DOM.modelGridPlaceholder();
-    const badge = DOM.modelCountBadge();
-    if (!grid || !badge) return;
+    const gridContainer = DOM.modelGrid(); // This is the main container for all categories
+    const modelCountBadge = DOM.modelCountBadge();
 
-    if (placeholder) placeholder.classList.remove('hidden');
-    grid.innerHTML = `<div class="col-span-full text-center text-muted p-4 model-grid-placeholder"><span class="loading loading-dots loading-sm"></span> 模型加载中...</div>`;
-
-
-    try {
-        const response = await fetch(API_ENDPOINTS.MODELS);
-        if (!response.ok) {
-             const err = await response.json().catch(() => ({ error: `HTTP错误: ${response.status}` }));
-             throw new Error(err.error);
-        }
-        const data = await response.json();
-        if (data.error) throw new Error(data.error);
-
-        const models = data.models || [];
-        badge.textContent = `共 ${models.length} 个模型`;
-        grid.innerHTML = ''; // Clear loader
-
-        if (models.length === 0) {
-            if (placeholder) placeholder.textContent = '当前无可用分析模型。';
-             grid.innerHTML = `<div class="col-span-full text-center text-muted p-4 model-grid-placeholder">当前无可用分析模型。</div>`;
-        } else {
-            if (placeholder) placeholder.classList.add('hidden');
-            // Group models by category for display
-            const modelCategories = MODEL_CATEGORIES;
-
-            for (const category in modelCategories) {
-                const categoryModels = models.filter(m => modelCategories[category].includes(m.type));
-                if (categoryModels.length > 0) {
-                    const categoryTitle = document.createElement('h3');
-                    categoryTitle.className = 'text-lg font-semibold mt-6 mb-3 col-span-full';
-                    categoryTitle.textContent = getCategoryDisplayName(category);
-                    grid.appendChild(categoryTitle);
-
-                    categoryModels.forEach(m => {
-                         const cardElement = createModelCardElement(m.internal_name || m.name, m.display_name || m.name, m.type, m.description, m.icon_class || getDefaultModelIcon(m.type));
-                         grid.appendChild(cardElement);
-                    });
-                }
-            }
-             // Add any models not explicitly categorized (e.g., 'error' type)
-            const uncategorizedModels = models.filter(m => !Object.values(MODEL_CATEGORIES).flat().includes(m.type));
-             if (uncategorizedModels.length > 0) {
-                 const otherTitle = document.createElement('h3');
-                 otherTitle.className = 'text-lg font-semibold mt-6 mb-3 col-span-full';
-                 otherTitle.textContent = '其他模型';
-                 grid.appendChild(otherTitle);
-
-                 uncategorizedModels.forEach(m => {
-                      const cardElement = createModelCardElement(m.internal_name || m.name, m.display_name || m.name, m.type, m.description, m.icon_class || getDefaultModelIcon(m.type));
-                      grid.appendChild(cardElement);
-                 });
-             }
-        }
-        // After models are loaded, populate selectors in advanced tools
-        await populateAdvancedToolSelectors(models);
-
-    } catch (error) {
-        console.error('加载模型列表错误:', error);
-        showToast(`加载模型列表出错: ${error.message}`, 'error');
-        if (placeholder) placeholder.textContent = '加载模型列表时发生错误。';
-        grid.innerHTML = `<div class="col-span-full text-center text-error p-4 model-grid-placeholder">加载模型列表失败。</div>`;
+    if (!gridContainer) {
+        console.error("Model grid container not found.");
+        return;
     }
+
+    gridContainer.innerHTML = ''; // Clear existing content
+
+    const modelsToDisplay = Object.values(FIXED_MODEL_DETAILS);
+
+    if (modelsToDisplay.length === 0) {
+        gridContainer.innerHTML = '<p class="text-center text-muted col-span-full p-4">暂无可用模型。</p>';
+        if (modelCountBadge) modelCountBadge.textContent = '0';
+        return;
+    }
+
+    // Group models by category
+    const categorizedModels = {};
+    modelsToDisplay.forEach(model => {
+        const categoryKey = getCategoryForModel(model.internal_name) || 'other';
+        if (!categorizedModels[categoryKey]) {
+            categorizedModels[categoryKey] = [];
+        }
+        categorizedModels[categoryKey].push(model);
+    });
+
+    const fragment = document.createDocumentFragment();
+
+    // Define category display order and titles
+    const categoryDisplayOrder = [
+        { key: 'classification', title: '分类模型' },
+        { key: 'regression', title: '回归模型' },
+        { key: 'clustering', title: '聚类模型' },
+        { key: 'ensemble', title: '集成模型' }, // Assuming ensemble might be a category
+        { key: 'other', title: '其他模型' }
+    ];
+
+    categoryDisplayOrder.forEach(categoryInfo => {
+        const categoryKey = categoryInfo.key;
+        const categoryTitleText = categoryInfo.title;
+
+        if (categorizedModels[categoryKey] && categorizedModels[categoryKey].length > 0) {
+            // Create category container
+            const categorySection = document.createElement('div');
+            categorySection.className = 'mb-8 model-category-section'; // Added class for styling
+
+            // Create category title
+            const categoryTitleElement = document.createElement('h3');
+            categoryTitleElement.className = 'text-xl font-semibold mb-4 text-gray-700'; // Adjusted styling
+            categoryTitleElement.textContent = categoryTitleText;
+            categorySection.appendChild(categoryTitleElement);
+
+            // Create grid for models in this category
+            const categoryGrid = document.createElement('div');
+            // Applied similar grid classes as the original image, adjust as needed
+            categoryGrid.className = 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-6'; 
+            categorySection.appendChild(categoryGrid);
+
+            categorizedModels[categoryKey].forEach(model => {
+                const cardHTML = `
+                    <div class="model-card content-card h-auto" data-model-name="${escapeHtml(model.internal_name)}" tabindex="0" role="button" aria-label="选择模型 ${escapeHtml(model.display_name)}">
+                        <div class="model-card-inner">
+                            <div class="model-card-front p-4 flex flex-col items-center justify-center text-center">
+                                <i class="fas ${escapeHtml(model.icon_class)} text-4xl mb-3" style="color: ${getModelIconColor(model.internal_name)};"></i>
+                                <h4 class="font-semibold text-base mb-1">${escapeHtml(model.display_name)}</h4>
+                                <p class="text-xs text-gray-500">${escapeHtml(getCategoryDisplayName(categoryKey))}</p>
+                            </div>
+                            <div class="model-card-back p-4 flex flex-col justify-center items-center text-center">
+                                <h4 class="font-bold text-base mb-2">${escapeHtml(model.display_name)}</h4>
+                                <p class="text-xs mb-3 leading-relaxed px-2">${escapeHtml(model.description)}</p>
+                                <button type="button" class="btn btn-sm btn-outline select-model-btn">选择此模型</button>
+                            </div>
+                        </div>
+                    </div>`;
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = cardHTML.trim();
+                categoryGrid.appendChild(tempDiv.firstChild);
+            });
+            fragment.appendChild(categorySection);
+        }
+    });
+
+    gridContainer.appendChild(fragment);
+
+    if (modelCountBadge) modelCountBadge.textContent = `共 ${modelsToDisplay.length} 个模型`;
+
+    const modelsForAdvancedTools = modelsToDisplay.map(m => ({ 
+        name: m.internal_name, 
+        type: getCategoryForModel(m.internal_name),
+    }));
+    await populateAdvancedToolSelectors(modelsForAdvancedTools);
 }
 
 /**
@@ -676,17 +784,41 @@ function initQuerySubmission() {
         const query = input.value.trim();
         if (!query) { showToast('请输入查询内容。', 'warning'); return; }
         const mode = document.querySelector('input[name="queryMode"]:checked').value;
-        const body = { query, mode };
-        // 添加标志，指示使用已有模型而不是重新训练
-        body.use_existing_model = true;
+        const body = { 
+            query,
+            mode,
+            use_existing_model: true // 默认使用现有模型，除非特定操作需要训练
+        };
         
         if (mode === 'data_analysis') {
-            if (!currentData.path || !currentData.analysisCompleted) { showToast('请先上传并分析数据。', 'error'); return; }
-            if (!selectedTargetColumn) { showToast('请选择目标列。', 'error'); return; }
-            if (!selectedModelName) { showToast('请选择分析模型。', 'error'); return; }
+            if (!currentData.path || !currentData.analysisCompleted) { 
+                showToast('请先上传并成功分析数据。', 'error'); 
+                setButtonLoading(btn, false, '提交查询', DOM.submitQueryIcon());
+                showLoadingSpinner(false);
+                return; 
+            }
+            if (!selectedTargetColumn) { 
+                showToast('请选择目标列。', 'error'); 
+                setButtonLoading(btn, false, '提交查询', DOM.submitQueryIcon());
+                showLoadingSpinner(false);
+                return; 
+            }
+            if (!selectedModelName) { 
+                showToast('请选择分析模型。', 'error'); 
+                setButtonLoading(btn, false, '提交查询', DOM.submitQueryIcon());
+                showLoadingSpinner(false);
+                return; 
+            }
             body.data_path = currentData.path;
             body.target_column = selectedTargetColumn;
             body.model_name = selectedModelName;
+
+            // 添加数据预览（前5行）
+            if (currentData.preview && currentData.preview.length > 0) {
+                body.data_preview = currentData.preview.slice(0, 5);
+            } else {
+                body.data_preview = []; // 如果没有预览数据，发送空数组
+            }
         }
         setButtonLoading(btn, true, '处理中...', DOM.submitQueryIcon());
         showLoadingSpinner(true, 'AI思考中，请稍候...');
@@ -1426,7 +1558,7 @@ function loadDefaultDatasets() {
                 method: 'POST', 
                 headers: { 'Content-Type': 'application/json' }, 
                 body: JSON.stringify({ 
-                    models: models, 
+                    model_names: models, 
                     test_data_path: testData, 
                     target_column: target 
                 }) 

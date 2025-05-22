@@ -85,17 +85,40 @@
         .selected-model-card {
             transform: translateY(-3px) scale(1.01);
             box-shadow: 0 6px 25px rgba(var(--primary-rgb), 0.35);
-            border: 2px solid var(--primary-hex) !important;
+            /* border: 2px solid var(--primary-hex) !important; */ /* Border handled by front face now */
         }
-         .selected-model-card .model-card-front, .selected-model-card .model-card-back {
-             border-color: transparent;
+        .selected-model-card .model-card-inner {
+            /* Prevent flip on selected card if it should look static like the image */
+            /* transform: rotateY(0deg) !important; */ 
+        }
+        .selected-model-card .model-card-front {
+            background-color: #E0F2FE !important; /* Light sky blue, adjust if var(--primary-hex) is better */
+            border: 2px solid #3B82F6 !important; /* Tailwind Sky-500 border */
+            color: #0C4A6E !important; /* Darker blue text for contrast on light blue */
+        }
+        .selected-model-card .model-card-front h4,
+        .selected-model-card .model-card-front p {
+            color: #0C4A6E !important; /* Darker blue text */
+        }
+        /* Icons on selected cards will now use their original color by default */
+        .selected-model-card .model-card-front p.text-gray-500 { /* Ensure subtitle also changes color if it was gray */
+             color: #0C4A6E !important; 
+             opacity: 0.9;
+        }
+        .selected-model-card .model-card-front p.text-gray-500 { /* Ensure subtitle also changes color */
+             color: #0C4A6E !important; 
+             opacity: 0.9;
+        }
+        .selected-model-card .model-card-back { 
+            /* Optionally hide back or style differently if selection shouldn't flip */
+            border-color: transparent; 
         }
 
-        .model-card { perspective: 1000px; transition: transform 0.6s; cursor: pointer; }
+        .model-card { perspective: 1000px; transition: transform 0.6s, box-shadow 0.3s; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; height: auto; min-height: 140px; /* Adjusted min-height */ padding: 0.75rem; /* Added padding */ box-sizing: border-box; }
         .model-card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s; transform-style: preserve-3d; }
         .model-card:hover:not(.selected-model-card) .model-card-inner, .model-card.is-flipped .model-card-inner { transform: rotateY(180deg); }
-        .model-card-front, .model-card-back { position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden; border-radius: calc(0.75rem - 2px); display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 1rem; box-sizing: border-box; }
-        .model-card-front { background-color: var(--base-200-hex); border: 1px solid var(--base-300-hex); color: var(--base-content-hex); }
+        .model-card-front, .model-card-back { position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden; border-radius: calc(0.75rem - 2px); display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 1rem; box-sizing: border-box; text-align: center; }
+        .model-card-front { background-color: #F9FAFB; /* Lighter gray like image */ border: 1px solid var(--base-300-hex); color: var(--base-content-hex); }
         .model-card-back { background-color: var(--primary-hex); border: 1px solid var(--primary-focus-hex); color: var(--primary-content-hex); transform: rotateY(180deg); }
         .model-card-back h4, .model-card-back p { color: var(--primary-content-hex); }
         .model-card-back .btn-outline { border-color: var(--primary-content-hex); color: var(--primary-content-hex); }
@@ -296,14 +319,14 @@
         }
 
         /* Model card icon colors */
-        .model-card .fa-chart-line { color: var(--primary-hex); }
-        .model-card .fa-code-branch { color: var(--secondary-hex); }
-        .model-card .fa-sitemap { color: var(--accent-hex); }
+        .model-card .fa-chart-line { color: #3B82F6; } /* Blue from image */
+        .model-card .fa-code-branch { color: #10B981; } /* Green from image */
+        .model-card .fa-sitemap { color: #10B981; } /* Green from image */
         .model-card .fa-tree { color: #22C55E; }
-        .model-card .fa-project-diagram { color: #A855F7; }
-        .model-card .fa-network-wired { color: #EF4444; }
-        .model-card .fa-percentage { color: #6366F1; }
-        .model-card .fa-object-group { color: #EAB308; }
+        .model-card .fa-project-diagram { color: #A855F7; } /* Purple from image */
+        .model-card .fa-network-wired { color: #EF4444; } /* Red from image */
+        .model-card .fa-percentage { color: var(--secondary-hex); } /* Cyan, like fa-brain */
+        .model-card .fa-object-group { color: #F59E0B; } /* Amber from image */
 
         /* File input theming */
         .file-input-primary {
@@ -448,108 +471,11 @@
             <section class="mb-6 content-card p-6 animate__animated animate__fadeInUp">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-5 gap-3">
                     <h3 class="text-lg font-medium text-label flex items-center"> <i class="fas fa-robot mr-2.5 text-primary-hex" aria-hidden="true"></i> 选择分析模型 </h3>
-                    <div class="badge badge-primary badge-outline" id="modelCountBadge" aria-live="polite">已加载 0 个模型</div>
+                    <div class="badge border-transparent bg-purple-500 text-white py-2 px-3 text-xs sm:text-sm" id="modelCountBadge" aria-live="polite">已加载 0 个模型</div>
                 </div>
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 model-grid" id="modelGrid" aria-label="可选分析模型列表">
-                    <!-- 固定的模型卡片列表，使用ml_models.py中的MODEL_DETAILS信息 -->
-                    <div class="model-card h-48 content-card" data-model-name="linear_regression" tabindex="0" role="button" aria-label="选择 线性回归模型 模型"> 
-                        <div class="model-card-inner h-full"> 
-                            <div class="model-card-front"> 
-                                <i class="fas fa-chart-line text-4xl mb-2.5" aria-hidden="true"></i> 
-                                <div class="font-semibold text-base">线性回归模型</div> 
-                                <div class="text-xs text-muted mt-1.5">数值预测</div> 
-                            </div> 
-                            <div class="model-card-back"> 
-                                <h4 class="font-semibold text-base mb-1.5">线性回归模型</h4> 
-                                <p class="text-xs opacity-80 mb-2.5 px-1">线性回归是一种基本的统计模型，用于预测连续型变量。它通过建立自变量与因变量之间的线性关系，找出最佳拟合直线，适用于简单的数值预测任务。</p> 
-                                <button type="button" class="btn btn-xs btn-outline select-model-btn">选择此模型</button> 
-                            </div> 
-                        </div> 
-                    </div>
-                    <div class="model-card h-48 content-card" data-model-name="logistic_regression" tabindex="0" role="button" aria-label="选择 逻辑回归模型 模型"> 
-                        <div class="model-card-inner h-full"> 
-                            <div class="model-card-front"> 
-                                <i class="fas fa-code-branch text-4xl mb-2.5" aria-hidden="true"></i> 
-                                <div class="font-semibold text-base">逻辑回归模型</div> 
-                                <div class="text-xs text-muted mt-1.5">分类预测</div> 
-                            </div> 
-                            <div class="model-card-back"> 
-                                <h4 class="font-semibold text-base mb-1.5">逻辑回归模型</h4> 
-                                <p class="text-xs opacity-80 mb-2.5 px-1">逻辑回归是一种用于二分类问题的统计模型，通过Sigmoid函数将线性模型的输出转换为概率值。它计算效率高，易于实现，适合处理线性可分的分类问题。</p> 
-                                <button type="button" class="btn btn-xs btn-outline select-model-btn">选择此模型</button> 
-                            </div> 
-                        </div> 
-                    </div>
-                    <div class="model-card h-48 content-card" data-model-name="knn_classifier" tabindex="0" role="button" aria-label="选择 K-近邻法预测模型 模型"> 
-                        <div class="model-card-inner h-full"> 
-                            <div class="model-card-front"> 
-                                <i class="fas fa-project-diagram text-4xl mb-2.5" aria-hidden="true"></i> 
-                                <div class="font-semibold text-base">K-近邻法预测模型</div> 
-                                <div class="text-xs text-muted mt-1.5">分类预测</div> 
-                            </div> 
-                            <div class="model-card-back"> 
-                                <h4 class="font-semibold text-base mb-1.5">K-近邻法预测模型(KNN)</h4> 
-                                <p class="text-xs opacity-80 mb-2.5 px-1">K-近邻算法是一种基于实例的学习方法，通过计算新样本与训练集中所有样本的距离，选取最近的K个邻居进行投票或平均，从而进行分类或回归预测。</p> 
-                                <button type="button" class="btn btn-xs btn-outline select-model-btn">选择此模型</button> 
-                            </div> 
-                        </div> 
-                    </div>
-                    <div class="model-card h-48 content-card" data-model-name="decision_tree" tabindex="0" role="button" aria-label="选择 决策树 模型"> 
-                        <div class="model-card-inner h-full"> 
-                            <div class="model-card-front"> 
-                                <i class="fas fa-sitemap text-4xl mb-2.5" aria-hidden="true"></i> 
-                                <div class="font-semibold text-base">决策树</div> 
-                                <div class="text-xs text-muted mt-1.5">分类与回归</div> 
-                            </div> 
-                            <div class="model-card-back"> 
-                                <h4 class="font-semibold text-base mb-1.5">决策树</h4> 
-                                <p class="text-xs opacity-80 mb-2.5 px-1">决策树是一种树形结构的分类模型，通过一系列条件判断将数据划分为不同类别。它直观易懂，可解释性强，能够处理非线性关系，但容易过拟合。</p> 
-                                <button type="button" class="btn btn-xs btn-outline select-model-btn">选择此模型</button> 
-                            </div> 
-                        </div> 
-                    </div>
-                    <div class="model-card h-48 content-card" data-model-name="svm_classifier" tabindex="0" role="button" aria-label="选择 向量机模型 模型"> 
-                        <div class="model-card-inner h-full"> 
-                            <div class="model-card-front"> 
-                                <i class="fas fa-vector-square text-4xl mb-2.5" aria-hidden="true"></i> 
-                                <div class="font-semibold text-base">向量机模型</div> 
-                                <div class="text-xs text-muted mt-1.5">分类预测</div> 
-                            </div> 
-                            <div class="model-card-back"> 
-                                <h4 class="font-semibold text-base mb-1.5">向量机模型</h4> 
-                                <p class="text-xs opacity-80 mb-2.5 px-1">支持向量机(SVM)是一种强大的分类算法，通过寻找最优超平面来区分不同类别的数据点。它在高维空间中表现良好，可以通过核函数处理非线性问题，适合小型复杂数据集。</p> 
-                                <button type="button" class="btn btn-xs btn-outline select-model-btn">选择此模型</button> 
-                            </div> 
-                        </div> 
-                    </div>
-                    <div class="model-card h-48 content-card" data-model-name="naive_bayes" tabindex="0" role="button" aria-label="选择 朴素贝叶斯分类器 模型"> 
-                        <div class="model-card-inner h-full"> 
-                            <div class="model-card-front"> 
-                                <i class="fas fa-percentage text-4xl mb-2.5" aria-hidden="true"></i> 
-                                <div class="font-semibold text-base">朴素贝叶斯分类器</div> 
-                                <div class="text-xs text-muted mt-1.5">分类预测</div> 
-                            </div> 
-                            <div class="model-card-back"> 
-                                <h4 class="font-semibold text-base mb-1.5">朴素贝叶斯分类器</h4> 
-                                <p class="text-xs opacity-80 mb-2.5 px-1">朴素贝叶斯是基于贝叶斯定理的概率分类器，假设特征之间相互独立。它训练速度快，需要较少的训练数据，特别适合文本分类和多分类问题，但对特征相关性较强的数据效果可能不佳。</p> 
-                                <button type="button" class="btn btn-xs btn-outline select-model-btn">选择此模型</button> 
-                            </div> 
-                        </div> 
-                    </div>
-                    <div class="model-card h-48 content-card" data-model-name="kmeans" tabindex="0" role="button" aria-label="选择 K-Means 模型 模型"> 
-                        <div class="model-card-inner h-full"> 
-                            <div class="model-card-front"> 
-                                <i class="fas fa-object-group text-4xl mb-2.5" aria-hidden="true"></i> 
-                                <div class="font-semibold text-base">K-Means 模型</div> 
-                                <div class="text-xs text-muted mt-1.5">聚类分析</div> 
-                            </div> 
-                            <div class="model-card-back"> 
-                                <h4 class="font-semibold text-base mb-1.5">K-Means 模型</h4> 
-                                <p class="text-xs opacity-80 mb-2.5 px-1">K-Means是一种常用的聚类算法，通过迭代优化将数据点分配到K个簇中。它实现简单，计算效率高，适合大规模数据集的无监督学习，但对初始聚类中心敏感，且难以处理非球形簇。</p> 
-                                <button type="button" class="btn btn-xs btn-outline select-model-btn">选择此模型</button> 
-                            </div> 
-                        </div> 
-                    </div>
+                <div class="model-grid" id="modelGrid" aria-label="可选分析模型列表"> 
+                    <!-- JS will populate this with category sections and model cards -->
+                    <!-- 模型卡片将由JavaScript动态生成并按类别分组 -->
                 </div>
                 <p id="selectedModelInfo" class="text-center text-sm text-muted mt-6" aria-live="polite">当前未选择模型。请点击模型卡片进行选择。</p>
             </section>
