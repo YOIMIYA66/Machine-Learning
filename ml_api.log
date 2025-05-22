@@ -1167,3 +1167,9 @@ ImportError: cannot import name 'get_deployment_metrics' from 'ml_api_endpoints_
 2025-05-22 09:32:01,227 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
 2025-05-22 09:32:01,228 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:32:01] "GET /api/ml/deployments HTTP/1.1" 200 -
 2025-05-22 09:32:01,579 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:32:01] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -
+2025-05-22 09:42:39,927 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:42:39] "GET / HTTP/1.1" 200 -
+2025-05-22 09:42:40,163 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:42:40] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-22 09:42:40,453 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊðÄ£ÐÍÁÐ±í
+2025-05-22 09:42:40,454 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êð£¬ÆäÖÐ 0 ¸öÕýÔÚÔËÐÐ
+2025-05-22 09:42:40,454 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:42:40] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-22 09:42:40,951 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 09:42:40] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -

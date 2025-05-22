@@ -893,13 +893,14 @@ function updateQueryInputState() {
         }
         
         if (!currentData.path) {
-            disabled = true; placeholder = '请先上传并分析数据。'; labelText += ' (需上传数据)'; infoText = '请先上传数据。';
+            disabled = true; placeholder = '请先上传数据。'; labelText += ' (需上传数据)'; infoText = '请先上传数据。';
         } else if (!currentData.analysisCompleted) {
-            disabled = true; placeholder = '数据分析中...'; labelText += ' (分析进行中)'; infoText = '等待数据分析完成。';
-        } else if (!selectedTargetColumn) {
-            disabled = true; placeholder = '请先选择目标列。'; labelText += ' (需选目标列)'; infoText = '请选择目标列。';
-        } else if (!selectedModelName) {
-            disabled = true; placeholder = '请先选择模型。'; labelText += ' (需选模型)'; infoText = '请选择分析模型。';
+            disabled = true; placeholder = '数据分析中，请稍候...'; labelText += ' (分析进行中)'; infoText = '数据正在分析中，完成后即可提问。';
+        } else { // Data uploaded and analyzed, allow queries
+            placeholder = `基于 ${escapeHtml(currentData.fileName || '已上传数据')} 进行分析或提问...`;
+            labelText = `<i class='fas fa-brain mr-2'></i> 基于 ${escapeHtml(currentData.fileName || '已上传数据')} 分析:`;
+            infoText = `数据已就绪: <strong>${escapeHtml(currentData.fileName || '已上传数据')}</strong>。您现在可以提问了。`;
+            // Model and target column are now optional for enabling the query
         }
     }
     input.disabled = disabled; btn.disabled = disabled;
@@ -937,21 +938,15 @@ function initQuerySubmission() {
                 showLoadingSpinner(false);
                 return; 
             }
-            if (!selectedTargetColumn) { 
-                showToast('请选择目标列。', 'error'); 
-                setButtonLoading(btn, false, '提交查询', DOM.submitQueryIcon());
-                showLoadingSpinner(false);
-                return; 
-            }
-            if (!selectedModelName) { 
-                showToast('请选择分析模型。', 'error'); 
-                setButtonLoading(btn, false, '提交查询', DOM.submitQueryIcon());
-                showLoadingSpinner(false);
-                return; 
-            }
             body.data_path = currentData.path;
-            body.target_column = selectedTargetColumn;
-            body.model_name = selectedModelName;
+            // Model and target column are now optional for the payload
+            // They will be included if selected, but not required
+            if (selectedModelName) {
+                body.model_name = selectedModelName;
+            }
+            if (selectedTargetColumn) {
+                body.target_column = selectedTargetColumn;
+            }
 
             // 添加数据预览（前5行）
             if (currentData.preview && currentData.preview.length > 0) {
@@ -1354,8 +1349,10 @@ function initExampleQueries() {
     const examples = [
         { text: "你好，请介绍一下你自己。", mode: "general_llm" },
         { text: "我上传了新的数据集，请帮我预览一下数据概况。", mode: "data_analysis" },
-        { text: "使用当前选择的[选择的模型]模型，分析这份数据的主要特征。", mode: "model_specific_analysis" }, // Assuming a new mode or adapting data_analysis
-        { text: "请为我生成一段Python代码，演示如何使用逻辑回归进行二分类。", mode: "general_llm" }, // Or a specific code generation mode
+        { text: "基于我上传的数据集，请进行探索性数据分析，并总结主要发现。", mode: "data_analysis" },
+        { text: "请分析我上传数据中的用户行为，并找出潜在的模式。", mode: "data_analysis" },
+        { text: "针对我上传的数据，提出三个有价值的分析问题。", mode: "data_analysis" },
+        { text: "请为我生成一段Python代码，演示如何使用逻辑回归进行二分类。", mode: "general_llm" },
         { text: "解释一下什么是过拟合，以及如何避免它？", mode: "general_llm" }
     ];
     const listEl = DOM.exampleQueryList();

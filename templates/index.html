@@ -116,7 +116,7 @@
 
         .model-card { perspective: 1000px; transition: transform 0.6s, box-shadow 0.3s; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; height: auto; min-height: 140px; /* Adjusted min-height */ padding: 0.75rem; /* Added padding */ box-sizing: border-box; }
         .model-card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s; transform-style: preserve-3d; }
-        .model-card:hover:not(.selected-model-card) .model-card-inner, .model-card.is-flipped .model-card-inner { transform: rotateY(180deg); }
+        .model-card:hover .model-card-inner, .model-card.is-flipped .model-card-inner { transform: rotateY(180deg); }
         .model-card-front, .model-card-back { position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden; border-radius: calc(0.75rem - 2px); display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 1rem; box-sizing: border-box; text-align: center; }
         .model-card-front { background-color: #F9FAFB; /* Lighter gray like image */ border: 1px solid var(--base-300-hex); color: var(--base-content-hex); }
         .model-card-back { background-color: var(--primary-hex); border: 1px solid var(--primary-focus-hex); color: var(--primary-content-hex); transform: rotateY(180deg); }
