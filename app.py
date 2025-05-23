@@ -118,40 +118,164 @@ def query_endpoint():
     try:
         data = request.json
         query = data.get('query', '')
-
+        mode = data.get('mode', 'data_analysis')
+        
         if not query:
             return jsonify({"error": "请提供查询文本"}), 400
 
-        app.logger.info(f"接收到查询请求: {query}")
+        app.logger.info(f"接收到查询请求: {query}, 模式: {mode}")
 
-        # 机器学习相关查询检测
-        ml_keywords = [
-            '机器学习', '模型', '训练', '预测', '分类', '回归', '聚类',
-            '随机森林', '决策树', '线性回归', '逻辑回归', 'KNN', 'SVM',
-            '朴素贝叶斯', 'K-Means', '数据', '特征', '准确率', 'MSE', 'RMSE'
-        ]
-        # 操作类关键词
-        ml_ops_keywords = ['训练', '预测', '比较', '评估', '构建', '解释', '自动', '集成', '版本', '分析', '推荐']
-
-        is_ml_query = any(keyword.lower() in query.lower() for keyword in ml_keywords)
-        is_ml_ops = any(op in query for op in ml_ops_keywords)
-
-        # 1. 操作类问题优先走增强版ML Agent
-        if is_ml_query and is_ml_ops:
+        # 检查是否包含学习路径创建意图
+        learning_path_keywords = ['学习路径', '学习计划', '制定', '规划', '指导', '学习建议']
+        is_learning_path_query = any(keyword in query for keyword in learning_path_keywords)
+        
+        # 如果是学习路径相关查询，尝试创建学习路径
+        if is_learning_path_query and mode == 'data_analysis':
             try:
-                app.logger.info("检测到机器学习操作类查询，使用增强版ML Agent处理")
-                result = enhanced_query_ml_agent(query, use_existing_model=True)
-                return jsonify(result)
+                app.logger.info("检测到学习路径创建请求")
+                
+                # 简单解析用户输入，提取学习目标和信息
+                goal = query
+                prior_knowledge = []
+                weekly_hours = 10  # 默认值
+                
+                # 尝试从查询中提取更具体的信息
+                import re
+                hours_match = re.search(r'(\d+)\s*小时', query)
+                if hours_match:
+                    weekly_hours = int(hours_match.group(1))
+                
+                if '没有' in query or '零基础' in query or '新手' in query:
+                    prior_knowledge = []
+                elif '基础' in query:
+                    prior_knowledge = ['ml_intro']
+                
+                # 创建学习路径
+                learning_path = generate_learning_path(
+                    user_id='default_user',
+                    goal=goal,
+                    prior_knowledge=prior_knowledge,
+                    weekly_hours=weekly_hours
+                )
+                
+                # 生成学习路径描述
+                path_description = f"""
+# 🎯 您的个性化学习路径已创建
+
+## 学习目标
+{goal}
+
+## 路径概览
+- **总共模块数**: {learning_path.get('total_modules', 0)}个
+- **预计总学习时间**: {learning_path.get('estimated_total_hours', 0)}小时
+- **预计完成时间**: {learning_path.get('estimated_weeks', 0)}周 (每周{weekly_hours}小时)
+
+## 学习模块预览
+"""
+                
+                for i, module in enumerate(learning_path.get('modules', [])[:5], 1):
+                    path_description += f"\n{i}. **{module.get('name', '未命名模块')}** - {module.get('estimated_hours', 0)}小时\n   {module.get('description', '暂无描述')}\n"
+                
+                if len(learning_path.get('modules', [])) > 5:
+                    path_description += f"\n... 还有 {len(learning_path.get('modules', [])) - 5} 个模块\n"
+                
+                path_description += f"""
+## 下一步
+1. 点击切换到"我的路径"标签页查看完整学习路径
+2. 开始第一个模块的学习
+3. 根据实际情况调整每周学习时间
+
+祝您学习愉快！🚀
+"""
+                
+                return jsonify({
+                    "answer": path_description,
+                    "source_documents": [],
+                    "is_ml_query": False,
+                    "learning_path": {
+                        "title": "个性化机器学习路径",
+                        "content": path_description,
+                        "path_id": learning_path.get('path_id'),
+                        "total_modules": learning_path.get('total_modules', 0),
+                        "estimated_hours": learning_path.get('estimated_total_hours', 0),
+                        "weekly_hours": weekly_hours
+                    },
+                    "path_created": True
+                })
             except Exception as e:
-                app.logger.error(f"增强版ML Agent处理时出错，回退到RAG: {str(e)}")
-                # 尝试使用标准ML Agent
+                app.logger.error(f"创建学习路径失败: {str(e)}")
+                # 继续使用普通查询处理
+        
+        # 处理数据分析模式
+        if mode == 'data_analysis':
+            data_path = data.get('data_path')
+            model_name = data.get('model_name')
+            target_column = data.get('target_column')
+            
+            if not data_path or not model_name:
+                # 如果没有数据和模型，给出提示
+                return jsonify({
+                    "answer": "请先上传数据文件并选择合适的机器学习模型，然后再提出您的问题。您可以点击上传或选择数据按钮开始。",
+                    "source_documents": [],
+                    "is_ml_query": False,
+                    "needs_data_and_model": True
+                })
+            
+            # 机器学习相关查询检测
+            ml_keywords = [
+                '机器学习', '模型', '训练', '预测', '分类', '回归', '聚类',
+                '随机森林', '决策树', '线性回归', '逻辑回归', 'KNN', 'SVM',
+                '朴素贝叶斯', 'K-Means', '数据', '特征', '准确率', 'MSE', 'RMSE'
+            ]
+            # 操作类关键词
+            ml_ops_keywords = ['训练', '预测', '比较', '评估', '构建', '解释', '自动', '集成', '版本', '分析', '推荐']
+
+            is_ml_query = any(keyword.lower() in query.lower() for keyword in ml_keywords)
+            is_ml_ops = any(op in query for op in ml_ops_keywords)
+
+            # 1. 操作类问题优先走增强版ML Agent
+            if is_ml_query and is_ml_ops:
                 try:
-                    app.logger.info("尝试使用标准ML Agent处理")
-                    result = query_ml_agent(query)
+                    app.logger.info("检测到机器学习操作类查询，使用增强版ML Agent处理")
+                    result = enhanced_query_ml_agent(query, use_existing_model=True)
                     return jsonify(result)
-                except Exception as e2:
-                    app.logger.error(f"标准ML Agent处理时出错，回退到RAG: {str(e2)}")
-                    # 机器学习处理失败时回退到RAG系统
+                except Exception as e:
+                    app.logger.error(f"增强版ML Agent处理时出错，回退到RAG: {str(e)}")
+                    # 尝试使用标准ML Agent
+                    try:
+                        app.logger.info("尝试使用标准ML Agent处理")
+                        result = query_ml_agent(query)
+                        return jsonify(result)
+                    except Exception as e2:
+                        app.logger.error(f"标准ML Agent处理时出错，回退到RAG: {str(e2)}")
+                        # 机器学习处理失败时回退到RAG系统
+
+        # 处理通用大模型问答模式
+        if mode == 'general_llm':
+            app.logger.info("检测到通用大模型回答模式，直接调用LLM API")
+            try:
+                direct_llm_response = enhanced_direct_query_llm(query)
+                return jsonify({
+                    "answer": direct_llm_response.get("answer", "未能获取回答。"),
+                    "source_documents": direct_llm_response.get("source_documents", []),
+                    "is_ml_query": False,
+                    "is_direct_answer": True,
+                    "model_used": direct_llm_response.get("model_name", "General LLM (Enhanced)")
+                })
+            except Exception as e_enhanced_llm:
+                app.logger.error(f"增强版通用大模型LLM调用失败: {str(e_enhanced_llm)}，尝试标准LLM", exc_info=True)
+                try:
+                    direct_llm_response = direct_query_llm(query)
+                    return jsonify({
+                        "answer": direct_llm_response.get("answer", "未能获取回答。"),
+                        "source_documents": direct_llm_response.get("source_documents", []),
+                        "is_ml_query": False,
+                        "is_direct_answer": True,
+                        "model_used": "General LLM (Standard)"
+                    })
+                except Exception as e_standard_llm:
+                    app.logger.error(f"标准通用大模型LLM调用也失败: {str(e_standard_llm)}", exc_info=True)
+                    return jsonify({"error": f"通用大模型处理时出错: {str(e_standard_llm)}"}), 500
 
         # 2. 专业知识问答优先走增强版RAG
         app.logger.info("使用增强版RAG系统处理常规/知识类查询")

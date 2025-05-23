@@ -1423,3 +1423,6 @@ NameError: name 'List' is not defined
 2025-05-22 22:10:55,315 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 22:10:55] "[31m[1mPOST /api/ml/ensemble HTTP/1.1[0m" 400 -
 2025-05-22 22:20:25,439 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 22:20:25] "GET / HTTP/1.1" 200 -
 2025-05-22 22:20:25,792 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 22:20:25] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-22 22:45:26,655 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 22:45:26] "GET / HTTP/1.1" 200 -
+2025-05-22 22:45:26,903 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 22:45:26] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2025-05-22 22:45:27,191 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 22:45:27] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -

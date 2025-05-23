@@ -1,164 +1,222 @@
-# AI机器学习助手 Pro
+# 🎯 启航者 AI - 智能学习导航助手
 
-## 项目介绍
+一个基于AI的机器学习教育平台，提供个性化学习路径规划、数据分析指导和智能问答服务。
 
-这是一个集成了RAG检索增强生成和机器学习模型的智能助手系统，可以回答机器学习相关问题，并提供模型训练、预测、分析和可视化功能。
+## ✨ 主要功能
 
-## 主要功能
+### 🧭 学习导航
+- **智能问答**: 支持数据分析模式和通用大模型问答
+- **学习路径生成**: AI自动生成个性化学习计划
+- **模式切换**: 灵活切换不同查询模式
 
-### 1. 模型集成
+### 🛤️ 我的路径
+- **个性化路径**: 基于用户背景定制学习内容
+- **进度跟踪**: 实时监控学习进度和完成情况
+- **AI知识库**: 生成个性化学习材料
+- **预测分析**: 掌握概率和完成时间预测
 
-- **投票集成 (Voting)**：组合多个模型的预测结果，分类问题可使用硬投票或软投票，回归问题使用加权平均
-- **堆叠集成 (Stacking)**：使用元学习器组合基础模型的预测结果，可以学习更复杂的组合方式
-- **装袋集成 (Bagging)**：对同一模型进行多次训练，每次使用数据的不同子集，减少过拟合风险
+### 📊 数据与模型
+- **数据上传**: 支持CSV、Excel、JSON格式
+- **模型选择**: 7种核心机器学习模型
+- **智能分析**: 自动数据预处理和模型推荐
 
-示例用法：
-```python
-from ml_models import create_ensemble_model
+### 🧪 技术实验室
+- **模型对比**: 多模型性能比较实验
+- **集成学习**: 投票法、平均法、堆叠法
+- **AI辅助**: 智能实验分析和建议
+- **技术文档**: 完整的模型和特征工程指南
 
-# 创建投票集成分类器
-ensemble = create_ensemble_model(
-    base_models=['random_forest_classifier_air_quality', 'decision_tree_air_quality'],
-    ensemble_type='voting',
-    save_name='my_voting_ensemble'
-)
-```
+### 📈 分析结果
+- **可视化展示**: 图表和数据表格
+- **源文档引用**: RAG系统支持
+- **实时响应**: 流式处理和实时更新
 
-### 2. 模型版本控制
+## 🚀 快速开始
 
-- **版本创建**：为模型创建版本标记，保存模型状态和元数据
-- **版本列表**：查看模型的所有历史版本
-- **版本加载**：指定加载特定版本的模型
+### 1. 环境要求
+- Python 3.8+
+- Windows 10/11, macOS, Linux
+- 8GB+ RAM推荐
 
-示例用法：
-```python
-from ml_models import save_model_with_version, list_model_versions
+### 2. 安装和配置
 
-# 创建模型版本
-version_info = save_model_with_version(
-    model=model_object,
-    model_name='my_model',
-    metadata={'description': '优化后的版本', 'accuracy': 0.95}
-)
-
-# 列出模型所有版本
-versions = list_model_versions('my_model')
-```
-
-### 3. 自动模型选择
-
-- **超参数优化**：使用网格搜索自动寻找最佳超参数
-- **多模型比较**：比较多种算法的性能，选择最适合任务的模型
-- **交叉验证**：使用K折交叉验证确保模型的泛化能力
-
-示例用法：
-```python
-from ml_models import auto_model_selection
-
-# 自动选择最佳模型
-result = auto_model_selection(
-    data_path='my_data.csv',
-    target_column='target',
-    categorical_columns=['cat1', 'cat2'],
-    numerical_columns=['num1', 'num2']
-)
-```
-
-### 4. 模型解释
-
-- **特征重要性**：分析各特征对模型预测的影响程度
-- **特征贡献**：计算特定输入数据中各特征对预测结果的贡献
-- **可视化解释**：生成特征重要性条形图、雷达图等可视化解释
-
-示例用法：
-```python
-from ml_models import explain_model_prediction
-
-# 解释模型预测
-explanation = explain_model_prediction(
-    model_name='my_model',
-    input_data={'feature1': 10, 'feature2': 20}
-)
-```
-
-### 5. 模型比较
-
-- **多指标比较**：同时比较多个模型在多个指标上的表现
-- **可视化对比**：生成对比条形图，直观展示模型性能差异
-- **最佳模型推荐**：自动推荐最适合特定任务的模型
-
-示例用法：
-```python
-from ml_models import compare_models
-
-# 比较多个模型
-comparison = compare_models(
-    model_names=['model1', 'model2', 'model3'],
-    test_data_path='test_data.csv',
-    target_column='target'
-)
-```
-
-### 6. 丰富的可视化
-
-- **多种图表类型**：条形图、折线图、饼图、散点图、热力图、雷达图、气泡图等
-- **特征分析可视化**：特征重要性、特征分布、相关性分析等
-- **模型评估可视化**：混淆矩阵、ROC曲线、精确率-召回率曲线等
-- **聚类结果可视化**：支持PCA和t-SNE降维方法
-
-### 7. API接口
-
-- **集成模型API**：创建和管理集成模型的API端点
-- **自动选择API**：自动选择最佳模型的API端点
-- **模型解释API**：解释模型预测结果的API端点
-- **模型比较API**：比较多个模型性能的API端点
-- **版本控制API**：管理模型版本的API端点
-- **聊天接口 (`/api/chat`)**：核心交互接口，根据用户查询类型（通用知识、ML操作、数据分析、预测等）智能路由到RAG、ML Agent或直接LLM。
-
-### 8. RAG检索增强生成
-
-- **知识库**：系统内置了机器学习相关的文档知识库，用于增强LLM的回答。
-- **文档加载与向量化**：支持多种文档格式（PDF, DOCX, TXT, JSON, CSV），自动进行文本分割和向量化存储。
-- **检索与生成**：根据用户查询从知识库中检索相关文档片段，结合LLM生成更准确、更具上下文的回答。
-
-### 9. 增强型ML Agent与高级特征分析
-
-- **智能路由**：ML Agent能够理解用户意图，自动调用相应的机器学习功能（训练、预测、评估、比较等）。
-- **高级数据分析**：提供基础、综合和高级（特征重要性、特征交互、特征稳定性）的数据和特征分析能力，帮助用户理解数据。
-- **可视化支持**：分析结果支持多种可视化图表生成。
-
-### 10. RAG与机器学习模型集成
-
-- **预测集成**：对于包含预测需求的查询，系统尝试从知识库中提取预测所需信息，查找合适的已训练模型进行预测，并将预测结果与RAG的知识回答相结合。
-- **分析结果集成**：将模型训练、评估、特征分析等结果与RAG生成的解释性文本集成，提供更全面的信息。
-
-### 11. 大语言模型与Embedding模型
-
-- **核心LLM**：使用百度文心系列大语言模型（如 Ernie 4.5 Turbo 128k）进行文本生成和理解。
-- **Embedding模型**：使用百度文心系列Embedding模型（如 BGE-Large-zh）进行文本向量化，支持RAG检索和语义匹配。
-
-### 12. 配置说明
-
-- **`.env` 文件**：用于配置敏感信息和关键参数，如 `AI_STUDIO_API_KEY`。
-- **`config.py` 文件**：包含系统运行时的各种配置，如LLM和Embedding模型名称、知识库路径、ChromaDB存储路径、文本分割参数、JSON解析JQ Schema等。用户可以根据需要修改此文件来调整系统行为。
-
-## 安装和使用
-
-1. 确保已安装依赖库：
+#### 方法一：自动安装（推荐）
 ```bash
-pip install scikit-learn numpy pandas matplotlib seaborn
+# 1. 克隆或下载项目到本地
+# 2. 进入项目目录
+cd "Machine Learning"
+
+# 3. 运行自动安装脚本
+python run_app.py
 ```
 
-2. 导入所需模块：
-```python
-from ml_models import train_model, predict, list_available_models, create_ensemble_model
-from ml_agents import query_ml_agent
+脚本会自动：
+- 检查Python版本
+- 安装缺失的依赖包
+- 验证环境配置
+- 启动应用程序
+
+#### 方法二：手动安装
+```bash
+# 1. 安装依赖包
+pip install flask flask-cors pandas numpy requests python-dotenv
+pip install chromadb langchain scikit-learn joblib
+
+# 2. 配置环境变量
+# 创建 .env 文件并添加：
+AI_STUDIO_API_KEY=你的百度AI_Studio密钥
+
+# 3. 启动应用
+python app.py
 ```
 
-3. 开始使用各项功能，详见示例代码。
+### 3. 环境变量配置
 
-## 注意事项
+创建 `.env` 文件：
+```env
+# 百度AI Studio API密钥
+AI_STUDIO_API_KEY=你的API密钥
 
-- 模型保存在`ml_models`目录中
-- 模型版本保存在`ml_models/{model_name}_versions`子目录中
-- 对于大型数据集，建议使用`auto_model_selection`功能前先进行特征选择
+# 可选配置
+BAIDU_LLM_MODEL_NAME=ernie-4.5-turbo-128k
+BAIDU_EMBEDDING_MODEL_NAME=bge-large-zh
+```
+
+### 4. 访问应用
+打开浏览器访问：http://localhost:5000
+
+## 📋 使用指南
+
+### 🧭 学习导航使用
+1. **选择模式**：
+   - 数据分析模式：需要上传数据和选择模型
+   - 通用问答模式：直接提问，无需配置
+
+2. **创建学习路径**：
+   ```
+   示例提问：我想学习机器学习，我目前没有相关背景，每周可以学习10小时左右，帮我制定一个学习路径。
+   ```
+
+3. **查看示例问题**：点击"示例问题"按钮获取预设查询
+
+### 📊 数据分析使用
+1. **上传数据**：
+   - 点击"上传/选择数据"
+   - 支持CSV、Excel、JSON格式
+   - 自动显示数据预览
+
+2. **选择模型**：
+   - 浏览7种内置模型
+   - 查看模型卡片详情
+   - 点击选择合适模型
+
+3. **设置目标列**：选择预测目标列
+
+4. **开始分析**：输入问题进行数据分析
+
+### 🧪 技术实验室使用
+1. **配置实验**：
+   - 选择预测目标（分类/回归）
+   - 选择学习场景
+   - 添加基础模型
+
+2. **选择集成策略**：
+   - 投票法：适合性能相近的模型
+   - 平均法：适合回归任务
+   - 堆叠法：适合复杂问题
+
+3. **运行模拟**：点击"运行模拟"查看结果
+
+4. **查看文档**：浏览模型说明、集成学习、特征工程
+
+## 🏗️ 项目结构
+
+```
+Machine Learning/
+├── app.py                 # Flask主应用
+├── run_app.py            # 启动脚本
+├── config.py             # 配置文件
+├── rag_core.py           # RAG核心模块
+├── rag_core_enhanced.py  # 增强RAG模块
+├── ml_agents.py          # ML代理模块
+├── ml_agents_enhanced.py # 增强ML代理
+├── learning_planner.py   # 学习路径规划
+├── tech_lab.py           # 技术实验室
+├── templates/
+│   └── index.html        # 主页面模板
+├── static/
+│   └── js/
+│       └── app.js        # 前端JavaScript
+├── knowledge_base/       # 知识库文件
+├── data/                 # 数据存储
+├── chroma_db/           # 向量数据库
+└── .env                 # 环境变量配置
+```
+
+## 🔧 故障排除
+
+### 常见问题
+
+#### 1. "Cannot set properties of null" 错误
+- **原因**：DOM元素未找到
+- **解决**：确保HTML模板完整，刷新页面
+
+#### 2. Chart.js未加载
+- **原因**：网络问题或CDN不可用
+- **解决**：检查网络连接，刷新页面
+
+#### 3. API调用失败
+- **原因**：API密钥配置错误
+- **解决**：检查.env文件中的AI_STUDIO_API_KEY
+
+#### 4. 模块导入错误
+- **原因**：依赖包未安装
+- **解决**：运行 `python run_app.py` 自动安装
+
+### 调试方法
+
+1. **查看控制台**：
+   - 浏览器F12查看JavaScript错误
+   - 终端查看Python错误信息
+
+2. **检查网络**：
+   - 确保API调用成功
+   - 检查静态资源加载
+
+3. **验证配置**：
+   - 运行系统检查脚本
+   - 确认所有环境变量正确
+
+## 🤝 技术支持
+
+### 反馈问题
+如果遇到问题，请提供：
+1. 错误截图
+2. 浏览器控制台日志
+3. Python终端输出
+4. 操作步骤描述
+
+### 改进建议
+欢迎提出功能改进建议：
+- 新的机器学习模型支持
+- 更多数据格式支持
+- 界面和用户体验优化
+- 新的学习模块内容
+
+## 📄 许可证
+
+本项目基于MIT许可证开源，详见LICENSE文件。
+
+## 🙏 致谢
+
+感谢以下开源项目：
+- Flask - Web框架
+- Chart.js - 图表库
+- Tailwind CSS & DaisyUI - 样式框架
+- LangChain - AI应用框架
+- ChromaDB - 向量数据库
+- Scikit-learn - 机器学习库
+
+---
+
+**启航者 AI** - 让机器学习教育更智能、更个性化！ 🚀
