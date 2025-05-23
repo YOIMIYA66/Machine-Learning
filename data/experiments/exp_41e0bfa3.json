@@ -1,0 +1,14 @@
+{
+  "id": "exp_41e0bfa3",
+  "name": "测试实验",
+  "description": "系统测试实验",
+  "model_id": "linear_regression_CO_PM25",
+  "type": "prediction",
+  "config": {
+    "use_probability": false,
+    "test_mode": true
+  },
+  "created_at": "2025-05-23T18:23:18.856654",
+  "status": "created",
+  "results": null
+}

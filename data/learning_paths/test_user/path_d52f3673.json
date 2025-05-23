@@ -1,0 +1,51 @@
+{
+  "path_id": "path_d52f3673",
+  "user_id": "test_user",
+  "created_at": "2025-05-23T18:23:18.855727",
+  "goal": "学习机器学习基础",
+  "prior_knowledge": [],
+  "weekly_hours": 10,
+  "modules": [
+    {
+      "id": "ml_intro",
+      "name": "机器学习介绍",
+      "description": "机器学习的基本概念和类型",
+      "estimated_hours": 2,
+      "resources": [
+        "video:intro_to_ml",
+        "article:ml_overview"
+      ],
+      "prerequisites": [],
+      "domain_id": "ml",
+      "domain_name": "机器学习",
+      "topic_id": "ml_basics",
+      "topic_name": "机器学习基础",
+      "difficulty": "beginner"
+    },
+    {
+      "id": "ml_workflow",
+      "name": "机器学习工作流程",
+      "description": "机器学习项目的端到端流程",
+      "estimated_hours": 3,
+      "resources": [
+        "video:ml_workflow",
+        "notebook:ml_pipeline"
+      ],
+      "prerequisites": [
+        "ml_intro"
+      ],
+      "domain_id": "ml",
+      "domain_name": "机器学习",
+      "topic_id": "ml_basics",
+      "topic_name": "机器学习基础",
+      "difficulty": "beginner"
+    }
+  ],
+  "total_modules": 2,
+  "completed_modules": [],
+  "current_module_id": "ml_intro",
+  "estimated_total_hours": 5,
+  "estimated_weeks": 0.5,
+  "progress_percentage": 0,
+  "last_updated": "2025-05-23T18:23:18.855727"
+}

@@ -1,0 +1,198 @@
+{
+  "domains": [
+    {
+      "id": "ml",
+      "name": "机器学习",
+      "topics": [
+        {
+          "id": "ml_basics",
+          "name": "机器学习基础",
+          "difficulty": "beginner",
+          "modules": [
+            {
+              "id": "ml_intro",
+              "name": "机器学习介绍",
+              "description": "机器学习的基本概念和类型",
+              "estimated_hours": 2,
+              "resources": [
+                "video:intro_to_ml",
+                "article:ml_overview"
+              ],
+              "prerequisites": []
+            },
+            {
+              "id": "ml_workflow",
+              "name": "机器学习工作流程",
+              "description": "机器学习项目的端到端流程",
+              "estimated_hours": 3,
+              "resources": [
+                "video:ml_workflow",
+                "notebook:ml_pipeline"
+              ],
+              "prerequisites": [
+                "ml_intro"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "supervised_learning",
+          "name": "监督学习",
+          "difficulty": "intermediate",
+          "modules": [
+            {
+              "id": "linear_regression",
+              "name": "线性回归",
+              "description": "线性回归模型的原理和实现",
+              "estimated_hours": 4,
+              "resources": [
+                "video:linear_regression",
+                "notebook:linear_regression_impl"
+              ],
+              "prerequisites": [
+                "ml_workflow"
+              ]
+            },
+            {
+              "id": "classification",
+              "name": "分类算法",
+              "description": "常见分类算法介绍和应用",
+              "estimated_hours": 5,
+              "resources": [
+                "video:classification_intro",
+                "notebook:classification_algorithms"
+              ],
+              "prerequisites": [
+                "linear_regression"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unsupervised_learning",
+          "name": "无监督学习",
+          "difficulty": "intermediate",
+          "modules": [
+            {
+              "id": "clustering",
+              "name": "聚类算法",
+              "description": "常见聚类算法介绍和应用",
+              "estimated_hours": 4,
+              "resources": [
+                "video:clustering_intro",
+                "notebook:clustering_algorithms"
+              ],
+              "prerequisites": [
+                "ml_workflow"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "deep_learning",
+          "name": "深度学习",
+          "difficulty": "advanced",
+          "modules": [
+            {
+              "id": "neural_networks",
+              "name": "神经网络基础",
+              "description": "神经网络的基本概念和结构",
+              "estimated_hours": 6,
+              "resources": [
+                "video:neural_networks_intro",
+                "notebook:simple_neural_network"
+              ],
+              "prerequisites": [
+                "linear_regression",
+                "classification"
+              ]
+            },
+            {
+              "id": "cnn",
+              "name": "卷积神经网络",
+              "description": "CNN的原理和应用",
+              "estimated_hours": 8,
+              "resources": [
+                "video:cnn_intro",
+                "notebook:cnn_implementation"
+              ],
+              "prerequisites": [
+                "neural_networks"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "data_science",
+      "name": "数据科学",
+      "topics": [
+        {
+          "id": "data_preprocessing",
+          "name": "数据预处理",
+          "difficulty": "beginner",
+          "modules": [
+            {
+              "id": "data_cleaning",
+              "name": "数据清洗",
+              "description": "数据清洗和处理的技术和方法",
+              "estimated_hours": 3,
+              "resources": [
+                "video:data_cleaning",
+                "notebook:data_cleaning_techniques"
+              ],
+              "prerequisites": []
+            },
+            {
+              "id": "feature_engineering",
+              "name": "特征工程",
+              "description": "特征选择和转换的方法",
+              "estimated_hours": 4,
+              "resources": [
+                "video:feature_engineering",
+                "notebook:feature_engineering_examples"
+              ],
+              "prerequisites": [
+                "data_cleaning"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "data_visualization",
+          "name": "数据可视化",
+          "difficulty": "intermediate",
+          "modules": [
+            {
+              "id": "visualization_basics",
+              "name": "可视化基础",
+              "description": "数据可视化的基本原则和工具",
+              "estimated_hours": 3,
+              "resources": [
+                "video:visualization_intro",
+                "notebook:basic_visualization"
+              ],
+              "prerequisites": [
+                "data_cleaning"
+              ]
+            },
+            {
+              "id": "advanced_visualization",
+              "name": "高级可视化技术",
+              "description": "交互式和高级可视化方法",
+              "estimated_hours": 5,
+              "resources": [
+                "video:advanced_viz",
+                "notebook:interactive_visualization"
+              ],
+              "prerequisites": [
+                "visualization_basics"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
