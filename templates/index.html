@@ -817,22 +817,22 @@
     <div id="toast-container" class="toast toast-top toast-end z-50 p-4"></div>
 
     <main class="max-w-6xl mx-auto main-container-card p-6 md:p-8 my-6 animate__animated animate__fadeIn main-content-container floating">
-        <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 page-header enhanced-shadow">
-            <h1 class="text-2xl md:text-3xl font-bold flex items-center">
-                <i class="fas fa-brain mr-3 text-3xl md:text-4xl pulse-glow" aria-hidden="true"></i>
+        <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-6 page-header enhanced-shadow">
+            <h1 class="text-2xl md:text-3xl font-bold flex items-center gap-4 animate__animated animate__fadeInDown">
+                <i class="fas fa-brain mr-3 text-3xl md:text-4xl pulse-glow animate-bounce" aria-hidden="true"></i>
                 启航者 AI - 学习导航助手
             </h1>
-            <nav class="tabs tabs-boxed main-tabs glass-effect" role="tablist" aria-label="主要导航">
-                <a id="tab-link-dialogue" class="tab tab-active" data-tab="dialogue" role="tab" aria-selected="true" aria-controls="tab-content-dialogue">学习导航</a>
-                <a id="tab-link-learningPath" class="tab" data-tab="learningPath" role="tab" aria-selected="false" aria-controls="tab-content-learningPath">我的路径</a>
-                <a id="tab-link-dataUpload" class="tab" data-tab="dataUpload" role="tab" aria-selected="false" aria-controls="tab-content-dataUpload">数据与模型</a>
-                <a id="tab-link-techLab" class="tab" data-tab="techLab" role="tab" aria-selected="false" aria-controls="tab-content-techLab">技术实验室</a>
-                <a id="tab-link-results" class="tab" data-tab="results" role="tab" aria-selected="false" aria-controls="tab-content-results">分析结果</a>
+            <nav class="tabs tabs-boxed main-tabs glass-effect shadow-lg ring-2 ring-sky-300/30" role="tablist" aria-label="主要导航">
+                <a id="tab-link-dialogue" class="tab tab-active font-bold shadow-md animate__animated animate__fadeIn" data-tab="dialogue" role="tab" aria-selected="true" aria-controls="tab-content-dialogue">学习导航</a>
+                <a id="tab-link-learningPath" class="tab font-bold animate__animated animate__fadeIn" data-tab="learningPath" role="tab" aria-selected="false" aria-controls="tab-content-learningPath">我的路径</a>
+                <a id="tab-link-dataUpload" class="tab font-bold animate__animated animate__fadeIn" data-tab="dataUpload" role="tab" aria-selected="false" aria-controls="tab-content-dataUpload">数据与模型</a>
+                <a id="tab-link-techLab" class="tab font-bold animate__animated animate__fadeIn" data-tab="techLab" role="tab" aria-selected="false" aria-controls="tab-content-techLab">技术实验室</a>
+                <a id="tab-link-results" class="tab font-bold animate__animated animate__fadeIn" data-tab="results" role="tab" aria-selected="false" aria-controls="tab-content-results">分析结果</a>
             </nav>
         </header>
 
-        <div id="tab-content-dialogue" class="tab-content-area" role="tabpanel" aria-labelledby="tab-link-dialogue">
-            <section class="content-card p-6 mb-6 animate__animated animate__fadeInUp enhanced-shadow glass-card">
+        <div id="tab-content-dialogue" class="tab-content-area animate__animated animate__fadeIn" role="tabpanel" aria-labelledby="tab-link-dialogue">
+            <section class="content-card p-6 mb-6 animate__animated animate__fadeInUp enhanced-shadow glass-card shadow-xl rounded-2xl border border-sky-100">
                 <div class="mb-6">
                     <p id="queryModeLabel" class="font-medium text-label mb-3 flex items-center text-base">
                         <i class="fas fa-cogs mr-2.5 text-primary-hex" aria-hidden="true"></i>
@@ -874,7 +874,7 @@
                         </div>
                     </div>
 
-                    <button type="button" id="submitQueryButton" class="btn btn-primary px-8 shiny-button gradient-animate gradient-border text-base">
+                    <button type="button" id="submitQueryButton" class="btn btn-primary px-8 shiny-button gradient-animate gradient-border text-base transition-transform duration-200 hover:scale-105 shadow-lg ring-2 ring-sky-300/30 animate__animated animate__pulse">
                         <i id="submitQueryIcon" class="fas fa-paper-plane" aria-hidden="true"></i>
                         <span id="submitQueryText">提交问题</span>
                     </button>
@@ -895,10 +895,10 @@
                     我的个性化学习路径
                 </h3>
                 
-                <div id="emptyLearningPathMessage" class="text-center py-8">
-                    <i class="fas fa-route text-6xl text-muted mb-4 opacity-50"></i>
+                <div id="emptyLearningPathMessage" class="text-center py-8 animate__animated animate__fadeInUp">
+                    <i class="fas fa-route text-6xl text-muted mb-4 opacity-50 animate-bounce"></i>
                     <p class="text-muted">您尚未创建学习路径。请在"学习导航"标签页与AI对话，设定您的学习目标。</p>
-                    <button id="createPathBtn" class="btn btn-primary mt-4">
+                    <button id="createPathBtn" class="btn btn-primary mt-4 animate-bounce">
                         <i class="fas fa-plus-circle mr-2"></i>创建学习路径
                     </button>
                 </div>
@@ -1075,7 +1075,7 @@
         </div>
 
         <div id="tab-content-dataUpload" class="tab-content-area hidden" role="tabpanel" aria-labelledby="tab-link-dataUpload">
-            <section class="mb-6 content-card p-6 animate__animated animate__fadeInUp enhanced-shadow glass-card">
+            <section class="mb-6 content-card p-6 animate__animated animate__fadeInUp enhanced-shadow glass-card shadow-xl rounded-2xl border border-sky-100">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-5 gap-3">
                     <h3 class="text-lg font-medium text-label flex items-center">
                         <i class="fas fa-upload mr-2.5 text-primary-hex" aria-hidden="true"></i>
@@ -1088,8 +1088,9 @@
 
                 <div id="uploadContainer" class="hidden transition-all duration-300 ease-in-out mb-6">
                     <div class="flex flex-col md:flex-row gap-5 mb-5">
-                        <div class="flex-1 content-card p-4 no-hover-effect">
+                        <div class="flex-1 content-card p-4 no-hover-effect border-dashed border-2 border-sky-200 hover:border-sky-400 transition animate__animated animate__fadeInUp">
                             <h4 class="text-label font-medium mb-2.5">上传数据文件</h4>
+                            <div class="text-center text-muted text-xs mb-2">支持拖拽上传 .csv/.xlsx/.json 文件</div>
                             <form id="uploadForm">
                                 <label for="dataFile" class="sr-only">选择数据文件 (.csv, .xlsx, .json)</label>
                                 <input type="file" id="dataFile" name="file" accept=".csv,.xlsx,.json" class="file-input file-input-bordered file-input-primary file-input-sm w-full mb-3.5" aria-label="数据文件选择" />

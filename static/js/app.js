@@ -2627,7 +2627,7 @@ function showToast(title, message, type = 'info', duration = 5000) {
     // 创建toast元素
     const toast = document.createElement('div');
     toast.id = toastId;
-    toast.className = `alert shadow-lg ${getAlertClass(type)} mb-3 animate__animated animate__fadeInRight`;
+    toast.className = `alert shadow-lg ${getAlertClass(type)} mb-3 animate__animated animate__fadeInRight ring-2 ring-sky-300/30`;
     toast.innerHTML = `
         <div>
             <i class="${getAlertIcon(type)}"></i>
@@ -2636,7 +2636,7 @@ function showToast(title, message, type = 'info', duration = 5000) {
                 <div class="text-xs">${message}</div>
             </div>
         </div>
-        <button class="btn btn-sm btn-circle btn-ghost" onclick="this.parentElement.remove()">
+        <button class="btn btn-sm btn-circle btn-ghost transition-transform hover:scale-110" onclick="this.parentElement.remove()">
             <i class="fas fa-times"></i>
         </button>
     `;
@@ -4685,3 +4685,132 @@ document.addEventListener('DOMContentLoaded', function() {
         shareResultsBtn.addEventListener('click', shareExperimentResults);
     }
 });
+
+// 1. 按钮点击/悬浮动画增强
+function enhanceButtonAnimations() {
+    document.querySelectorAll('.btn').forEach(btn => {
+        btn.classList.add('transition-transform', 'duration-200', 'hover:scale-105', 'hover:shadow-lg', 'focus:ring-2', 'focus:ring-sky-300/30');
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    enhanceButtonAnimations();
+});
+
+// 2. Tab切换内容区加淡入动画
+function animateTabContent(tabId) {
+    const content = document.getElementById(`tab-content-${tabId}`);
+    if (content) {
+        content.classList.remove('animate__fadeIn');
+        void content.offsetWidth; // 触发重绘
+        content.classList.add('animate__animated', 'animate__fadeIn');
+    }
+}
+
+// 修改initTabs函数，切换Tab时调用animateTabContent
+const originalInitTabs = initTabs;
+initTabs = function() {
+    const tabs = DOM.tabs();
+    const tabContents = DOM.tabContents();
+    if (!tabs || !tabContents) return;
+    tabs.forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetTabId = tab.getAttribute('data-tab');
+            if (!targetTabId) return;
+            tabs.forEach(t => t.classList.remove('tab-active'));
+            tab.classList.add('tab-active');
+            tabContents.forEach(content => content.classList.add('hidden'));
+            const targetContent = document.getElementById(`tab-content-${targetTabId}`);
+            if (targetContent) {
+                targetContent.classList.remove('hidden');
+                animateTabContent(targetTabId);
+            }
+            tabs.forEach(t => t.setAttribute('aria-selected', 'false'));
+            tab.setAttribute('aria-selected', 'true');
+            if (targetTabId === 'learningPath') {
+                if (typeof loadUserLearningPaths === 'function') {
+                    loadUserLearningPaths();
+                }
+            }
+        });
+    });
+};
+
+// 3. Toast通知美化，增加动画和主色
+function showToast(title, message, type = 'info', duration = 5000) {
+    const container = DOM.toastContainer();
+    if (!container) return;
+    const toastId = `toast-${Date.now()}`;
+    const toast = document.createElement('div');
+    toast.id = toastId;
+    toast.className = `alert shadow-lg ${getAlertClass(type)} mb-3 animate__animated animate__fadeInRight ring-2 ring-sky-300/30`;
+    toast.innerHTML = `
+        <div>
+            <i class="${getAlertIcon(type)}"></i>
+            <div>
+                <h3 class="font-bold">${title}</h3>
+                <div class="text-xs">${message}</div>
+            </div>
+        </div>
+        <button class="btn btn-sm btn-circle btn-ghost transition-transform hover:scale-110" onclick="this.parentElement.remove()">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    container.appendChild(toast);
+    if (toastTimeouts[toastId]) clearTimeout(toastTimeouts[toastId]);
+    toastTimeouts[toastId] = setTimeout(() => {
+        toast.classList.remove('animate__fadeInRight');
+        toast.classList.add('animate__fadeOutRight');
+        setTimeout(() => {
+            if (toast.parentElement) toast.parentElement.removeChild(toast);
+            delete toastTimeouts[toastId];
+        }, 500);
+    }, duration);
+}
+
+// 4. 空状态和加载状态加动画和友好提示
+// 以学习路径空状态为例
+function showEmptyLearningPath() {
+    const emptyMsg = document.getElementById('emptyLearningPathMessage');
+    if (emptyMsg) {
+        emptyMsg.innerHTML = `
+            <i class="fas fa-route text-6xl text-muted mb-4 opacity-50 animate-bounce"></i>
+            <p class="text-muted">您尚未创建学习路径。请在"学习导航"标签页与AI对话，设定您的学习目标。</p>
+            <button id="createPathBtn" class="btn btn-primary mt-4 animate-bounce">
+                <i class="fas fa-plus-circle mr-2"></i>创建学习路径
+            </button>
+        `;
+        emptyMsg.classList.add('animate__animated', 'animate__fadeInUp');
+        document.getElementById('createPathBtn').addEventListener('click', () => {
+            document.getElementById('tab-link-dialogue').click();
+            DOM.queryInput().value = "我想学习机器学习，我目前没有相关背景，每周可以学习10小时左右，帮我制定一个学习路径。";
+            DOM.queryInput().focus();
+        });
+    }
+}
+// 在loadUserLearningPaths中调用showEmptyLearningPath替换原有空状态渲染
+
+// 5. 上传区、模型卡片、学习路径等交互细节优化
+// 上传区拖拽高亮
+const uploadContainer = DOM.uploadContainer();
+if (uploadContainer) {
+    uploadContainer.addEventListener('dragover', e => {
+        e.preventDefault();
+        uploadContainer.classList.add('ring-2', 'ring-sky-400');
+    });
+    uploadContainer.addEventListener('dragleave', e => {
+        e.preventDefault();
+        uploadContainer.classList.remove('ring-2', 'ring-sky-400');
+    });
+    uploadContainer.addEventListener('drop', e => {
+        uploadContainer.classList.remove('ring-2', 'ring-sky-400');
+    });
+}
+// 模型卡片hover动画
+function enhanceModelCardAnimations() {
+    document.querySelectorAll('.model-card').forEach(card => {
+        card.classList.add('transition-transform', 'duration-200', 'hover:scale-105', 'hover:shadow-xl');
+    });
+}
+document.addEventListener('DOMContentLoaded', enhanceModelCardAnimations);
