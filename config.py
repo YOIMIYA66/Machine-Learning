@@ -41,3 +41,39 @@ CHUNK_OVERLAP = int(CHUNK_SIZE * 0.2)
 
 # Embedding API 调用时的批处理大小 (embedding-v1 API限制每次最多16个输入)
 EMBEDDING_BATCH_SIZE = 16
+
+# config.py (在文件末尾或合适位置添加以下内容)
+
+# --- RAG 和 LLM 结果评估相关配置 ---
+UNCERTAINTY_PHRASES = [
+    "无法找到", "没有相关信息", "未能找到", "无法提供", "不确定",
+    "我不知道", "无法确定", "没有足够信息", "目前无法回答",
+    "To", "I cannot", "I don't", "Unable to", "not find", "no information",
+    "对不起，我无法", "抱歉，我无法" # 添加更多常见的不确定性短语
+]
+RAG_SCORE_THRESHOLD = 0.45  # RAG 文档相关性得分阈值 (可根据实际效果调整)
+RAG_ANSWER_MIN_LENGTH = 25  # RAG 回答最小长度阈值 (字符数, 可调整)
+
+# --- 机器学习关键词列表 ---
+ML_KEYWORDS = [
+    '机器学习', '模型', '训练', '预测', '分类', '回归', '聚类', '算法', '特征', '数据',
+    '随机森林', '决策树', '支持向量机', 'svm', 'knn', 'k近邻', '逻辑回归', '线性回归',
+    '神经网络', '深度学习', '朴素贝叶斯', 'k-means', 'xgboost', 'lightgbm', 'catboost',
+    '准确率', '精确率', '召回率', 'f1分数', 'auc', 'roc', 'mse', 'rmse', 'mae', 'r方', 'r2',
+    '超参数', '验证集', '测试集', '过拟合', '欠拟合', '特征工程', '降维', 'pca',
+    'tensorflow', 'keras', 'pytorch', 'scikit-learn', 'sklearn', 'paddlepaddle', 'paddle'
+]
+
+ML_OPS_KEYWORDS = [
+    '训练', '预测', '比较', '评估', '构建', '解释', '优化', '部署', '监控', '保存', '加载',
+    '选择模型', '调整参数', '分析特征', '生成报告', '自动化', '工作流',
+    '版本控制', '流水线', 'pipeline', 'finetune', '微调', '自动机器学习', 'automl'
+]
+
+# --- 应用行为相关配置 (示例，您可以按需添加更多) ---
+# 例如，上传文件存储位置，虽然您在 app.py 中定义了 UPLOADS_DIR，但也可以考虑放在这里
+# UPLOADS_DIR = os.path.join(os.getcwd(), "uploads")
+# MODELS_STORAGE_DIR = os.path.join(os.getcwd(), "ml_models")
+
+# 默认的预览行数
+DEFAULT_PREVIEW_ROWS = 10

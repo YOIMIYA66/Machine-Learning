@@ -33,11 +33,13 @@ const API_ENDPOINTS = {
     // Advanced Tools Endpoints
     MODEL_VERSIONS: '/api/ml/model_versions', // POST to create version
     GET_MODEL_VERSIONS: '/api/ml/model_versions/', // GET for list. Append model_name, e.g., /api/ml/model_versions/my_model
-    COMPARE_MODELS: '/api/ml/compare_models', // POST
-    BUILD_ENSEMBLE: '/api/ml/ensemble', // POST
-    DEPLOY_MODEL: '/api/ml/deploy', // POST to deploy
+    // COMPARE_MODELS: '/api/ml/compare_models', // POST
+    // BUILD_ENSEMBLE: '/api/ml/ensemble', // POST
+    // DEPLOY_MODEL: '/api/ml/deploy', // POST to deploy
     DEPLOYED_MODELS: '/api/ml/deployments', // GET for list
     UNDEPLOY_MODEL: '/api/ml/undeploy/', // POST. Append deployment_id, e.g., /api/ml/undeploy/deployment_id_123
+    SIMULATE_COMPARE_MODELS: '/api/simulate_model_comparison', // 新增
+    SIMULATE_BUILD_ENSEMBLE: '/api/simulate_ensemble_building', // 新增
 };
 
 // 模型类别分组，便于前端展示和选择 (与后端 ml_models.py 保持一致)
@@ -971,6 +973,10 @@ function updateQueryInputState() {
 /**
  * 初始化查询提交
  */
+// app.js
+
+// ... (其他代码) ...
+
 function initQuerySubmission() {
     const btn = DOM.submitQueryButton();
     const input = DOM.queryInput();
@@ -982,111 +988,125 @@ function initQuerySubmission() {
             e.preventDefault(); btn.click();
         }
     });
+
     btn.addEventListener('click', async () => {
         const query = input.value.trim();
-        if (!query) { showToast('请输入查询内容。', 'warning'); return; }
-        const mode = document.querySelector('input[name="queryMode"]:checked').value;
-        const body = { 
-            query,
-            mode,
-            use_existing_model: true // 默认使用现有模型，除非特定操作需要训练
+        if (!query) {
+            showToast('请输入查询内容。', 'warning');
+            return;
+        }
+        const currentQueryMode = document.querySelector('input[name="queryMode"]:checked').value;
+
+        const body = {
+            query: query,
+            mode: currentQueryMode,
+            // use_existing_model: true // 这个参数可以根据具体场景动态设置，或让后端判断
         };
-        
-        if (mode === 'data_analysis') {
-            if (!currentData.path || !currentData.analysisCompleted) { 
-                showToast('请先上传并成功分析数据。', 'error'); 
-                setButtonLoading(btn, false, '提交查询', DOM.submitQueryIcon());
-                showLoadingSpinner(false);
-                return; 
+
+        // --- 根据功能需求构建请求体 body ---
+
+        if (currentQueryMode === 'data_analysis') {
+            // 检查数据是否已上传和分析 (您已有此逻辑)
+            if (!currentData.path || !currentData.analysisCompleted) {
+                showToast('请先上传并成功分析数据才能进行此模式的提问。', 'error');
+                return;
             }
-            body.data_path = currentData.path;
-            // Model and target column are now optional for the payload
-            // They will be included if selected, but not required
-            if (selectedModelName) {
-                body.model_name = selectedModelName;
+            // body.data_path = currentData.path; // 后端可能需要完整路径
+
+            // 功能 1, 2, 3 都需要数据预览
+            if (currentData.preview && currentData.preview.length > 0) {
+                body.data_preview = currentData.preview; // 发送完整预览（后端app.py已限制为前10行）
+            } else {
+                showToast('数据预览信息缺失，请重新上传或分析数据。', 'warning');
+                return;
             }
+
+            // 功能 2 & 3 需要目标列
             if (selectedTargetColumn) {
                 body.target_column = selectedTargetColumn;
             }
-
-            // 添加数据预览（前5行）
-            if (currentData.preview && currentData.preview.length > 0) {
-                body.data_preview = currentData.preview.slice(0, 5);
-            } else {
-                body.data_preview = []; // 如果没有预览数据，发送空数组
+            // 功能 3 需要已选模型
+            if (selectedModelName) {
+                body.model_name = selectedModelName;
             }
+
+            // 特别标记教程生成请求 (功能3)
+            // 可以通过问题关键词，或者如果UI上有专门的“生成教程”按钮，则设置一个特定标记
+            if (query.toLowerCase().includes('生成教程') && body.data_preview && body.model_name && body.target_column) {
+                body.generate_tutorial = true; // 后端可以检查这个标记
+                showToast('正在请求生成教程...', 'info');
+            }
+            // 对于功能1 ("这份数据适合用什么模型进行分析"):
+            // body 中已包含 query 和 data_preview，后端会据此回答。
+            // 对于功能2 ("如果我想使用已有模型预测[目标列名]，哪些特征最重要？"):
+            // body 中已包含 query, data_preview, target_column (和可选的 model_name)，后端会据此回答。
+
+        } else if (currentQueryMode === 'general_llm') {
+            // 功能 4: 通用大模型问答
+            // body 中只需要 query 和 mode，后端会直接调用LLM
+            // 无需额外添加字段
         }
+
+        // --- 发送请求 ---
         setButtonLoading(btn, true, '处理中...', DOM.submitQueryIcon());
         showLoadingSpinner(true, 'AI思考中，请稍候...');
-        clearPreviousResults();
+        clearPreviousResults(); // 清除旧结果
+
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 120000); // 60s timeout
+        const timeoutId = setTimeout(() => controller.abort(), 120000); // 120秒超时
+
         try {
             const response = await fetch(API_ENDPOINTS.CHAT, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body), signal: controller.signal,
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+                signal: controller.signal,
             });
             clearTimeout(timeoutId);
+
             if (!response.ok) {
-                const err = await response.json().catch(() => ({ error: `服务器错误 (${response.status})` }));
-                throw new Error(err.error || (response.status === 504 ? '服务器处理超时' : `请求失败 ${response.status}`));
+                const errData = await response.json().catch(() => ({ error: `服务器错误，状态码: ${response.status}` }));
+                throw new Error(errData.error || `请求失败，状态码: ${response.status}`);
             }
-            const data = await response.json();
-            if (data.error) throw new Error(data.error);
-            displayChatResponse(data, query);
-            saveToHistory(query, data, mode);
+
+            const resultData = await response.json();
+            if (resultData.error) {
+                throw new Error(resultData.error);
+            }
+
+            displayChatResponse(resultData, query); // 您已有的函数，用于显示结果
+            // saveToHistory(query, resultData, currentQueryMode); // 您已有的函数
         } catch (error) {
-            console.error('查询错误:', error); clearTimeout(timeoutId);
-            let msg = error.name === 'AbortError' ? '请求超时' : error.message;
+            console.error('查询提交错误:', error);
+            clearTimeout(timeoutId);
+            let msg = error.name === 'AbortError' ? '请求超时，请稍后再试。' : error.message;
+
+            // 您已有的错误处理和显示逻辑
             let errorHTML = '';
-            
-            // 根据错误类型提供更友好的错误信息
             if (error.name === 'AbortError') {
-                errorHTML = `
-                    <div class="alert alert-error shadow-lg mb-4">
-                        <div>
-                            <i class="fas fa-exclamation-circle"></i>
-                            <span>请求超时</span>
-                        </div>
-                    </div>
-                    <p>服务器处理您的请求时间过长。这可能是因为：</p>
-                    <ul class="list-disc pl-5 my-3">
-                        <li>您的查询过于复杂</li>
-                        <li>服务器当前负载较高</li>
-                        <li>网络连接问题</li>
-                    </ul>
-                    <p>建议：尝试简化您的问题，或稍后再试。</p>
-                `;
+                errorHTML = `...`; // 保持您原来的超时HTML
             } else if (msg.startsWith('Could not parse LLM output: ')) {
-                 // 提取并显示部分AI输出
-                 const partialOutput = msg.substring('Could not parse LLM output: '.length);
-                 errorHTML = `
-                     <div class="alert alert-warning shadow-lg mb-4">
-                         <div>
-                             <i class="fas fa-exclamation-triangle"></i>
-                             <span>AI处理复杂任务时遇到了限制</span>
-                         </div>
-                     </div>
-                     <p>您的查询过于复杂，AI无法在允许的时间或步骤内完成处理。以下是AI在处理过程中的部分结果：</p>
-                     <div class="mt-4 p-4 bg-base-200 rounded-md overflow-auto max-h-60">
-                         <pre class="whitespace-pre-wrap">${escapeHtml(partialOutput)}</pre>
-                     </div>
-                     <p class="mt-4">建议：尝试将您的问题拆分为更小的部分，或者提供更具体的指令。</p>
-                 `;
+                 errorHTML = `...`; // 保持您原来的解析错误HTML
             } else {
-                errorHTML = `<p class="text-error">查询失败: ${escapeHtml(msg)}</p>`;
+                // 如果后端返回了更具体的错误信息，优先使用
+                if (error.raw_llm_response) { // 针对模拟API的JSON解析失败
+                     errorHTML = `<p class="text-error">处理失败: ${escapeHtml(msg)}</p><p class="text-xs text-muted mt-2">原始AI响应 (调试用):</p><pre class="whitespace-pre-wrap text-xs bg-gray-100 p-2 rounded">${escapeHtml(error.raw_llm_response)}</pre>`;
+                } else if (error.parsed_response) {
+                     errorHTML = `<p class="text-error">处理失败: ${escapeHtml(msg)}</p><p class="text-xs text-muted mt-2">已解析AI响应 (调试用):</p><pre class="whitespace-pre-wrap text-xs bg-gray-100 p-2 rounded">${escapeHtml(JSON.stringify(error.parsed_response, null, 2))}</pre>`;
+                }
+                else {
+                    errorHTML = `<p class="text-error">查询处理失败: ${escapeHtml(msg)}</p>`;
+                }
             }
-            
-            showToast(`查询失败: ${msg}`, 'error');
             DOM.responseText().innerHTML = errorHTML;
+            showToast(`查询失败: ${msg}`, 'error');
         } finally {
             setButtonLoading(btn, false, '提交问题', DOM.submitQueryIcon(), 'fa-paper-plane');
             showLoadingSpinner(false);
-            DOM.responseSection().classList.remove('hidden');
+            DOM.responseSection().classList.remove('hidden'); // 确保结果区域可见以显示错误
         }
     });
 }
-
 /**
  * 清除上次结果
  */
@@ -1659,56 +1679,314 @@ function populateModelSelector(selectEl, models, placeholder) {
     });
 }
 
-// --- MODEL VERSIONING ---
+// --- MODEL VERSIONING (纯前端实现) ---
 let currentModelForVersioning = null;
+const LOCAL_STORAGE_MODEL_VERSIONS_KEY = 'mlAssistant_modelVersions';
+
 function initModelVersioning() {
     const selector = DOM.versionModelSelector();
     const createBtn = DOM.createVersionBtn();
     const saveBtn = DOM.saveVersionBtn();
     const cancelBtn = DOM.cancelSaveVersionBtn();
+
     if (!selector || !createBtn || !saveBtn || !cancelBtn) return;
 
-    selector.addEventListener('change', async (e) => {
-        currentModelForVersioning = e.target.value;
+    // 从 FIXED_MODEL_DETAILS 填充模型选择器 (因为版本是前端管理的，不依赖后端模型列表)
+    const modelOptions = Object.values(FIXED_MODEL_DETAILS).map(m => ({
+        name: m.internal_name, // 使用 internal_name 作为 value
+        displayName: m.display_name
+    }));
+    populateModelSelector(selector, modelOptions.map(m=> ({name: m.displayName, internal_name: m.name})), "选择模型查看版本");
+
+
+    selector.addEventListener('change', (e) => {
+        currentModelForVersioning = e.target.value; // 这里的值是 internal_name
         DOM.versionMetadataForm().classList.add('hidden');
-        if (currentModelForVersioning) await fetchAndDisplayModelVersions(currentModelForVersioning);
-        else DOM.versionTableBody().innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">选择模型查看版本</td></tr>`;
-    });
-    createBtn.addEventListener('click', () => {
-        if (!currentModelForVersioning) { showToast('请先选择模型。', 'warning'); return; }
-        DOM.versionFormModelName().textContent = getModelDisplayName(currentModelForVersioning);
-        DOM.versionDescription().value = ''; DOM.versionPerformance().value = '';
-        DOM.versionMetadataForm().classList.remove('hidden'); DOM.versionDescription().focus();
-    });
-    cancelBtn.addEventListener('click', () => DOM.versionMetadataForm().classList.add('hidden'));
-    saveBtn.addEventListener('click', async () => {
-        if (!currentModelForVersioning) return;
-        const desc = DOM.versionDescription().value.trim();
-        const perf = DOM.versionPerformance().value.trim();
-        if (!desc && !perf) { showToast('请输入版本描述或性能指标。', 'warning'); return; }
-        setButtonLoading(saveBtn, true);
-        try {
-            // 调用创建模型版本API
-            const response = await fetch(API_ENDPOINTS.MODEL_VERSIONS, { 
-                method: 'POST', 
-                headers: { 'Content-Type': 'application/json' }, 
-                body: JSON.stringify({ 
-                    model_name: currentModelForVersioning, 
-                    description: desc, 
-                    performance_metrics: perf 
-                }) 
-            });
-            const result = await response.json();
-            if (result.error) throw new Error(result.error);
-            
-            showToast(result.message || `模型 "${getModelDisplayName(currentModelForVersioning)}" 新版本已创建。`, 'success');
-            DOM.versionMetadataForm().classList.add('hidden');
-            await fetchAndDisplayModelVersions(currentModelForVersioning);
-        } catch (error) { showToast(`创建版本失败: ${error.message}`, 'error'); }
-        finally { setButtonLoading(saveBtn, false); }
+        if (currentModelForVersioning) {
+            fetchAndDisplayModelVersions_localStorage(currentModelForVersioning);
+        } else {
+            DOM.versionTableBody().innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">选择模型查看版本</td></tr>`;
+        }
     });
 
+    createBtn.addEventListener('click', () => {
+        if (!currentModelForVersioning) {
+            showToast('请先选择一个模型来创建版本。', 'warning');
+            return;
+        }
+        // 从 FIXED_MODEL_DETAILS 获取显示名称
+        const modelDetail = FIXED_MODEL_DETAILS[currentModelForVersioning];
+        DOM.versionFormModelName().textContent = modelDetail ? modelDetail.display_name : currentModelForVersioning;
+        DOM.versionDescription().value = '';
+        DOM.versionPerformance().value = '';
+        DOM.versionMetadataForm().classList.remove('hidden');
+        DOM.versionDescription().focus();
+    });
+
+    cancelBtn.addEventListener('click', () => {
+        DOM.versionMetadataForm().classList.add('hidden');
+    });
+
+    saveBtn.addEventListener('click', () => {
+        if (!currentModelForVersioning) return;
+
+        const description = DOM.versionDescription().value.trim();
+        const performance_metrics = DOM.versionPerformance().value.trim(); // 修正变量名
+
+        if (!description && !performance_metrics) {
+            showToast('请输入版本描述或性能指标。', 'warning');
+            return;
+        }
+
+        setButtonLoading(saveBtn, true, '保存中...');
+
+        // 使用 localStorage 保存版本
+        const allVersions = JSON.parse(localStorage.getItem(LOCAL_STORAGE_MODEL_VERSIONS_KEY) || '{}');
+        if (!allVersions[currentModelForVersioning]) {
+            allVersions[currentModelForVersioning] = [];
+        }
+
+        const newVersion = {
+            id: `v${allVersions[currentModelForVersioning].length + 1}-${Date.now().toString(36)}`, // 简易版本ID
+            model_name: currentModelForVersioning,
+            description: description,
+            performance_metrics: performance_metrics,
+            created_at: new Date().toISOString()
+        };
+        allVersions[currentModelForVersioning].unshift(newVersion); // 添加到开头
+        localStorage.setItem(LOCAL_STORAGE_MODEL_VERSIONS_KEY, JSON.stringify(allVersions));
+
+        setTimeout(() => { // 模拟保存延迟
+            showToast(`模型 "${getModelDisplayName(currentModelForVersioning)}" 的新版本已在本地保存。`, 'success');
+            DOM.versionMetadataForm().classList.add('hidden');
+            fetchAndDisplayModelVersions_localStorage(currentModelForVersioning);
+            setButtonLoading(saveBtn, false, '<i class="fas fa-save" aria-hidden="true"></i> 保存版本');
+        }, 500);
+    });
 }
+
+function fetchAndDisplayModelVersions_localStorage(modelName) {
+    const tBody = DOM.versionTableBody();
+    tBody.innerHTML = `<tr><td colspan="5" class="text-center py-4"><span class="loading loading-dots loading-xs"></span></td></tr>`;
+
+    setTimeout(() => { // 模拟加载延迟
+        const allVersions = JSON.parse(localStorage.getItem(LOCAL_STORAGE_MODEL_VERSIONS_KEY) || '{}');
+        const versions = allVersions[modelName] || [];
+
+        if (!versions.length) {
+            tBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">此模型暂无本地版本记录。</td></tr>`;
+            return;
+        }
+
+        tBody.innerHTML = versions.map(v => `
+            <tr class="hover">
+                <td>${escapeHtml(v.id)}</td>
+                <td>${new Date(v.created_at).toLocaleString()}</td>
+                <td class="max-w-xs truncate" title="${escapeHtml(v.description || '-')}">${escapeHtml(v.description || '-')}</td>
+                <td class="max-w-xs truncate" title="${escapeHtml(v.performance_metrics || '-')}">${escapeHtml(v.performance_metrics || '-')}</td>
+                <td>
+                    <button type="button" class="btn btn-xs btn-ghost tooltip" data-tip="回滚 (前端模拟未实现)" disabled><i class="fas fa-undo"></i></button>
+                    <button type="button" class="btn btn-xs btn-ghost text-error tooltip" data-tip="删除此版本 (本地)" onclick="deleteModelVersion_localStorage('${modelName}', '${v.id}')"><i class="fas fa-trash"></i></button>
+                </td>
+            </tr>`).join('');
+    }, 300);
+}
+
+window.deleteModelVersion_localStorage = function(modelName, versionId) {
+    if (!confirm(`确定要从本地删除模型 "${getModelDisplayName(modelName)}" 的版本 "${versionId}" 吗？此操作不可恢复。`)) return;
+
+    const allVersions = JSON.parse(localStorage.getItem(LOCAL_STORAGE_MODEL_VERSIONS_KEY) || '{}');
+    if (allVersions[modelName]) {
+        allVersions[modelName] = allVersions[modelName].filter(v => v.id !== versionId);
+        if (allVersions[modelName].length === 0) {
+            delete allVersions[modelName];
+        }
+        localStorage.setItem(LOCAL_STORAGE_MODEL_VERSIONS_KEY, JSON.stringify(allVersions));
+        showToast(`版本 "${versionId}" 已从本地删除。`, 'success');
+        fetchAndDisplayModelVersions_localStorage(modelName); // 刷新列表
+    } else {
+        showToast('未找到要删除的版本。', 'error');
+    }
+}
+
+// --- MODEL DEPLOYMENT & MONITORING (纯前端实现) ---
+const LOCAL_STORAGE_DEPLOYMENTS_KEY = 'mlAssistant_deployments';
+
+function initModelDeployment() {
+    const deployBtn = DOM.deployModelBtn();
+    const refreshBtn = DOM.refreshMonitorBtn();
+
+    if (!deployBtn || !refreshBtn) return;
+
+    // 填充部署模型选择器 (使用与版本控制相同的模型列表)
+     const modelOptions = Object.values(FIXED_MODEL_DETAILS).map(m => ({
+        name: m.internal_name,
+        displayName: m.display_name
+    }));
+    populateModelSelector(DOM.deployModelSelect(), modelOptions.map(m=> ({name: m.displayName, internal_name: m.name})), "选择要部署的模型");
+
+
+    deployBtn.addEventListener('click', () => {
+        const modelName = DOM.deployModelSelect().value; // internal_name
+        const environment = DOM.deployEnvironmentSelect().value;
+        let endpointName = DOM.deployEndpoint().value.trim();
+
+        if (!modelName) { showToast('请选择要部署的模型。', 'warning'); return; }
+        if (!environment) { showToast('请选择部署环境。', 'warning'); return; }
+        if (!endpointName) {
+            // 自动生成端点名
+            endpointName = `/predict/${modelName.toLowerCase().replace(/_/g, '-')}/${environment.substring(0,3)}/${Date.now().toString(36).slice(-4)}`;
+            DOM.deployEndpoint().value = endpointName; // 显示到输入框
+            showToast(`API端点名称已自动生成: ${endpointName}`, 'info', 2000);
+        }
+        if (!/^\/[a-zA-Z0-9\/_.-]+$/.test(endpointName)) {
+            showToast('API端点名称格式无效，应以 / 开头。', 'warning'); return;
+        }
+
+
+        setButtonLoading(deployBtn, true, '部署中...');
+
+        const deployments = JSON.parse(localStorage.getItem(LOCAL_STORAGE_DEPLOYMENTS_KEY) || '[]');
+
+        // 检查端点是否已存在 (在同一环境下)
+        if (deployments.some(d => d.endpoint === endpointName && d.environment === environment)) {
+            showToast(`端点 "${endpointName}" 在环境 "${environment}" 中已存在。请使用不同名称。`, 'error');
+            setButtonLoading(deployBtn, false, '<i class="fas fa-cloud-upload-alt" aria-hidden="true"></i> 部署模型');
+            return;
+        }
+
+        const newDeployment = {
+            id: `dep-${Date.now().toString(36)}`,
+            model_name: modelName, // Store internal_name
+            model_display_name: getModelDisplayName(modelName), // For display
+            environment: environment,
+            endpoint: endpointName,
+            status: '运行中', // 模拟直接成功
+            deployed_at: new Date().toISOString(),
+            requests: 0, // 模拟统计
+            avg_response_ms: Math.floor(Math.random() * (300 - 50 + 1)) + 50 // 模拟响应时间
+        };
+        deployments.unshift(newDeployment);
+        localStorage.setItem(LOCAL_STORAGE_DEPLOYMENTS_KEY, JSON.stringify(deployments));
+
+        setTimeout(() => { // 模拟部署延迟
+            showToast(`模型 "${newDeployment.model_display_name}" 已模拟部署到 "${environment}" 环境，端点: ${endpointName}`, 'success');
+            fetchAndDisplayDeployedModels_localStorage();
+            setButtonLoading(deployBtn, false, '<i class="fas fa-cloud-upload-alt" aria-hidden="true"></i> 部署模型');
+        }, 1000);
+    });
+
+    refreshBtn.addEventListener('click', fetchAndDisplayDeployedModels_localStorage);
+    fetchAndDisplayDeployedModels_localStorage(); // 页面加载时获取
+}
+
+function fetchAndDisplayDeployedModels_localStorage() {
+    const tBody = DOM.deploymentTableBody();
+    const refreshBtn = DOM.refreshMonitorBtn();
+    if (refreshBtn) setButtonLoading(refreshBtn, true, '刷新中...', refreshBtn.querySelector('i'), 'fa-sync-alt');
+
+    tBody.innerHTML = `<tr><td colspan="5" class="text-center py-4"><span class="loading loading-dots loading-xs"></span></td></tr>`;
+
+    setTimeout(() => { // 模拟加载
+        const deployments = JSON.parse(localStorage.getItem(LOCAL_STORAGE_DEPLOYMENTS_KEY) || '[]');
+
+        if (!deployments.length) {
+            tBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">暂无已部署模型 (本地模拟)。</td></tr>`;
+        } else {
+            tBody.innerHTML = deployments.map(d => `
+                <tr class="hover">
+                    <td>${escapeHtml(d.model_display_name)}</td>
+                    <td><span class="badge badge-sm ${d.environment === 'production' ? 'badge-error' : d.environment === 'staging' ? 'badge-warning' : 'badge-info'}">${escapeHtml(d.environment)}</span></td>
+                    <td><code class="text-xs">${escapeHtml(d.endpoint)}</code></td>
+                    <td><span class="badge badge-sm ${d.status === '运行中' ? 'badge-success' : 'badge-ghost'}">${escapeHtml(d.status)}</span></td>
+                    <td>
+                        <button type="button" class="btn btn-xs btn-ghost text-error tooltip" data-tip="取消此模拟部署" 
+                                onclick="confirmUndeploy_localStorage('${d.id}', '${d.model_display_name}')" 
+                                ${d.status !== '运行中' ? 'disabled' : ''}>
+                            <i class="fas fa-stop-circle"></i>
+                        </button>
+                    </td>
+                </tr>`).join('');
+        }
+        // 更新模拟统计
+        DOM.deployedModelCount().textContent = deployments.length;
+        const runningDeployments = deployments.filter(d => d.status === '运行中');
+        if (runningDeployments.length > 0) {
+            const totalResponseTime = runningDeployments.reduce((sum, d) => sum + (d.avg_response_ms || 100), 0);
+            DOM.avgResponseTime().textContent = `${Math.round(totalResponseTime / runningDeployments.length)}ms`;
+            DOM.predictionRequests().textContent = runningDeployments.reduce((sum, d) => sum + (d.requests || 0), 0);
+        } else {
+            DOM.avgResponseTime().textContent = 'N/A';
+            DOM.predictionRequests().textContent = '0';
+        }
+
+       if (refreshBtn) setButtonLoading(refreshBtn, false, '刷新', refreshBtn.querySelector('i'), 'fa-sync-alt');
+    }, 300);
+}
+
+window.confirmUndeploy_localStorage = function(deploymentId, modelDisplayName) {
+    if (!confirm(`确定要取消模型 "${modelDisplayName}" (ID: ${deploymentId}) 的本地模拟部署吗？`)) return;
+
+    let deployments = JSON.parse(localStorage.getItem(LOCAL_STORAGE_DEPLOYMENTS_KEY) || '[]');
+    const initialLength = deployments.length;
+    deployments = deployments.filter(d => d.id !== deploymentId);
+
+    if (deployments.length < initialLength) {
+        localStorage.setItem(LOCAL_STORAGE_DEPLOYMENTS_KEY, JSON.stringify(deployments));
+        showToast(`模型 "${modelDisplayName}" 的模拟部署已取消。`, 'success');
+        fetchAndDisplayDeployedModels_localStorage(); // 刷新列表和统计
+    } else {
+        showToast('未找到要取消的模拟部署。', 'error');
+    }
+};
+// function initModelVersioning() {
+//     const selector = DOM.versionModelSelector();
+//     const createBtn = DOM.createVersionBtn();
+//     const saveBtn = DOM.saveVersionBtn();
+//     const cancelBtn = DOM.cancelSaveVersionBtn();
+//     if (!selector || !createBtn || !saveBtn || !cancelBtn) return;
+//
+//     selector.addEventListener('change', async (e) => {
+//         currentModelForVersioning = e.target.value;
+//         DOM.versionMetadataForm().classList.add('hidden');
+//         if (currentModelForVersioning) await fetchAndDisplayModelVersions(currentModelForVersioning);
+//         else DOM.versionTableBody().innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">选择模型查看版本</td></tr>`;
+//     });
+//     createBtn.addEventListener('click', () => {
+//         if (!currentModelForVersioning) { showToast('请先选择模型。', 'warning'); return; }
+//         DOM.versionFormModelName().textContent = getModelDisplayName(currentModelForVersioning);
+//         DOM.versionDescription().value = ''; DOM.versionPerformance().value = '';
+//         DOM.versionMetadataForm().classList.remove('hidden'); DOM.versionDescription().focus();
+//     });
+//     cancelBtn.addEventListener('click', () => DOM.versionMetadataForm().classList.add('hidden'));
+//     saveBtn.addEventListener('click', async () => {
+//         if (!currentModelForVersioning) return;
+//         const desc = DOM.versionDescription().value.trim();
+//         const perf = DOM.versionPerformance().value.trim();
+//         if (!desc && !perf) { showToast('请输入版本描述或性能指标。', 'warning'); return; }
+//         setButtonLoading(saveBtn, true);
+//         try {
+//             // 调用创建模型版本API
+//             const response = await fetch(API_ENDPOINTS.MODEL_VERSIONS, {
+//                 method: 'POST',
+//                 headers: { 'Content-Type': 'application/json' },
+//                 body: JSON.stringify({
+//                     model_name: currentModelForVersioning,
+//                     description: desc,
+//                     performance_metrics: perf
+//                 })
+//             });
+//             const result = await response.json();
+//             if (result.error) throw new Error(result.error);
+//
+//             showToast(result.message || `模型 "${getModelDisplayName(currentModelForVersioning)}" 新版本已创建。`, 'success');
+//             DOM.versionMetadataForm().classList.add('hidden');
+//             await fetchAndDisplayModelVersions(currentModelForVersioning);
+//         } catch (error) { showToast(`创建版本失败: ${error.message}`, 'error'); }
+//         finally { setButtonLoading(saveBtn, false); }
+//     });
+//
+// }
 async function fetchAndDisplayModelVersions(modelName) {
     const tBody = DOM.versionTableBody();
     tBody.innerHTML = `<tr><td colspan="5" class="text-center py-4"><span class="loading loading-dots"></span></td></tr>`;
@@ -1717,203 +1995,203 @@ async function fetchAndDisplayModelVersions(modelName) {
         const response = await fetch(`${API_ENDPOINTS.GET_MODEL_VERSIONS}${encodeURIComponent(modelName)}`);
         const result = await response.json();
         if (result.error) throw new Error(result.error);
-        
+
         const versions = result.versions || [];
-        if (!versions.length) { 
-            tBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">无版本记录。</td></tr>`; 
-            return; 
+        if (!versions.length) {
+            tBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">无版本记录。</td></tr>`;
+            return;
         }
-        
+
         tBody.innerHTML = versions.map(v => `
             <tr class="hover"><td>${escapeHtml(v.id)}</td><td>${new Date(v.created_at).toLocaleString()}</td><td>${escapeHtml(v.description || '-')}</td><td>${escapeHtml(v.performance_metrics || '-')}</td>
             <td><button type="button" class="btn btn-xs btn-ghost tooltip" data-tip="回滚(未实现)" disabled><i class="fas fa-undo"></i></button></td></tr>`).join('');
-    } catch (e) { 
+    } catch (e) {
         console.error('获取版本失败:', e);
-        showToast(`获取版本失败: ${e.message}`, 'error'); 
-        tBody.innerHTML = `<tr><td colspan="5" class="text-center text-error py-4">加载版本失败</td></tr>`; 
+        showToast(`获取版本失败: ${e.message}`, 'error');
+        tBody.innerHTML = `<tr><td colspan="5" class="text-center text-error py-4">加载版本失败</td></tr>`;
     }
 }
 
 // --- MODEL COMPARISON ---
 let compareModelCount = 0; const MAX_COMPARE = 3;
-function initModelComparison() {
-    const addBtn = DOM.addCompareModelBtn();
-    const startBtn = DOM.startCompareBtn();
-    const dataSel = DOM.compareTestDataSelect();
-    const targetSel = DOM.compareTargetColumnSelect();
-    if (!addBtn || !startBtn) return;
-    
-    // 加载默认数据集
-    loadDefaultDatasets();
-
-/**
- * 加载默认数据集
- */
-function loadDefaultDatasets() {
-    const dataSelect = DOM.compareTestDataSelect();
-    if (dataSelect) {
-        dataSelect.innerHTML = `
-            <option value="" disabled selected>选择测试数据集</option>
-            <option value="current_uploaded">当前上传数据</option>
-        `;
-    }
-}
-    
-    
-
-    // 确保在初始化时已经加载了模型列表
-    const initializeModelSelectors = async () => {
-        // 如果模型缓存为空，先获取模型列表
-        if (!allModelsCache || allModelsCache.length === 0) {
-            try {
-                const response = await fetch(API_ENDPOINTS.MODELS);
-                const data = await response.json();
-                allModelsCache = data.models || [];
-            } catch (e) { 
-                console.error("获取模型列表失败:", e); 
-                showToast("获取模型列表失败，请刷新页面重试", "error");
-            }
-        }
-        
-        // 添加第一个模型选择器
-        addDynamicModelSelector(
-            DOM.compareModelsContainer(), 
-            DOM.compareModelPlaceholder(), 
-            allModelsCache, 
-            compareModelCount, 
-            MAX_COMPARE, 
-            'compare-model-select', 
-            '比较模型', 
-            (nc) => compareModelCount = nc
-        );
-    };
-    
-    // 初始化模型选择器
-    initializeModelSelectors();
-    
-    // 添加按钮事件监听
-    addBtn.addEventListener('click', () => addDynamicModelSelector(
-        DOM.compareModelsContainer(), 
-        DOM.compareModelPlaceholder(), 
-        allModelsCache,
-        compareModelCount, 
-        MAX_COMPARE, 
-        'compare-model-select', 
-        '比较模型',
-        (newCount) => compareModelCount = newCount
-    ));
-
-    startBtn.addEventListener('click', async () => {
-        const models = Array.from(DOM.compareModelsContainer().querySelectorAll('.compare-model-select')).map(s => s.value).filter(Boolean);
-        const testData = dataSel.value; const target = targetSel.value;
-        if (models.length < 2) { showToast('请至少选择两个模型。', 'warning'); return; }
-        if (!testData) { showToast('请选择测试数据集。', 'warning'); return; }
-        if (testData === 'current_uploaded' && (!currentData.path || !currentData.analysisCompleted || !target)) { showToast('当前数据未就绪或未选目标列。', 'warning'); return; }
-        DOM.compareResultsContainer().innerHTML = `<p class="text-center py-4"><span class="loading loading-lg loading-dots"></span></p>`;
-        setButtonLoading(startBtn, true);
-        try {
-            // 调用模型比较API
-            const response = await fetch(API_ENDPOINTS.COMPARE_MODELS, { 
-                method: 'POST', 
-                headers: { 'Content-Type': 'application/json' }, 
-                body: JSON.stringify({ 
-                    model_names: models, 
-                    test_data_path: testData, 
-                    target_column: target 
-                }) 
-            });
-            const result = await response.json();
-            if (result.error) throw new Error(result.error);
-            
-            // 显示比较结果
-            let html = `<div class="prose max-w-none"><h3>比较结果</h3><table class="table table-zebra w-full"><thead><tr><th>模型</th>`;
-            
-            // 确定所有可能的指标
-            const allMetrics = new Set();
-            result.comparison_results.forEach(model => {
-                if (model.metrics) {
-                    Object.keys(model.metrics).forEach(metric => allMetrics.add(metric));
-                }
-            });
-            
-            // 添加指标列
-            allMetrics.forEach(metric => {
-                html += `<th>${formatMetricName(metric)}</th>`;
-            });
-            
-            html += `</tr></thead><tbody>`;
-            
-            // 添加每个模型的结果行
-            result.comparison_results.forEach((model, index) => {
-                html += `<tr class="${index % 2 === 0 ? 'bg-base-200' : ''}"><td>${model.model_name}</td>`;
-                
-                allMetrics.forEach(metric => {
-                    const value = model.metrics && model.metrics[metric] !== undefined ? 
-                        model.metrics[metric].toFixed(4) : '-';
-                    html += `<td>${value}</td>`;
-                });
-                
-                html += `</tr>`;
-            });
-            
-            html += `</tbody></table>`;
-            
-            // 添加测试数据信息
-            if (result.test_data) {
-                html += `<div class="mt-4">
-                    <h4>测试数据信息</h4>
-                    <p>路径: ${result.test_data.path}</p>
-                    <p>行数: ${result.test_data.rows}</p>
-                    <p>列数: ${result.test_data.columns}</p>
-                </div>`;
-            }
-            
-            html += `</div>`;
-            
-            DOM.compareResultsContainer().innerHTML = html;
-        } catch (e) { 
-            console.error('比较模型错误:', e);
-            showToast(`比较失败: ${e.message}`, 'error'); 
-            DOM.compareResultsContainer().innerHTML = `<p class="text-error text-center">比较失败: ${e.message}</p>`; 
-        }
-        finally { setButtonLoading(startBtn, false); }
-    });
-
-    dataSel.addEventListener('change', async () => {
-        // 当选择测试数据集时，加载相应的目标列
-        if (!dataSel.value) return;
-        
-        targetSel.innerHTML = '<option value="" disabled selected>加载中...</option>';
-        
-        if (dataSel.value === 'current_uploaded') {
-            // 使用当前上传的数据集的列
-            populateSelectWithOptions(targetSel, currentData.columns, "选择目标列");
-        } else {
-            // 从服务器获取数据集的列
-            try {
-                const response = await fetch(`/api/ml/analyze?file_path=${encodeURIComponent(dataSel.value)}`);
-                const result = await response.json();
-                if (result.error) throw new Error(result.error);
-                
-                const columns = result.columns || [];
-                populateSelectWithOptions(targetSel, columns, "选择目标列");
-            } catch (e) {
-                console.error('获取数据集列失败:', e);
-                populateSelectWithOptions(targetSel, [], "获取列失败");
-                showToast(`获取数据集列失败: ${e.message}`, 'error');
-            }
-        }
-    });
-
+// function initModelComparison() {
+//     const addBtn = DOM.addCompareModelBtn();
+//     const startBtn = DOM.startCompareBtn();
+//     const dataSel = DOM.compareTestDataSelect();
+//     const targetSel = DOM.compareTargetColumnSelect();
+//     if (!addBtn || !startBtn) return;
+//
+//     // 加载默认数据集
+//     loadDefaultDatasets();
+//
+// /**
+//  * 加载默认数据集
+//  */
+// function loadDefaultDatasets() {
+//     const dataSelect = DOM.compareTestDataSelect();
+//     if (dataSelect) {
+//         dataSelect.innerHTML = `
+//             <option value="" disabled selected>选择测试数据集</option>
+//             <option value="current_uploaded">当前上传数据</option>
+//         `;
+//     }
+// }
+//
+//
+//
+//     // 确保在初始化时已经加载了模型列表
+//     const initializeModelSelectors = async () => {
+//         // 如果模型缓存为空，先获取模型列表
+//         if (!allModelsCache || allModelsCache.length === 0) {
+//             try {
+//                 const response = await fetch(API_ENDPOINTS.MODELS);
+//                 const data = await response.json();
+//                 allModelsCache = data.models || [];
+//             } catch (e) {
+//                 console.error("获取模型列表失败:", e);
+//                 showToast("获取模型列表失败，请刷新页面重试", "error");
+//             }
+//         }
+//
+//         // 添加第一个模型选择器
+//         addDynamicModelSelector(
+//             DOM.compareModelsContainer(),
+//             DOM.compareModelPlaceholder(),
+//             allModelsCache,
+//             compareModelCount,
+//             MAX_COMPARE,
+//             'compare-model-select',
+//             '比较模型',
+//             (nc) => compareModelCount = nc
+//         );
+//     };
+//
+//     // 初始化模型选择器
+//     initializeModelSelectors();
+//
+//     // 添加按钮事件监听
+//     addBtn.addEventListener('click', () => addDynamicModelSelector(
+//         DOM.compareModelsContainer(),
+//         DOM.compareModelPlaceholder(),
+//         allModelsCache,
+//         compareModelCount,
+//         MAX_COMPARE,
+//         'compare-model-select',
+//         '比较模型',
+//         (newCount) => compareModelCount = newCount
+//     ));
+//
+//     startBtn.addEventListener('click', async () => {
+//         const models = Array.from(DOM.compareModelsContainer().querySelectorAll('.compare-model-select')).map(s => s.value).filter(Boolean);
+//         const testData = dataSel.value; const target = targetSel.value;
+//         if (models.length < 2) { showToast('请至少选择两个模型。', 'warning'); return; }
+//         if (!testData) { showToast('请选择测试数据集。', 'warning'); return; }
+//         if (testData === 'current_uploaded' && (!currentData.path || !currentData.analysisCompleted || !target)) { showToast('当前数据未就绪或未选目标列。', 'warning'); return; }
+//         DOM.compareResultsContainer().innerHTML = `<p class="text-center py-4"><span class="loading loading-lg loading-dots"></span></p>`;
+//         setButtonLoading(startBtn, true);
+//         try {
+//             // 调用模型比较API
+//             const response = await fetch(API_ENDPOINTS.COMPARE_MODELS, {
+//                 method: 'POST',
+//                 headers: { 'Content-Type': 'application/json' },
+//                 body: JSON.stringify({
+//                     model_names: models,
+//                     test_data_path: testData,
+//                     target_column: target
+//                 })
+//             });
+//             const result = await response.json();
+//             if (result.error) throw new Error(result.error);
+//
+//             // 显示比较结果
+//             let html = `<div class="prose max-w-none"><h3>比较结果</h3><table class="table table-zebra w-full"><thead><tr><th>模型</th>`;
+//
+//             // 确定所有可能的指标
+//             const allMetrics = new Set();
+//             result.comparison_results.forEach(model => {
+//                 if (model.metrics) {
+//                     Object.keys(model.metrics).forEach(metric => allMetrics.add(metric));
+//                 }
+//             });
+//
+//             // 添加指标列
+//             allMetrics.forEach(metric => {
+//                 html += `<th>${formatMetricName(metric)}</th>`;
+//             });
+//
+//             html += `</tr></thead><tbody>`;
+//
+//             // 添加每个模型的结果行
+//             result.comparison_results.forEach((model, index) => {
+//                 html += `<tr class="${index % 2 === 0 ? 'bg-base-200' : ''}"><td>${model.model_name}</td>`;
+//
+//                 allMetrics.forEach(metric => {
+//                     const value = model.metrics && model.metrics[metric] !== undefined ?
+//                         model.metrics[metric].toFixed(4) : '-';
+//                     html += `<td>${value}</td>`;
+//                 });
+//
+//                 html += `</tr>`;
+//             });
+//
+//             html += `</tbody></table>`;
+//
+//             // 添加测试数据信息
+//             if (result.test_data) {
+//                 html += `<div class="mt-4">
+//                     <h4>测试数据信息</h4>
+//                     <p>路径: ${result.test_data.path}</p>
+//                     <p>行数: ${result.test_data.rows}</p>
+//                     <p>列数: ${result.test_data.columns}</p>
+//                 </div>`;
+//             }
+//
+//             html += `</div>`;
+//
+//             DOM.compareResultsContainer().innerHTML = html;
+//         } catch (e) {
+//             console.error('比较模型错误:', e);
+//             showToast(`比较失败: ${e.message}`, 'error');
+//             DOM.compareResultsContainer().innerHTML = `<p class="text-error text-center">比较失败: ${e.message}</p>`;
+//         }
+//         finally { setButtonLoading(startBtn, false); }
+//     });
+//
+//     dataSel.addEventListener('change', async () => {
+//         // 当选择测试数据集时，加载相应的目标列
+//         if (!dataSel.value) return;
+//
+//         targetSel.innerHTML = '<option value="" disabled selected>加载中...</option>';
+//
+//         if (dataSel.value === 'current_uploaded') {
+//             // 使用当前上传的数据集的列
+//             populateSelectWithOptions(targetSel, currentData.columns, "选择目标列");
+//         } else {
+//             // 从服务器获取数据集的列
+//             try {
+//                 const response = await fetch(`/api/ml/analyze?file_path=${encodeURIComponent(dataSel.value)}`);
+//                 const result = await response.json();
+//                 if (result.error) throw new Error(result.error);
+//
+//                 const columns = result.columns || [];
+//                 populateSelectWithOptions(targetSel, columns, "选择目标列");
+//             } catch (e) {
+//                 console.error('获取数据集列失败:', e);
+//                 populateSelectWithOptions(targetSel, [], "获取列失败");
+//                 showToast(`获取数据集列失败: ${e.message}`, 'error');
+//             }
+//         }
+//     });
+//
 /**
  * 用选项填充选择器
  */
 function populateSelectWithOptions(selectElement, options, placeholderText = "请选择") {
     if (!selectElement) return;
-    
+
     // 清除现有选项
     selectElement.innerHTML = '';
-    
+
     // 添加占位符选项
     const placeholderOption = document.createElement('option');
     placeholderOption.value = '';
@@ -1921,7 +2199,7 @@ function populateSelectWithOptions(selectElement, options, placeholderText = "�
     placeholderOption.disabled = true;
     placeholderOption.selected = true;
     selectElement.appendChild(placeholderOption);
-    
+
     // 添加所有选项
     options.forEach(option => {
         const opt = document.createElement('option');
@@ -1930,8 +2208,240 @@ function populateSelectWithOptions(selectElement, options, placeholderText = "�
         selectElement.appendChild(opt);
     });
 }
+
+function initModelComparison() {
+    const addBtn = DOM.addCompareModelBtn();
+    const startBtn = DOM.startCompareBtn();
+    const dataSel = DOM.compareTestDataSelect();
+    const targetSel = DOM.compareTargetColumnSelect();
+
+    if (!addBtn || !startBtn || !dataSel || !targetSel) return; // 确保所有元素存在
+
+    // 加载默认数据集选项 (你已有的)
+    loadDefaultDatasetsForComparison(); // 重命名以区分
+
+    // 动态添加模型选择器逻辑 (你已有的 addDynamicModelSelector)
+    // 确保 allModelsCache 是从 FIXED_MODEL_DETAILS (或后端 /api/ml/models 如果你更倾向) 填充
+    const initializeCompareModelSelectors = async () => {
+        if (!allModelsCache || allModelsCache.length === 0) {
+            // 可以从 FIXED_MODEL_DETAILS 初始化 allModelsCache
+            allModelsCache = Object.values(FIXED_MODEL_DETAILS).map(m => ({
+                internal_name: m.internal_name,
+                name: m.display_name, // 或者 internal_name，取决于 populateModelSelector
+                type: getCategoryForModel(m.internal_name) // 确保 getCategoryForModel 可用
+            }));
+            // 或者从后端API获取，如果后端 /api/ml/models 提供了完整的模型列表
+            // try {
+            //     const response = await fetch(API_ENDPOINTS.MODELS);
+            //     const data = await response.json();
+            //     allModelsCache = data.models || [];
+            // } catch (e) { console.error("获取模型列表失败:", e); }
+        }
+        // 至少添加一个比较模型选择器
+        if (DOM.compareModelsContainer().querySelectorAll('.compare-model-select').length === 0) {
+             addDynamicModelSelector(
+                DOM.compareModelsContainer(),
+                DOM.compareModelPlaceholder(),
+                allModelsCache, // 传递 allModelsCache
+                compareModelCount, // 全局变量
+                MAX_COMPARE,
+                'compare-model-select',
+                '比较模型',
+                (nc) => compareModelCount = nc
+            );
+        }
+    };
+    initializeCompareModelSelectors();
+
+
+    addBtn.addEventListener('click', () => addDynamicModelSelector(
+        DOM.compareModelsContainer(),
+        DOM.compareModelPlaceholder(),
+        allModelsCache, // 确保 allModelsCache 已填充
+        compareModelCount,
+        MAX_COMPARE,
+        'compare-model-select',
+        '比较模型',
+        (newCount) => compareModelCount = newCount
+    ));
+
+    startBtn.addEventListener('click', async () => {
+        const selectedModelsForCompare = Array.from(DOM.compareModelsContainer().querySelectorAll('.compare-model-select'))
+                                     .map(s => s.value)
+                                     .filter(Boolean);
+        const testDataIdentifier = dataSel.value;
+        const targetColumnForCompare = targetSel.value;
+
+        if (selectedModelsForCompare.length < 2) {
+            showToast('请至少选择两个模型进行比较。', 'warning'); return;
+        }
+        if (!testDataIdentifier) {
+            showToast('请选择测试数据集。', 'warning'); return;
+        }
+        // 如果选择的是 "current_uploaded"，则确保已上传数据且选了目标列
+        if (testDataIdentifier === 'current_uploaded') {
+            if (!currentData.path || !currentData.analysisCompleted) {
+                showToast('当前上传的数据未就绪，请先上传并分析数据。', 'warning'); return;
+            }
+            if (!selectedTargetColumn && !targetColumnForCompare) { // 检查是否在主对话区选了目标列
+                 showToast('请为当前上传的数据选择一个目标列以进行比较。', 'warning'); return;
+            }
+        }
+         if (!targetColumnForCompare && testDataIdentifier !== 'current_uploaded') {
+             showToast('请选择此数据集的目标列。', 'warning'); return;
+         }
+         if (!targetColumnForCompare && testDataIdentifier === 'current_uploaded' && selectedTargetColumn) {
+             // 如果比较工具没选目标列，但主对话区选了，可以用主对话区的
+             // 或者强制用户在比较工具里也选一次
+         }
+
+
+        DOM.compareResultsContainer().innerHTML = `<p class="text-center py-4"><span class="loading loading-lg loading-dots text-primary-hex"></span></p>`;
+        setButtonLoading(startBtn, true, '正在模拟比较...');
+
+        try {
+            const body = {
+                model_names: selectedModelsForCompare,
+                test_data_identifier: testDataIdentifier === 'current_uploaded' ? `当前上传的数据 (${currentData.fileName || '未命名'})` : testDataIdentifier,
+                target_column: targetColumnForCompare || selectedTargetColumn // 优先用比较工具选的，否则用主对话区选的
+            };
+
+            const response = await fetch(API_ENDPOINTS.SIMULATE_COMPARE_MODELS, { // 使用模拟API
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({ error: `服务器错误 (${response.status})` }));
+                throw new Error(errData.error || `模拟比较失败: ${response.statusText}`);
+            }
+
+            const result = await response.json();
+            if (result.error) {
+                let displayError = result.error;
+                if(result.raw_llm_response) displayError += `<br><small class='text-gray-500'>LLM原始响应: ${escapeHtml(result.raw_llm_response.substring(0,200))}...</small>`;
+                DOM.compareResultsContainer().innerHTML = `<p class="text-error text-center p-4">${displayError}</p>`;
+                throw new Error(result.error);
+            }
+
+            // 显示模拟的比较结果 (您已有的显示逻辑，可能需要调整以匹配后端模拟API的返回结构)
+            let html = `<div class="prose max-w-none p-1"><h4>模型模拟比较结果</h4>`;
+            if (result.test_data_info) {
+                html += `<p class="text-sm text-muted">基于数据集: ${escapeHtml(result.test_data_info.identifier)} (模拟行数: ${escapeHtml(result.test_data_info.simulated_rows || 'N/A')}, 模拟特征数: ${escapeHtml(result.test_data_info.simulated_features || 'N/A')})</p>`;
+            }
+            html += `<div class="overflow-x-auto"><table class="table table-sm w-full"><thead><tr><th>模型</th>`;
+
+            const allMetrics = new Set();
+            if (result.comparison_results && Array.isArray(result.comparison_results)) {
+                result.comparison_results.forEach(modelRes => {
+                    if (modelRes.metrics && typeof modelRes.metrics === 'object') {
+                        Object.keys(modelRes.metrics).forEach(metric => allMetrics.add(metric));
+                    }
+                });
+            }
+
+            allMetrics.forEach(metric => html += `<th>${escapeHtml(formatMetricName(metric))}</th>`);
+            html += `</tr></thead><tbody>`;
+
+            if (result.comparison_results && Array.isArray(result.comparison_results)) {
+                result.comparison_results.forEach(modelRes => {
+                    html += `<tr><td>${escapeHtml(getModelDisplayName(modelRes.model_name))}</td>`; // 使用 getModelDisplayName
+                    allMetrics.forEach(metric => {
+                        const metricValue = modelRes.metrics ? modelRes.metrics[metric] : '-';
+                        html += `<td>${escapeHtml(typeof metricValue === 'number' ? metricValue.toFixed(4) : metricValue)}</td>`;
+                    });
+                    html += `</tr>`;
+                });
+            } else {
+                html += `<tr><td colspan="${allMetrics.size + 1}" class="text-center text-muted">未能获取有效的比较结果数据。</td></tr>`;
+            }
+            html += `</tbody></table></div>`;
+
+            if (result.summary) {
+                html += `<div class="mt-4 p-3 bg-base-200 rounded-md"><h5 class="font-semibold">模拟总结:</h5><p class="text-sm">${formatAnswer(result.summary)}</p></div>`;
+            }
+            html += `</div>`;
+            DOM.compareResultsContainer().innerHTML = html;
+            showToast('模型模拟比较完成！', 'success');
+
+        } catch (e) {
+            console.error('模拟模型比较错误:', e);
+            if (!DOM.compareResultsContainer().innerHTML.includes('text-error')) { //避免重复显示错误
+                 DOM.compareResultsContainer().innerHTML = `<p class="text-error text-center p-4">模拟比较失败: ${escapeHtml(e.message)}</p>`;
+            }
+            showToast(`模拟比较失败: ${e.message}`, 'error');
+        } finally {
+            setButtonLoading(startBtn, false, '<i class="fas fa-chart-bar" aria-hidden="true"></i> 开始比较');
+        }
+    });
+
+    // dataSel 事件监听器 (您已有的) - 确保它能正确填充 targetSel
+    dataSel.addEventListener('change', async () => {
+        const selectedDataset = dataSel.value;
+        targetSel.innerHTML = '<option value="" disabled selected>加载中...</option>';
+        targetSel.disabled = true;
+
+        if (!selectedDataset) {
+            populateSelectWithOptions(targetSel, [], "先选择数据集");
+            return;
+        }
+
+        if (selectedDataset === 'current_uploaded') {
+            if (currentData.columns && currentData.columns.length > 0) {
+                populateSelectWithOptions(targetSel, currentData.columns, "选择目标列");
+                targetSel.disabled = false;
+            } else {
+                populateSelectWithOptions(targetSel, [], "当前无可用数据列");
+                showToast('当前未上传数据或数据无列信息。', 'warning');
+            }
+        } else {
+            // 对于预设数据集，后端没有提供直接获取列的API，除非 /api/ml/analyze 支持按名称分析
+            // 暂时，我们可以假设这些预设数据集的目标列是已知的，或者让用户手动输入
+            // 为了演示，可以填充一些示例列或提示用户
+            showToast(`选择预设数据集 "${selectedDataset}"，请确保目标列适用于此数据集。`, 'info');
+            // 假设有一些已知列，或者清空让用户注意
+            // populateSelectWithOptions(targetSel, ['示例目标列1', '示例目标列2'], "选择或确认目标列");
+            // 更好的做法是，如果这些是真实数据集，后端应该能提供它们的列信息
+            // 如果后端 /api/ml/analyze 可以接受数据集标识符并返回列，则可以在这里调用
+            // 否则，目标列选择器对于非 current_uploaded 数据集将作用有限
+            // 为简单起见，我们先假设如果不是 current_uploaded，用户知道目标列是什么
+            // 或者，可以从currentData.columns填充，让用户选择一个，并提示这可能不适用于所选数据集。
+             if (currentData.columns && currentData.columns.length > 0) {
+                populateSelectWithOptions(targetSel, currentData.columns, "选择目标列 (可能不适用)");
+                targetSel.disabled = false;
+            } else {
+                 populateSelectWithOptions(targetSel, [], "无列信息参考");
+            }
+        }
+    });
 }
 
+// 辅助函数：为比较工具的下拉列表加载数据集名称
+function loadDefaultDatasetsForComparison() {
+    const dataSelect = DOM.compareTestDataSelect();
+    if (dataSelect) {
+        // 保留用户已有的选项，这里只确保 "当前上传数据" 存在
+        let currentUploadedOptionExists = false;
+        for (let i = 0; i < dataSelect.options.length; i++) {
+            if (dataSelect.options[i].value === 'current_uploaded') {
+                currentUploadedOptionExists = true;
+                break;
+            }
+        }
+        if (!currentUploadedOptionExists) {
+            const opt = document.createElement('option');
+            opt.value = 'current_uploaded';
+            opt.textContent = '当前已上传的数据集';
+            // 插入到 "选择数据集" 之后
+            if (dataSelect.options.length > 1) {
+                dataSelect.insertBefore(opt, dataSelect.options[1]);
+            } else {
+                dataSelect.appendChild(opt);
+            }
+        }
+    }
+}
 /**
  * 格式化指标名称
  */
@@ -1950,145 +2460,304 @@ function formatMetricName(metric) {
 }
 
 // --- ENSEMBLE BUILDING ---
-let ensembleModelCount = 0; const MIN_ENSEMBLE = 2;
+// app.js
+
+// ... (其他代码) ...
+
 function initEnsembleBuilding() {
     const addBtn = DOM.addEnsembleModelBtn();
     const buildBtn = DOM.buildEnsembleBtn();
-    if (!addBtn || !buildBtn) return;
-    
-    // 确保模型列表已加载
-    populateAdvancedToolSelectors();
-    
-    // 加载所有可用模型并初始化选择器
-    setTimeout(async () => {
-        if (!allModelsCache || allModelsCache.length === 0) {
-            try {
-                const response = await fetch(API_ENDPOINTS.MODELS);
-                if (!response.ok) throw new Error(`请求失败 (${response.status})`);
-                const data = await response.json();
-                allModelsCache = data.models || [];
-                if (allModelsCache.length === 0) {
-                    console.warn('没有可用的模型');
-                    return;
-                }
-            } catch (error) {
-                console.error('获取模型列表失败:', error);
-                return;
-            }
-        }
-        
-        // 初始化选择器值
-        const selectors = document.querySelectorAll('.ensemble-model-select');
-        selectors.forEach((selector, index) => {
-            if (index < allModelsCache.length) {
-                const model = allModelsCache[index];
-                selector.value = model.internal_name || model.name;
-                selector.title = model.description || model.display_name || model.name;
-            }
-        });
-    }, 500);
+    const ensembleTypeSel = DOM.ensembleTypeSelect();
+    const ensembleNameInput = DOM.ensembleName();
 
-    addBtn.addEventListener('click', () => {
+    if (!addBtn || !buildBtn || !ensembleTypeSel || !ensembleNameInput) return;
+
+    // 动态添加模型选择器逻辑 (您已有的)
+    // 确保 allModelsCache 填充方式同上
+     const initializeEnsembleModelSelectors = async () => {
         if (!allModelsCache || allModelsCache.length === 0) {
-            loadAvailableModels().then(() => {
-                addDynamicModelSelector(
-                    DOM.ensembleModelsContainer(), 
-                    DOM.ensembleModelPlaceholder(), 
-                    allModelsCache.filter(m => m.type !== 'ensemble'),
-                    ensembleModelCount, 
-                    10, 
-                    'ensemble-model-select', 
-                    '基础模型',
-                    (newCount) => ensembleModelCount = newCount
-                );
-            });
-        } else {
+             allModelsCache = Object.values(FIXED_MODEL_DETAILS).map(m => ({
+                internal_name: m.internal_name,
+                name: m.display_name,
+                type: getCategoryForModel(m.internal_name)
+            }));
+        }
+        // 初始化时添加 MIN_ENSEMBLE (例如2个) 模型选择器
+        const existingSelectors = DOM.ensembleModelsContainer().querySelectorAll('.ensemble-model-select').length;
+        for (let i = existingSelectors; i < MIN_ENSEMBLE; i++) {
             addDynamicModelSelector(
-                DOM.ensembleModelsContainer(), 
-                DOM.ensembleModelPlaceholder(), 
-                allModelsCache.filter(m => m.type !== 'ensemble'),
-                ensembleModelCount, 
-                10, 
-                'ensemble-model-select', 
-                    '基础模型',
-                    (newCount) => ensembleModelCount = newCount
+                DOM.ensembleModelsContainer(),
+                DOM.ensembleModelPlaceholder(),
+                allModelsCache.filter(m => m.type !== 'ensemble'), // 基础模型不能是集成模型自身
+                ensembleModelCount, // 全局变量
+                10, // Max ensemble components
+                'ensemble-model-select',
+                '基础模型',
+                (nc) => ensembleModelCount = nc
             );
         }
+    };
+    initializeEnsembleModelSelectors();
+
+
+    addBtn.addEventListener('click', () => {
+        addDynamicModelSelector(
+            DOM.ensembleModelsContainer(),
+            DOM.ensembleModelPlaceholder(),
+            allModelsCache.filter(m => m.type !== 'ensemble'), // 基础模型不应是集成模型
+            ensembleModelCount,
+            10, // Max ensemble components
+            'ensemble-model-select',
+            '基础模型',
+            (newCount) => ensembleModelCount = newCount
+        );
     });
-    // 初始化添加两个基础模型选择器
-    for(let i=0; i<MIN_ENSEMBLE; i++) addDynamicModelSelector(DOM.ensembleModelsContainer(), DOM.ensembleModelPlaceholder(), allModelsCache.filter(m => m.type !== 'ensemble'), ensembleModelCount, 10, 'ensemble-model-select', '基础模型', (nc) => ensembleModelCount = nc);
 
     buildBtn.addEventListener('click', async () => {
-        const models = Array.from(DOM.ensembleModelsContainer().querySelectorAll('.ensemble-model-select')).map(s => s.value).filter(Boolean);
-        const type = DOM.ensembleTypeSelect().value;
-        const name = DOM.ensembleName().value.trim();
-        
-        // 验证输入
-        if (models.length < MIN_ENSEMBLE) { 
-            showToast(`请至少选择 ${MIN_ENSEMBLE} 个基础模型。`, 'warning'); 
-            return; 
+        const selectedBaseModels = Array.from(DOM.ensembleModelsContainer().querySelectorAll('.ensemble-model-select'))
+                                   .map(s => s.value)
+                                   .filter(Boolean);
+        const ensembleType = ensembleTypeSel.value;
+        const ensembleName = ensembleNameInput.value.trim();
+
+        if (selectedBaseModels.length < MIN_ENSEMBLE) {
+            showToast(`请至少选择 ${MIN_ENSEMBLE} 个基础模型。`, 'warning'); return;
         }
-        if (!type) {
-            showToast('请选择集成类型。', 'warning');
-            return;
+        if (!ensembleType) {
+            showToast('请选择集成类型。', 'warning'); return;
         }
-        if (!name) {
-            showToast('请输入集成模型名称。', 'warning');
-            return;
+        if (!ensembleName) {
+            showToast('请输入集成模型名称。', 'warning'); return;
         }
-        if (!/^[a-zA-Z0-9_.-]+$/.test(name)) { 
-            showToast('模型名称只能包含字母、数字、下划线、点和连字符。', 'warning'); 
-            return; 
+        if (!/^[a-zA-Z0-9_.-]+$/.test(ensembleName)) {
+            showToast('模型名称只能包含字母、数字、下划线、点和连字符。', 'warning'); return;
         }
-        
-        // 显示加载状态
-        DOM.ensembleResultContainer().innerHTML = `<p class="text-center py-4"><span class="loading loading-lg loading-dots"></span></p>`;
-        setButtonLoading(buildBtn, true, '构建中...');
-        
+
+        DOM.ensembleResultContainer().innerHTML = `<p class="text-center py-4"><span class="loading loading-lg loading-dots text-primary-hex"></span></p>`;
+        setButtonLoading(buildBtn, true, '正在模拟构建...');
+
         try {
-            // 调用构建集成模型API
-            const response = await fetch(API_ENDPOINTS.BUILD_ENSEMBLE, {
+            const body = {
+                base_models: selectedBaseModels,
+                ensemble_type: ensembleType,
+                ensemble_name: ensembleName
+            };
+
+            const response = await fetch(API_ENDPOINTS.SIMULATE_BUILD_ENSEMBLE, { // 使用模拟API
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    base_models: models,
-                    ensemble_type: type,
-                    save_name: name
-                })
+                body: JSON.stringify(body)
             });
-            
+
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || `请求失败 (${response.status})`);
+                const errData = await response.json().catch(() => ({ error: `服务器错误 (${response.status})` }));
+                throw new Error(errData.error || `模拟构建失败: ${response.statusText}`);
             }
-            
             const result = await response.json();
-            if (!result.success) {
-                throw new Error(result.error || '未知错误');
+
+            if (result.error || !result.success) {
+                let displayError = result.error || "模拟构建时返回了未知错误。";
+                if(result.raw_llm_response) displayError += `<br><small class='text-gray-500'>LLM原始响应: ${escapeHtml(result.raw_llm_response.substring(0,200))}...</small>`;
+                DOM.ensembleResultContainer().innerHTML = `<p class="text-error text-center p-4">${displayError}</p>`;
+                throw new Error(displayError);
             }
-            
-            // 显示成功结果
-            DOM.ensembleResultContainer().innerHTML = `
-                <div class="prose max-w-none">
-                    <p class="text-success font-medium">集成模型 "${escapeHtml(name)}" 构建成功！</p>
-                    <div class="mt-3 p-3 bg-base-200 rounded-lg">
-                        <p class="text-sm mb-2"><span class="font-medium">模型类型:</span> ${result.ensemble_type} 集成</p>
-                        <p class="text-sm mb-2"><span class="font-medium">基础模型:</span> ${result.base_models.map(m => getModelDisplayName(m)).join(', ')}</p>
-                        <p class="text-sm"><span class="font-medium">创建时间:</span> ${new Date(result.model_info.created_at).toLocaleString()}</p>
-                    </div>
-                </div>`;
-                
-            showToast('集成模型构建成功！', 'success');
-            await loadAvailableModels(); // 刷新所有模型列表
-        } catch (e) { 
-            console.error('构建集成模型错误:', e);
-            showToast(`构建失败: ${e.message}`, 'error'); 
-            DOM.ensembleResultContainer().innerHTML = `<p class="text-error text-center py-4">构建失败: ${escapeHtml(e.message)}</p>`; 
-        } finally { 
-            setButtonLoading(buildBtn, false, '<i class="fas fa-magic" aria-hidden="true"></i> 构建集成模型'); 
+
+            // 显示模拟的集成模型构建结果
+            let html = `<div class="prose max-w-none p-1"><h4>集成模型模拟构建结果</h4>`;
+            html += `<p class="text-success font-medium">${escapeHtml(result.message || `集成模型 "${escapeHtml(result.ensemble_name)}" 已成功模拟创建！`)}</p>`;
+            html += `<div class="mt-3 p-3 bg-base-200 rounded-lg text-sm space-y-1">`;
+            if(result.ensemble_name) html += `<p><strong class="font-medium">集成模型名称:</strong> ${escapeHtml(result.ensemble_name)}</p>`;
+            if(result.ensemble_type) html += `<p><strong class="font-medium">集成类型:</strong> ${escapeHtml(result.ensemble_type)}</p>`;
+            if(result.base_models_used && result.base_models_used.length) {
+                html += `<p><strong class="font-medium">基础模型:</strong> ${result.base_models_used.map(m => escapeHtml(getModelDisplayName(m))).join(', ')}</p>`;
+            }
+            if(result.description) html += `<div class="mt-2"><strong class="font-medium">模拟工作原理:</strong><div class="text-xs">${formatAnswer(result.description)}</div></div>`;
+            if(result.potential_advantages) html += `<div class="mt-2"><strong class="font-medium">模拟潜在优势:</strong><div class="text-xs">${formatAnswer(result.potential_advantages)}</div></div>`;
+            if(result.suitable_scenarios) html += `<div class="mt-2"><strong class="font-medium">模拟适用场景:</strong><div class="text-xs">${formatAnswer(result.suitable_scenarios)}</div></div>`;
+            if(result.model_info) {
+                html += `<div class="mt-2"><strong class="font-medium">模拟元数据:</strong>`;
+                html += `<ul class="list-disc list-inside text-xs ml-4">`;
+                if(result.model_info.simulated_created_at) html += `<li>创建时间: ${escapeHtml(new Date(result.model_info.simulated_created_at).toLocaleString())}</li>`;
+                if(result.model_info.simulated_combination_method) html += `<li>组合方法: ${escapeHtml(result.model_info.simulated_combination_method)}</li>`;
+                html += `</ul></div>`;
+            }
+            html += `</div></div>`;
+            DOM.ensembleResultContainer().innerHTML = html;
+            showToast('集成模型模拟构建完成！', 'success');
+
+            // 可以在这里考虑是否将这个模拟的集成模型添加到某个前端列表，或者提示用户它已“创建”
+            // 例如，可以更新 allModelsCache 或 FIXED_MODEL_DETAILS (如果希望它出现在模型选择中)
+            // 但要注意，这只是一个模拟，它没有真实的模型文件。
+
+        } catch (e) {
+            console.error('模拟集成模型构建错误:', e);
+             if (!DOM.ensembleResultContainer().innerHTML.includes('text-error')) {
+                DOM.ensembleResultContainer().innerHTML = `<p class="text-error text-center p-4">模拟构建失败: ${escapeHtml(e.message)}</p>`;
+            }
+            showToast(`模拟构建失败: ${e.message}`, 'error');
+        } finally {
+            setButtonLoading(buildBtn, false, '<i class="fas fa-magic" aria-hidden="true"></i> 构建集成模型');
         }
     });
 }
+async function populateAdvancedToolSelectors() { // modelsList 参数现在可选
+    if (!allModelsCache || allModelsCache.length === 0) {
+        // 使用 FIXED_MODEL_DETAILS 初始化 allModelsCache
+        allModelsCache = Object.values(FIXED_MODEL_DETAILS).map(m => ({
+            internal_name: m.internal_name,
+            name: m.display_name, // 或者 m.internal_name 用于 populateModelSelector
+            type: getCategoryForModel(m.internal_name)
+        }));
+        // 如果您仍希望从后端获取模型列表用于高级工具，可以保留 fetch(API_ENDPOINTS.MODELS) 的逻辑
+    }
+    // 确保 DOM 元素存在再填充
+    if (DOM.versionModelSelector()) {
+         populateModelSelector(DOM.versionModelSelector(), allModelsCache.map(m=> ({name: m.name, internal_name: m.internal_name})), "选择模型查看版本");
+    }
+    if (DOM.deployModelSelect()) {
+        populateModelSelector(DOM.deployModelSelect(), allModelsCache.map(m=> ({name: m.name, internal_name: m.internal_name})), "选择要部署的模型");
+    }
+}
+let ensembleModelCount = 0; const MIN_ENSEMBLE = 2;
+
+// function initEnsembleBuilding() {
+//     const addBtn = DOM.addEnsembleModelBtn();
+//     const buildBtn = DOM.buildEnsembleBtn();
+//     if (!addBtn || !buildBtn) return;
+//
+//     // 确保模型列表已加载
+//     populateAdvancedToolSelectors();
+//
+//     // 加载所有可用模型并初始化选择器
+//     setTimeout(async () => {
+//         if (!allModelsCache || allModelsCache.length === 0) {
+//             try {
+//                 const response = await fetch(API_ENDPOINTS.MODELS);
+//                 if (!response.ok) throw new Error(`请求失败 (${response.status})`);
+//                 const data = await response.json();
+//                 allModelsCache = data.models || [];
+//                 if (allModelsCache.length === 0) {
+//                     console.warn('没有可用的模型');
+//                     return;
+//                 }
+//             } catch (error) {
+//                 console.error('获取模型列表失败:', error);
+//                 return;
+//             }
+//         }
+//
+//         // 初始化选择器值
+//         const selectors = document.querySelectorAll('.ensemble-model-select');
+//         selectors.forEach((selector, index) => {
+//             if (index < allModelsCache.length) {
+//                 const model = allModelsCache[index];
+//                 selector.value = model.internal_name || model.name;
+//                 selector.title = model.description || model.display_name || model.name;
+//             }
+//         });
+//     }, 500);
+//
+//     addBtn.addEventListener('click', () => {
+//         if (!allModelsCache || allModelsCache.length === 0) {
+//             loadAvailableModels().then(() => {
+//                 addDynamicModelSelector(
+//                     DOM.ensembleModelsContainer(),
+//                     DOM.ensembleModelPlaceholder(),
+//                     allModelsCache.filter(m => m.type !== 'ensemble'),
+//                     ensembleModelCount,
+//                     10,
+//                     'ensemble-model-select',
+//                     '基础模型',
+//                     (newCount) => ensembleModelCount = newCount
+//                 );
+//             });
+//         } else {
+//             addDynamicModelSelector(
+//                 DOM.ensembleModelsContainer(),
+//                 DOM.ensembleModelPlaceholder(),
+//                 allModelsCache.filter(m => m.type !== 'ensemble'),
+//                 ensembleModelCount,
+//                 10,
+//                 'ensemble-model-select',
+//                     '基础模型',
+//                     (newCount) => ensembleModelCount = newCount
+//             );
+//         }
+//     });
+//     // 初始化添加两个基础模型选择器
+//     for(let i=0; i<MIN_ENSEMBLE; i++) addDynamicModelSelector(DOM.ensembleModelsContainer(), DOM.ensembleModelPlaceholder(), allModelsCache.filter(m => m.type !== 'ensemble'), ensembleModelCount, 10, 'ensemble-model-select', '基础模型', (nc) => ensembleModelCount = nc);
+//
+//     buildBtn.addEventListener('click', async () => {
+//         const models = Array.from(DOM.ensembleModelsContainer().querySelectorAll('.ensemble-model-select')).map(s => s.value).filter(Boolean);
+//         const type = DOM.ensembleTypeSelect().value;
+//         const name = DOM.ensembleName().value.trim();
+//
+//         // 验证输入
+//         if (models.length < MIN_ENSEMBLE) {
+//             showToast(`请至少选择 ${MIN_ENSEMBLE} 个基础模型。`, 'warning');
+//             return;
+//         }
+//         if (!type) {
+//             showToast('请选择集成类型。', 'warning');
+//             return;
+//         }
+//         if (!name) {
+//             showToast('请输入集成模型名称。', 'warning');
+//             return;
+//         }
+//         if (!/^[a-zA-Z0-9_.-]+$/.test(name)) {
+//             showToast('模型名称只能包含字母、数字、下划线、点和连字符。', 'warning');
+//             return;
+//         }
+//
+//         // 显示加载状态
+//         DOM.ensembleResultContainer().innerHTML = `<p class="text-center py-4"><span class="loading loading-lg loading-dots"></span></p>`;
+//         setButtonLoading(buildBtn, true, '构建中...');
+//
+//         try {
+//             // 调用构建集成模型API
+//             const response = await fetch(API_ENDPOINTS.BUILD_ENSEMBLE, {
+//                 method: 'POST',
+//                 headers: { 'Content-Type': 'application/json' },
+//                 body: JSON.stringify({
+//                     base_models: models,
+//                     ensemble_type: type,
+//                     save_name: name
+//                 })
+//             });
+//
+//             if (!response.ok) {
+//                 const errorData = await response.json();
+//                 throw new Error(errorData.error || `请求失败 (${response.status})`);
+//             }
+//
+//             const result = await response.json();
+//             if (!result.success) {
+//                 throw new Error(result.error || '未知错误');
+//             }
+//
+//             // 显示成功结果
+//             DOM.ensembleResultContainer().innerHTML = `
+//                 <div class="prose max-w-none">
+//                     <p class="text-success font-medium">集成模型 "${escapeHtml(name)}" 构建成功！</p>
+//                     <div class="mt-3 p-3 bg-base-200 rounded-lg">
+//                         <p class="text-sm mb-2"><span class="font-medium">模型类型:</span> ${result.ensemble_type} 集成</p>
+//                         <p class="text-sm mb-2"><span class="font-medium">基础模型:</span> ${result.base_models.map(m => getModelDisplayName(m)).join(', ')}</p>
+//                         <p class="text-sm"><span class="font-medium">创建时间:</span> ${new Date(result.model_info.created_at).toLocaleString()}</p>
+//                     </div>
+//                 </div>`;
+//
+//             showToast('集成模型构建成功！', 'success');
+//             await loadAvailableModels(); // 刷新所有模型列表
+//         } catch (e) {
+//             console.error('构建集成模型错误:', e);
+//             showToast(`构建失败: ${e.message}`, 'error');
+//             DOM.ensembleResultContainer().innerHTML = `<p class="text-error text-center py-4">构建失败: ${escapeHtml(e.message)}</p>`;
+//         } finally {
+//             setButtonLoading(buildBtn, false, '<i class="fas fa-magic" aria-hidden="true"></i> 构建集成模型');
+//         }
+//     });
+// }
 
 /** Generic function to add a model selector dynamically */
 function addDynamicModelSelector(container, placeholderEl, modelsList, currentCount, maxCount, selectClass, labelPrefix, updateCountCallback) {

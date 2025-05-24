@@ -13,7 +13,8 @@ import traceback
 
 from langchain.tools import StructuredTool
 from langchain_core.tools import Tool
-from langchain_core.pydantic_v1 import BaseModel, Field
+from langchain_core.pydantic_v1 import Field
+from pydantic import BaseModel
 from langchain.agents import AgentExecutor, create_structured_chat_agent
 from langchain_core.prompts import PromptTemplate
 

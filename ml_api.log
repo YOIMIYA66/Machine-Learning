@@ -1403,3 +1403,211 @@ NameError: name 'List' is not defined
 2025-05-22 15:30:58,109 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êğ£¬ÆäÖĞ 0 ¸öÕıÔÚÔËĞĞ
 2025-05-22 15:30:58,110 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 15:30:58] "GET /api/ml/deployments HTTP/1.1" 200 -
 2025-05-22 15:30:58,339 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 15:30:58] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -
+2025-05-24 16:03:38,111 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊğÄ£ĞÍÁĞ±í
+2025-05-24 16:03:38,114 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êğ£¬ÆäÖĞ 0 ¸öÕıÔÚÔËĞĞ
+2025-05-24 16:03:38,116 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 16:03:38] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-24 17:40:53,248 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊğÄ£ĞÍÁĞ±í
+2025-05-24 17:40:53,248 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êğ£¬ÆäÖĞ 0 ¸öÕıÔÚÔËĞĞ
+2025-05-24 17:40:53,249 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 17:40:53] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-24 17:40:54,163 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 17:40:54] "GET /static/favicon.ico HTTP/1.1" 200 -
+2025-05-24 17:41:45,622 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 17:41:45] "GET / HTTP/1.1" 200 -
+2025-05-24 17:41:46,030 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 17:41:46] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-24 17:41:46,197 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊğÄ£ĞÍÁĞ±í
+2025-05-24 17:41:46,198 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êğ£¬ÆäÖĞ 0 ¸öÕıÔÚÔËĞĞ
+2025-05-24 17:41:46,198 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 17:41:46] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-24 17:41:46,647 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 17:41:46] "GET /static/favicon.ico HTTP/1.1" 200 -
+2025-05-24 17:42:23,373 - app - INFO - ÎªÄ£ĞÍ 'linear_regression' ÔÚ»·¾³ 'staging' Éú³ÉµÄ²¿Êğ¶Ëµã: /api/predict/linear-regression/e2b391b0
+2025-05-24 17:42:23,373 - ml_api_endpoints - INFO - ¿ªÊ¼²¿ÊğÄ£ĞÍ 'linear_regression' µ½ staging »·¾³
+2025-05-24 17:42:23,424 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 17:42:23] "[31m[1mPOST /api/ml/deploy HTTP/1.1[0m" 400 -
+2025-05-24 17:42:54,618 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 17:42:54] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-24 17:42:54,649 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 17:42:54] "POST /api/ml/analyze HTTP/1.1" 200 -
+2025-05-24 17:42:59,929 - app - INFO - API½ÓÊÕµ½²éÑ¯: 'Õâ·İÊı¾İÊÊºÏÓÃÊ²Ã´Ä£ĞÍ½øĞĞ·ÖÎö£¿...', Ä£Ê½: data_analysis
+2025-05-24 17:42:59,929 - app - INFO - ´¦Àí»ùÓÚÊı¾İµÄ·ÖÎö²éÑ¯
+2025-05-24 17:43:15,335 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-24 17:43:15,341 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 17:43:15] "POST /api/chat HTTP/1.1" 200 -
+2025-05-24 17:43:38,333 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 17:43:38] "GET / HTTP/1.1" 200 -
+2025-05-24 17:43:38,723 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 17:43:38] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-24 17:43:38,888 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊğÄ£ĞÍÁĞ±í
+2025-05-24 17:43:38,888 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êğ£¬ÆäÖĞ 0 ¸öÕıÔÚÔËĞĞ
+2025-05-24 17:43:38,889 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 17:43:38] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-24 17:43:39,288 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 17:43:39] "GET /static/favicon.ico HTTP/1.1" 200 -
+2025-05-24 17:43:55,239 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 17:43:55] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-24 17:43:55,264 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 17:43:55] "POST /api/ml/analyze HTTP/1.1" 200 -
+2025-05-24 19:11:53,824 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 19:11:53] "GET / HTTP/1.1" 200 -
+2025-05-24 19:12:04,385 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 19:12:04] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-24 19:12:14,717 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊğÄ£ĞÍÁĞ±í
+2025-05-24 19:12:14,718 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êğ£¬ÆäÖĞ 0 ¸öÕıÔÚÔËĞĞ
+2025-05-24 19:12:14,718 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 19:12:14] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-24 19:12:47,515 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 19:12:47] "GET / HTTP/1.1" 200 -
+2025-05-24 19:12:48,691 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 19:12:48] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2025-05-24 19:12:48,889 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊğÄ£ĞÍÁĞ±í
+2025-05-24 19:12:48,890 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êğ£¬ÆäÖĞ 0 ¸öÕıÔÚÔËĞĞ
+2025-05-24 19:12:48,891 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 19:12:48] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-24 19:12:49,583 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 19:12:49] "GET /static/favicon.ico HTTP/1.1" 200 -
+2025-05-24 19:13:07,732 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 19:13:07] "GET / HTTP/1.1" 200 -
+2025-05-24 19:13:07,766 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 19:13:07] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2025-05-24 19:13:07,994 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊğÄ£ĞÍÁĞ±í
+2025-05-24 19:13:07,995 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êğ£¬ÆäÖĞ 0 ¸öÕıÔÚÔËĞĞ
+2025-05-24 19:13:07,995 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 19:13:07] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-24 19:13:08,059 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 19:13:08] "[36mGET /static/favicon.ico HTTP/1.1[0m" 304 -
+2025-05-24 19:36:28,506 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 19:36:28] "GET / HTTP/1.1" 200 -
+2025-05-24 19:36:29,208 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 19:36:29] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-24 19:36:29,471 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊğÄ£ĞÍÁĞ±í
+2025-05-24 19:36:29,471 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êğ£¬ÆäÖĞ 0 ¸öÕıÔÚÔËĞĞ
+2025-05-24 19:36:29,477 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 19:36:29] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-24 19:36:30,118 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 19:36:30] "GET /static/favicon.ico HTTP/1.1" 200 -
+2025-05-24 19:36:44,962 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 19:36:44] "GET / HTTP/1.1" 200 -
+2025-05-24 19:36:45,627 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 19:36:45] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-24 19:36:45,816 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊğÄ£ĞÍÁĞ±í
+2025-05-24 19:36:45,816 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êğ£¬ÆäÖĞ 0 ¸öÕıÔÚÔËĞĞ
+2025-05-24 19:36:45,817 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 19:36:45] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-24 19:36:46,433 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 19:36:46] "GET /static/favicon.ico HTTP/1.1" 200 -
+2025-05-24 19:36:55,925 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 19:36:55] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-24 19:36:55,949 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 19:36:55] "POST /api/ml/analyze HTTP/1.1" 200 -
+2025-05-24 19:37:18,265 - app - INFO - Ä£Äâ¼¯³É¹¹½¨Prompt (²¿·Ö): ÇëÄ£Äâ¹¹½¨Ò»¸öÃûÎª 'test' µÄ¼¯³ÉÑ§Ï°Ä£ĞÍ£¬²¢ÒÔÖĞÎÄ»Ø´ğ£º
+»ù´¡Ä£ĞÍÁĞ±í£ºsvm_classifier, linear_regression
+¼¯³ÉÀàĞÍ£ºvoting_classifier (ÀıÈç£ºVoting Classifier, Stacking Regressor, BaggingClassifierµÈ)
+
+ÇëÔÚ»Ø´ğÖĞ°üº¬ÒÔÏÂÄÚÈİ£º
+1. Ò»¸öÄ£ÄâµÄ¡°¹¹½¨³É¹¦¡±»ò¡°ÒÑ´´½¨¡±µÄÏûÏ¢¡£
+2. ¶ÔÕâ¸öÃûÎª 'test' µÄÄ£Äâ¼¯³ÉÄ£ĞÍµÄ¹¤×÷Ô­Àí½øĞĞ¼òÒªÃèÊö£¨¸ù¾İÆäÀàĞÍºÍ»ù´¡Ä£ĞÍ£©¡£
+3. ÁĞ³öÕâ¸öÄ£Äâ¼¯³ÉÄ£ĞÍÏà¶ÔÓÚÆä»ù´¡Ä£ĞÍ¿ÉÄÜµÄÇ±ÔÚÓÅÊÆ¡£
+4. ¼òÒªÃèÊöËü¿ÉÄÜÊÊÓÃÓÚÊ²Ã´ÑùµÄÊı¾İ¼¯»òÎÊÌâ...
+2025-05-24 19:37:30,829 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-24 19:37:30,833 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 19:37:30] "[35m[1mPOST /api/simulate_ensemble_building HTTP/1.1[0m" 201 -
+2025-05-24 19:37:50,256 - app - INFO - ÎªÄ£ĞÍ 'linear_regression' ÔÚ»·¾³ 'staging' Éú³ÉµÄ²¿Êğ¶Ëµã: /api/predict/linear-regression/c95f9c73
+2025-05-24 19:37:50,256 - ml_api_endpoints - INFO - ¿ªÊ¼²¿ÊğÄ£ĞÍ 'linear_regression' µ½ staging »·¾³
+2025-05-24 19:37:50,320 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 19:37:50] "[31m[1mPOST /api/ml/deploy HTTP/1.1[0m" 400 -
+2025-05-24 20:04:42,310 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊğÄ£ĞÍÁĞ±í
+2025-05-24 20:04:42,311 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êğ£¬ÆäÖĞ 0 ¸öÕıÔÚÔËĞĞ
+2025-05-24 20:04:42,311 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 20:04:42] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-24 20:09:28,243 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 20:09:28] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-24 20:09:28,288 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 20:09:28] "POST /api/ml/analyze HTTP/1.1" 200 -
+2025-05-24 20:09:39,510 - app - INFO - Ä£ÄâÄ£ĞÍ±È½ÏPrompt (²¿·Ö): ÇëÄ£ÄâÒÔÏÂ»úÆ÷Ñ§Ï°Ä£ĞÍµÄ±È½Ï¹ı³Ì£¬²¢ÒÔÖĞÎÄ»Ø´ğ£º
+Ä£ĞÍÁĞ±í£ºlinear_regression, logistic_regression
+²âÊÔÊı¾İ¼¯±êÊ¶£º'µ±Ç°ÉÏ´«µÄÊı¾İ (±±¾©ÊĞ¿ÕÆøÖÊÁ¿Êı¾İ.xlsx)' (ÀıÈç£º'µ±Ç°ÉÏ´«µÄ¹ØÓÚ¿Í»§Á÷Ê§Ô¤²âµÄÊı¾İ' »ò '¹«¿ªµÄğ°Î²»¨·ÖÀàÊı¾İ¼¯')
+Ä¿±êÁĞ£º'PM2.5'
+
+ÒªÇó£º
+1. ÎªÁĞ±íÖĞµÄÃ¿¸öÄ£ĞÍÉú³ÉÒ»×éºÏÀíµÄ¡¢·ûºÏÆäµäĞÍÓ¦ÓÃ³¡¾°µÄÄ£ÄâÆÀ¹ÀÖ¸±ê¡£
+   - Èç¹ûÄ¿±êÁĞ°µÊ¾·ÖÀàÈÎÎñ£¨ÀıÈç£¬Ä¿±êÁĞÊÇ×Ö·ûĞÍ»òÉÙÊıÎ¨Ò»Öµ£©£¬ÇëÊ¹ÓÃ·ÖÀàÖ¸±êÈç£º×¼È·ÂÊ (Accuracy), ¾«È·ÂÊ (Precision), ÕÙ»ØÂÊ (Recall), F1·ÖÊı (F1-s...
+2025-05-24 20:09:57,372 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-24 20:09:57,374 - app - ERROR - LLM·µ»ØµÄÄ£Äâ±È½Ï½á¹û²»ÊÇÓĞĞ§µÄJSON: ```json
+{
+	"comparison_results": [
+		{
+			"model_name": "linear_regression",
+			"metrics": {
+				"R2 Score": 0.85,
+				"MSE": "15.2",
+				"MAE": "3.1"
+			}
+		},
+		{
+			"model_name": "logistic_regression",
+			"metrics": {
+				"±¸×¢": "logistic_regression²»ÊÊÓÃÓÚ»Ø¹éÈÎÎñ£¬´Ë´¦½öÎª¸ñÊ½Í³Ò»ÁĞ³ö£¬Êµ¼ÊÆÀ¹ÀÎŞÒâÒå",
+				"R2 Score": "N/A",
+				"MSE": "N/A",
+				"MAE": "N/A"
+				// ÀíÂÛÉÏÓ¦Ê¹ÓÃ·ÖÀàÖ¸±ê£¬µ«°´ÒªÇó´Ë´¦²»ÁĞ³ö
+			}
+			// Êµ¼ÊÄ£ÄâÖĞ£¬ÎÒÃÇ²»»áÎªlogistic_regression¼ÆËã»Ø¹éÖ¸±ê£¬ÕâÀï½öÎª½á¹¹Õ¹Ê¾
+		}
+		// ×¢£ºÓÉÓÚlogistic_regressionÊÇ·ÖÀàÄ£ĞÍ£¬¶ÔÓÚ»Ø¹éÈÎÎñ'PM2.5'²»ÊÊÓÃ£¬
+		// ÀíÂÛÉÏÓ¦µ¥¶ÀÎª·ÖÀàÈÎÎñÄ£ÄâÆäÖ¸±ê£¬µ«°´ÌâÄ¿ÒªÇóÍ³Ò»¸ñÊ½£¬´Ë´¦½ö×÷ËµÃ÷¡£
+	],
+	"summary": "ÔÚÄ£ÄâµÄ»Ø¹éÈÎÎñÖĞ£¬linear_regressionÄ£ĞÍ±íÏÖ³öÁË½Ï¸ßµÄR\xb2·ÖÊı£¨0.85£©£¬±íÃ÷Ä£ĞÍ¶ÔÊı¾İµÄÄâºÏ³Ì¶È½ÏºÃ¡£Í¬Ê±£¬MSEºÍMAEµÄÖµÒ²´¦ÓÚºÏÀí·¶Î§ÄÚ£¬ËµÃ÷Ä£ĞÍµÄÔ¤²âÎó²îÏà¶Ô½ÏĞ¡¡£ÓÉÓÚlogistic_regressionÊÇ·ÖÀàÄ£ĞÍ£¬²»ÊÊÓÃÓÚ±¾´Î»Ø¹éÈÎÎñµÄÆÀ¹À£¬Òò´ËÔÚ»Ø¹éÖ¸±êÉÏÎŞÊµ¼ÊÒâÒå¡£»ùÓÚÄ£Äâ½á¹û£¬¿ÉÒÔÍÆ²âÔÚÕë¶Ô'PM2.5'µÄ»Ø¹éÔ¤²âÈÎÎñÖĞ£¬linear_regressionÄ£ĞÍ¿ÉÄÜ±íÏÖ¸üÓÅ¡£",
+	"test_data_info": {
+		"identifier": "µ±Ç°ÉÏ´«µÄÊı¾İ (±±¾©ÊĞ¿ÕÆøÖÊÁ¿Êı¾İ.xlsx)",
+		"simulated_rows": "Ô¼1000ĞĞ",
+		"simulated_features": "Ô¼10¸öÌØÕ÷"
+	}
+}
+``` 
+**ËµÃ÷**£º
+- ¶ÔÓÚ`logistic_regression`£¬ÓÉÓÚËüÊÇ·ÖÀàÄ£ĞÍ£¬²»ÊÊÓÃÓÚ±¾´ÎµÄ»Ø¹éÈÎÎñ£¨Ä¿±êÁĞ'PM2.5'ÎªÁ¬ĞøÊıÖµĞÍ£©£¬Òò´ËÔÚ`metrics`ÖĞ±ê¼ÇÁË"N/A"²¢Ìí¼Ó±¸×¢ËµÃ÷¡£ÔÚÊµ¼ÊÓ¦ÓÃÖĞ£¬Èç¹ûÄ¿±êÁĞÊÇ·ÖÀàÈÎÎñ£¬ÎÒÃÇ»áÎª`logistic_regression`¼ÆËã·ÖÀàÖ¸±êÈç×¼È·ÂÊ¡¢¾«È·ÂÊµÈ¡£
+- `linear_regression`µÄÄ£ÄâÆÀ¹ÀÖ¸±ê£¨R\xb2 Score, MSE, MAE£©ÊÇ»ùÓÚ»Ø¹éÈÎÎñµÄµäĞÍÆÀ¹ÀÖ¸±ê£¬²¢Ëæ»úÄ£ÄâÁË·ûºÏÒªÇóµÄÊıÖµ¡£
+- ×Ü½á²¿·ÖÖ¸³öÁË`linear_regression`ÔÚÄ£ÄâÖĞ¿ÉÄÜ±íÏÖ¸üÓÅ£¬²¢¸ø³öÁËÍÆ²âµÄÀíÓÉ£¬¼´Æä½Ï¸ßµÄR\xb2·ÖÊıºÍÏà¶Ô½ÏĞ¡µÄÔ¤²âÎó²î¡£
+2025-05-24 20:09:57,375 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 20:09:57] "[35m[1mPOST /api/simulate_model_comparison HTTP/1.1[0m" 500 -
+2025-05-24 22:24:25,523 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊğÄ£ĞÍÁĞ±í
+2025-05-24 22:24:25,524 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êğ£¬ÆäÖĞ 0 ¸öÕıÔÚÔËĞĞ
+2025-05-24 22:24:25,524 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 22:24:25] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-24 22:24:59,034 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 22:24:59] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-24 22:24:59,064 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 22:24:59] "POST /api/ml/analyze HTTP/1.1" 200 -
+2025-05-24 22:25:34,422 - app - INFO - Ä£Äâ¼¯³É¹¹½¨Prompt (²¿·Ö): ÇëÄ£Äâ¹¹½¨Ò»¸öÃûÎª 'test' µÄ¼¯³ÉÑ§Ï°Ä£ĞÍ£¬²¢ÒÔÖĞÎÄ»Ø´ğ£º
+»ù´¡Ä£ĞÍÁĞ±í£ºknn_classifier, linear_regression
+¼¯³ÉÀàĞÍ£ºstacking_classifier (ÀıÈç£ºVoting Classifier, Stacking Regressor, BaggingClassifierµÈ)
+
+ÇëÔÚ»Ø´ğÖĞ°üº¬ÒÔÏÂÄÚÈİ£º
+1. Ò»¸öÄ£ÄâµÄ¡°¹¹½¨³É¹¦¡±»ò¡°ÒÑ´´½¨¡±µÄÏûÏ¢¡£
+2. ¶ÔÕâ¸öÃûÎª 'test' µÄÄ£Äâ¼¯³ÉÄ£ĞÍµÄ¹¤×÷Ô­Àí½øĞĞ¼òÒªÃèÊö£¨¸ù¾İÆäÀàĞÍºÍ»ù´¡Ä£ĞÍ£©¡£
+3. ÁĞ³öÕâ¸öÄ£Äâ¼¯³ÉÄ£ĞÍÏà¶ÔÓÚÆä»ù´¡Ä£ĞÍ¿ÉÄÜµÄÇ±ÔÚÓÅÊÆ¡£
+4. ¼òÒªÃèÊöËü¿ÉÄÜÊÊÓÃÓÚÊ²Ã´ÑùµÄÊı¾İ¼¯»ò...
+2025-05-24 22:25:34,423 - app - ERROR - Ä£ÄâÄ£ĞÍ±È½Ï¹ı³ÌÖĞ·¢Éú´íÎó: name 'comparison_prompt' is not defined
+Traceback (most recent call last):
+  File "C:\Users\86198\Desktop\Study\»úÆ÷Ñ§Ï°\Machine Learning\app.py", line 591, in simulate_ensemble_building_endpoint
+    llm_raw_output_dict = enhanced_direct_query_llm(comparison_prompt)
+NameError: name 'comparison_prompt' is not defined
+2025-05-24 22:25:34,423 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 22:25:34] "[35m[1mPOST /api/simulate_ensemble_building HTTP/1.1[0m" 500 -
+2025-05-24 22:26:41,835 - app - INFO - ÎªÄ£ĞÍ 'knn_classifier' ÔÚ»·¾³ 'staging' Éú³ÉµÄ²¿Êğ¶Ëµã: /api/predict/knn-classifier/8b03c95c
+2025-05-24 22:26:41,835 - ml_api_endpoints - INFO - ¿ªÊ¼²¿ÊğÄ£ĞÍ 'knn_classifier' µ½ staging »·¾³
+2025-05-24 22:26:41,926 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 22:26:41] "[31m[1mPOST /api/ml/deploy HTTP/1.1[0m" 400 -
+2025-05-24 22:26:44,943 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊğÄ£ĞÍÁĞ±í
+2025-05-24 22:26:44,944 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êğ£¬ÆäÖĞ 0 ¸öÕıÔÚÔËĞĞ
+2025-05-24 22:26:44,944 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 22:26:44] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-24 22:27:53,748 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 22:27:53] "GET / HTTP/1.1" 200 -
+2025-05-24 22:27:55,008 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 22:27:55] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-24 22:27:55,184 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 22:27:55] "[33mGET /undefined HTTP/1.1[0m" 404 -
+2025-05-24 22:27:55,899 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 22:27:55] "GET /static/favicon.ico HTTP/1.1" 200 -
+2025-05-24 22:28:08,955 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 22:28:08] "GET / HTTP/1.1" 200 -
+2025-05-24 22:28:09,401 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 22:28:09] "GET /static/js/app.js HTTP/1.1" 200 -
+2025-05-24 22:28:09,598 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊğÄ£ĞÍÁĞ±í
+2025-05-24 22:28:09,599 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êğ£¬ÆäÖĞ 0 ¸öÕıÔÚÔËĞĞ
+2025-05-24 22:28:09,599 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 22:28:09] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-24 22:28:10,280 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 22:28:10] "GET /static/favicon.ico HTTP/1.1" 200 -
+2025-05-24 22:28:23,564 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 22:28:23] "[33mPOST /undefined HTTP/1.1[0m" 404 -
+2025-05-24 22:29:43,638 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊğÄ£ĞÍÁĞ±í
+2025-05-24 22:29:43,638 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êğ£¬ÆäÖĞ 0 ¸öÕıÔÚÔËĞĞ
+2025-05-24 22:29:43,639 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 22:29:43] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-24 22:30:05,344 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 22:30:05] "POST /api/ml/upload HTTP/1.1" 200 -
+2025-05-24 22:30:05,375 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 22:30:05] "POST /api/ml/analyze HTTP/1.1" 200 -
+2025-05-24 22:30:14,424 - app - INFO - Ä£ÄâÄ£ĞÍ±È½ÏPrompt (²¿·Ö): ÇëÄ£ÄâÒÔÏÂ»úÆ÷Ñ§Ï°Ä£ĞÍµÄ±È½Ï¹ı³Ì£¬²¢ÒÔÖĞÎÄ»Ø´ğ£º
+Ä£ĞÍÁĞ±í£ºlinear_regression, logistic_regression
+²âÊÔÊı¾İ¼¯±êÊ¶£º'µ±Ç°ÉÏ´«µÄÊı¾İ (±±¾©ÊĞ¿ÕÆøÖÊÁ¿Êı¾İ.xlsx)' (ÀıÈç£º'µ±Ç°ÉÏ´«µÄ¹ØÓÚ¿Í»§Á÷Ê§Ô¤²âµÄÊı¾İ' »ò '¹«¿ªµÄğ°Î²»¨·ÖÀàÊı¾İ¼¯')
+Ä¿±êÁĞ£º'PM2.5'
+
+ÒªÇó£º
+1. ÎªÁĞ±íÖĞµÄÃ¿¸öÄ£ĞÍÉú³ÉÒ»×éºÏÀíµÄ¡¢·ûºÏÆäµäĞÍÓ¦ÓÃ³¡¾°µÄÄ£ÄâÆÀ¹ÀÖ¸±ê¡£
+   - Èç¹ûÄ¿±êÁĞ°µÊ¾·ÖÀàÈÎÎñ£¨ÀıÈç£¬Ä¿±êÁĞÊÇ×Ö·ûĞÍ»òÉÙÊıÎ¨Ò»Öµ£©£¬ÇëÊ¹ÓÃ·ÖÀàÖ¸±êÈç£º×¼È·ÂÊ (Accuracy), ¾«È·ÂÊ (Precision), ÕÙ»ØÂÊ (Recall), F1·ÖÊı (F1-s...
+2025-05-24 22:30:22,569 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-24 22:30:22,572 - __main__ - INFO - [ModelComparison] ³É¹¦½âÎöJSON¡£
+2025-05-24 22:30:22,572 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 22:30:22] "POST /api/simulate_model_comparison HTTP/1.1" 200 -
+2025-05-24 22:30:53,515 - app - INFO - Ä£Äâ¼¯³É¹¹½¨Prompt (²¿·Ö): ÇëÄ£Äâ¹¹½¨Ò»¸öÃûÎª 'test' µÄ¼¯³ÉÑ§Ï°Ä£ĞÍ£¬²¢ÒÔÖĞÎÄ»Ø´ğ£º
+»ù´¡Ä£ĞÍÁĞ±í£ºknn_classifier, logistic_regression
+¼¯³ÉÀàĞÍ£ºvoting_regressor (ÀıÈç£ºVoting Classifier, Stacking Regressor, BaggingClassifierµÈ)
+
+ÇëÔÚ»Ø´ğÖĞ°üº¬ÒÔÏÂÄÚÈİ£º
+1. Ò»¸öÄ£ÄâµÄ¡°¹¹½¨³É¹¦¡±»ò¡°ÒÑ´´½¨¡±µÄÏûÏ¢¡£
+2. ¶ÔÕâ¸öÃûÎª 'test' µÄÄ£Äâ¼¯³ÉÄ£ĞÍµÄ¹¤×÷Ô­Àí½øĞĞ¼òÒªÃèÊö£¨¸ù¾İÆäÀàĞÍºÍ»ù´¡Ä£ĞÍ£©¡£
+3. ÁĞ³öÕâ¸öÄ£Äâ¼¯³ÉÄ£ĞÍÏà¶ÔÓÚÆä»ù´¡Ä£ĞÍ¿ÉÄÜµÄÇ±ÔÚÓÅÊÆ¡£
+4. ¼òÒªÃèÊöËü¿ÉÄÜÊÊÓÃÓÚÊ²Ã´ÑùµÄÊı¾İ¼¯»òÎÊ...
+2025-05-24 22:31:03,376 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-24 22:31:03,377 - __main__ - INFO - [ModelComparison] ³É¹¦½âÎöJSON¡£
+2025-05-24 22:31:03,377 - app - ERROR - LLM·µ»ØµÄÄ£Äâ±È½Ï½á¹ûJSON½á¹¹²»·ûºÏÔ¤ÆÚ: {'success': True, 'message': "¼¯³ÉÄ£ĞÍ 'test' ÒÑ³É¹¦Ä£Äâ´´½¨£¡", 'ensemble_name': 'test', 'ensemble_type': 'voting_regressor_simulated_as_classifier_context', 'base_models_used': ['knn_classifier', 'logistic_regression'], 'description': "Õâ¸öÃûÎª 'test' µÄÄ£Äâ¼¯³ÉÄ£ĞÍÊÇÒ»¸ö»ùÓÚÍ¶Æ±»úÖÆµÄ·ÖÀàÆ÷£¨¾¡¹ÜÃû³ÆÖĞ´øÓĞ'regressor'£¬µ«ÔÚ´ËÄ£ÄâÉÏÏÂÎÄÖĞ×÷Îª·ÖÀàÆ÷Ê¹ÓÃ£©¡£Ëü½áºÏÁËK½üÁÚ·ÖÀàÆ÷(knn_classifier)ºÍÂß¼­»Ø¹é(logistic_regression)Á½¸ö»ù´¡Ä£ĞÍµÄÔ¤²â½á¹û¡£ÔÚÔ¤²âÊ±£¬Ã¿¸ö»ù´¡Ä£ĞÍ¶¼»á¶ÀÁ¢µØ¶ÔÊäÈëÊı¾İ½øĞĞ·ÖÀà£¬È»ºó¼¯³ÉÄ£ĞÍ»á¸ù¾İÒ»¶¨µÄÍ¶Æ±¹æÔò£¨Èç¶àÊıÍ¶Æ±£©À´¾ö¶¨×îÖÕµÄ·ÖÀà½á¹û¡£", 'potential_advantages': ['Í¨¹ı½áºÏ¶à¸öÄ£ĞÍµÄÔ¤²â£¬¿ÉÄÜÌá¸ß·ÖÀàµÄ×¼È·ĞÔºÍÂ³°ôĞÔ¡£', '²»Í¬Ä£ĞÍ¿ÉÄÜÉÃ³¤´¦Àí²»Í¬ÀàĞÍµÄÊı¾İÌØÕ÷£¬¼¯³ÉÄ£ĞÍÄÜ¹»×ÛºÏÀûÓÃÕâĞ©ÓÅÊÆ¡£', 'Ïà¶ÔÓÚµ¥Ò»Ä£ĞÍ£¬¼¯³ÉÄ£ĞÍ¿ÉÄÜ¶ÔÔëÉùºÍÒì³£Öµ¾ßÓĞ¸üºÃµÄµÖ¿¹ÄÜÁ¦¡£'], 'suitable_scenarios': ['ÊÊÓÃÓÚÊı¾İÌØÕ÷¶àÑù£¬ÇÒµ¥Ò»Ä£ĞÍÄÑÒÔÈ«Ãæ²¶×½Êı¾İÌØĞÔµÄ³¡¾°¡£', 'µ±ĞèÒªÌá¸ß·ÖÀà×¼È·ĞÔºÍÎÈ¶¨ĞÔÊ±£¬ÌØ±ğÊÇÔÚÊı¾İ¼¯½ÏĞ¡»òÌØÕ÷¸´ÔÓµÄÇé¿öÏÂ¡£', 'ÊÊÓÃÓÚ¶ÔÄ£ĞÍ½âÊÍĞÔÒªÇó²»ÊÇÌØ±ğ¸ß£¬µ«¸ü¿´ÖØÔ¤²âĞÔÄÜµÄ³¡¾°¡£'], 'model_info': {'simulated_created_at': '2023-10-05T14:30:00Z', 'simulated_combination_method': '¶àÊıÍ¶Æ±£¨ÔÚÄ£ÄâÖĞ£¬¼ÙÉèÃ¿¸ö»ù´¡Ä£ĞÍµÄÔ¤²â¾ßÓĞÍ¬µÈÈ¨ÖØ£¬×îÖÕ·ÖÀàÓÉ¶àÊıÄ£ĞÍÖ§³ÖµÄÀà±ğ¾ö¶¨£©'}}
+2025-05-24 22:31:03,377 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 22:31:03] "[35m[1mPOST /api/simulate_ensemble_building HTTP/1.1[0m" 500 -
+2025-05-24 22:35:20,002 - ml_api_endpoints - INFO - »ñÈ¡ÒÑ²¿ÊğÄ£ĞÍÁĞ±í
+2025-05-24 22:35:20,004 - ml_api_endpoints - INFO - ÕÒµ½ 2 ¸ö²¿Êğ£¬ÆäÖĞ 0 ¸öÕıÔÚÔËĞĞ
+2025-05-24 22:35:20,004 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 22:35:20] "GET /api/ml/deployments HTTP/1.1" 200 -
+2025-05-24 22:35:33,827 - app - INFO - Ä£Äâ¼¯³É¹¹½¨Prompt (²¿·Ö): ÇëÄ£Äâ¹¹½¨Ò»¸öÃûÎª 'test' µÄ¼¯³ÉÑ§Ï°Ä£ĞÍ£¬²¢ÒÔÖĞÎÄ»Ø´ğ£º
+»ù´¡Ä£ĞÍÁĞ±í£ºlinear_regression, logistic_regression
+¼¯³ÉÀàĞÍ£ºstacking_regressor (ÀıÈç£ºVoting Classifier, Stacking Regressor, BaggingClassifierµÈ)
+
+ÇëÔÚ»Ø´ğÖĞ°üº¬ÒÔÏÂÄÚÈİ£º
+1. Ò»¸öÄ£ÄâµÄ¡°¹¹½¨³É¹¦¡±»ò¡°ÒÑ´´½¨¡±µÄÏûÏ¢¡£
+2. ¶ÔÕâ¸öÃûÎª 'test' µÄÄ£Äâ¼¯³ÉÄ£ĞÍµÄ¹¤×÷Ô­Àí½øĞĞ¼òÒªÃèÊö£¨¸ù¾İÆäÀàĞÍºÍ»ù´¡Ä£ĞÍ£©¡£
+3. ÁĞ³öÕâ¸öÄ£Äâ¼¯³ÉÄ£ĞÍÏà¶ÔÓÚÆä»ù´¡Ä£ĞÍ¿ÉÄÜµÄÇ±ÔÚÓÅÊÆ¡£
+4. ¼òÒªÃèÊöËü¿ÉÄÜÊÊÓÃÓÚÊ²Ã´ÑùµÄ...
+2025-05-24 22:35:43,130 - httpx - INFO - HTTP Request: POST https://aistudio.baidu.com/llm/lmapi/v3/chat/completions "HTTP/1.1 200 OK"
+2025-05-24 22:35:43,132 - __main__ - INFO - [EnsembleBuilding] ³É¹¦½âÎöJSON¡£
+2025-05-24 22:35:43,134 - werkzeug - INFO - 127.0.0.1 - - [24/May/2025 22:35:43] "[35m[1mPOST /api/simulate_ensemble_building HTTP/1.1[0m" 201 -

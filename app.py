@@ -8,21 +8,93 @@ import pandas as pd
 import numpy as np
 from typing import Dict, Any, List, Optional
 from scipy import stats
-
+import re
 from flask import Flask, request, jsonify, render_template, send_from_directory
 from flask_cors import CORS
 
 # 导入配置和核心功能模块
-from config import KNOWLEDGE_BASE_DIR, AI_STUDIO_API_KEY
+from config import (
+    KNOWLEDGE_BASE_DIR, AI_STUDIO_API_KEY,
+    ML_KEYWORDS as APP_ML_KEYWORDS, # 使用别名避免与局部变量冲突
+    ML_OPS_KEYWORDS as APP_ML_OPS_KEYWORDS,
+    UNCERTAINTY_PHRASES, RAG_SCORE_THRESHOLD, RAG_ANSWER_MIN_LENGTH
+)
 from rag_core import query_rag, initialize_rag_system, direct_query_llm
 from ml_agents import query_ml_agent
-
+import logging
+logger = logging.getLogger(__name__)
 # 导入增强版RAG和ML集成功能
 from rag_core_enhanced import enhanced_query_rag, enhanced_direct_query_llm
 from ml_agents_enhanced import enhanced_query_ml_agent
 from advanced_feature_analysis import integrate_ml_with_rag
-
+from werkzeug.utils import secure_filename # 新增导入
 # Helper functions moved to the top
+def extract_and_parse_json_from_llm(llm_response_str: str, endpoint_name: str = "LLM_JSON_Parser") -> tuple[
+    Optional[dict], Optional[str]]:
+    """
+    从LLM的响应字符串中提取并解析JSON。
+
+    Args:
+        llm_response_str: LLM返回的原始字符串。
+        endpoint_name: 调用此函数的端点名称，用于日志记录。
+
+    Returns:
+        A tuple (parsed_json, error_message).
+        If successful, parsed_json is the dict, error_message is None.
+        If failed, parsed_json is None, error_message contains the error.
+    """
+    if not llm_response_str:
+        logger.warning(f"[{endpoint_name}] LLM响应为空字符串。")
+        return None, "LLM响应为空。"
+
+    logger.debug(f"[{endpoint_name}] 原始LLM响应 (前500字符): {llm_response_str[:500]}")
+
+    extracted_json_str = None
+
+    # 1. 尝试匹配Markdown代码块 ```json ... ```
+    match = re.search(r"```json\s*(\{[\s\S]*?\})\s*```", llm_response_str, re.DOTALL)
+    if match:
+        extracted_json_str = match.group(1)
+        logger.debug(f"[{endpoint_name}] 从Markdown代码块中提取到JSON字符串。")
+    else:
+        # 2. 如果没有Markdown块，尝试查找最外层的 '{' 和 '}'
+        #    这需要更小心，因为LLM的文本中可能包含其他花括号
+        #    一个稍微健壮一点的方法是找到第一个 '{' 和最后一个 '}'
+        #    但这仍然不完美，如果JSON本身被包裹在更多文本中且文本中也有花括号
+        json_start = llm_response_str.find('{')
+        json_end = llm_response_str.rfind('}')
+        if json_start != -1 and json_end != -1 and json_end > json_start:
+            # 尝试验证括号是否匹配，这比较复杂，这里简化处理
+            # 我们可以先假设这个提取是初步的
+            potential_json = llm_response_str[json_start: json_end + 1]
+            # 尝试直接解析这个初步提取的部分
+            try:
+                json.loads(potential_json)  # 尝试解析，如果成功，就用它
+                extracted_json_str = potential_json
+                logger.debug(f"[{endpoint_name}] 通过查找首尾花括号提取到潜在JSON字符串。")
+            except json.JSONDecodeError:
+                # 如果初步提取的无法解析，回退到使用整个字符串，寄希望于它本身就是JSON
+                logger.warning(
+                    f"[{endpoint_name}] 初步提取的JSON '{potential_json[:100]}...' 无法解析，将尝试解析整个LLM响应。")
+                extracted_json_str = llm_response_str  # Fallback
+        else:
+            # 如果连首尾花括号都找不到，直接用原始字符串尝试
+            extracted_json_str = llm_response_str
+            logger.debug(f"[{endpoint_name}] 未找到明确的JSON结构标记，将尝试解析整个LLM响应。")
+
+    if not extracted_json_str:  # 应该不会到这里，因为上面总会给 extracted_json_str 赋值
+        logger.error(f"[{endpoint_name}] 无法提取任何JSON候选字符串。")
+        return None, "无法从LLM响应中提取JSON内容。"
+
+    try:
+        parsed_json = json.loads(extracted_json_str)
+        logger.info(f"[{endpoint_name}] 成功解析JSON。")
+        return parsed_json, None
+    except json.JSONDecodeError as e:
+        err_msg = f"LLM返回的内容无法解析为有效的JSON。错误: {e}. 内容 (前500字符): {extracted_json_str[:500]}"
+        logger.error(f"[{endpoint_name}] {err_msg}")
+        # 注意：在实际返回给前端的错误信息中，可能不需要包含具体的解码错误 e，以免泄露过多细节
+        return None, "大模型未能返回有效的JSON格式。请检查Prompt或重试。"  # 返回给前端的通用错误
 def is_rag_result_poor(query, rag_result):
     """
     评估RAG结果质量是否较差
@@ -62,11 +134,19 @@ def is_rag_result_poor(query, rag_result):
         return True
 
     return False
-
+UPLOADS_DIR = os.path.join(os.getcwd(), 'uploads')
+MODELS_DIR = os.path.join(os.getcwd(), 'ml_models') # 如果您有模型存储目录
+ALLOWED_EXTENSIONS = {'csv', 'xlsx', 'json'} # 定义允许的文件扩展名
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 app = Flask(__name__)  # Flask会自动查找同级的 'templates' 文件夹
 CORS(app)
+app.config['UPLOADS_DIR'] = UPLOADS_DIR
+app.config['MODELS_DIR'] = MODELS_DIR
+app.config['MAX_CONTENT_LENGTH'] = 32 * 1024 * 1024
 
 # --- 日志配置 ---
 # 基本配置，确保在 app.run() 之前设置，或者由 Flask 的 debug 模式自动处理
@@ -91,73 +171,6 @@ app.logger.setLevel(logging.INFO)
 def index():
     """渲染主HTML页面。"""
     return render_template('index.html')
-
-@app.route('/query', methods=['POST'])
-def query_endpoint():
-    """处理用户查询的端点"""
-    try:
-        data = request.json
-        query = data.get('query', '')
-
-        if not query:
-            return jsonify({"error": "请提供查询文本"}), 400
-
-        app.logger.info(f"接收到查询请求: {query}")
-
-        # 机器学习相关查询检测
-        ml_keywords = [
-            '机器学习', '模型', '训练', '预测', '分类', '回归', '聚类',
-            '随机森林', '决策树', '线性回归', '逻辑回归', 'KNN', 'SVM',
-            '朴素贝叶斯', 'K-Means', '数据', '特征', '准确率', 'MSE', 'RMSE'
-        ]
-        # 操作类关键词
-        ml_ops_keywords = ['训练', '预测', '比较', '评估', '构建', '解释', '自动', '集成', '版本', '分析', '推荐']
-
-        is_ml_query = any(keyword.lower() in query.lower() for keyword in ml_keywords)
-        is_ml_ops = any(op in query for op in ml_ops_keywords)
-
-        # 1. 操作类问题优先走增强版ML Agent
-        if is_ml_query and is_ml_ops:
-            try:
-                app.logger.info("检测到机器学习操作类查询，使用增强版ML Agent处理")
-                result = enhanced_query_ml_agent(query, use_existing_model=True)
-                return jsonify(result)
-            except Exception as e:
-                app.logger.error(f"增强版ML Agent处理时出错，回退到RAG: {str(e)}")
-                # 尝试使用标准ML Agent
-                try:
-                    app.logger.info("尝试使用标准ML Agent处理")
-                    result = query_ml_agent(query)
-                    return jsonify(result)
-                except Exception as e2:
-                    app.logger.error(f"标准ML Agent处理时出错，回退到RAG: {str(e2)}")
-                    # 机器学习处理失败时回退到RAG系统
-
-        # 2. 专业知识问答优先走增强版RAG
-        app.logger.info("使用增强版RAG系统处理常规/知识类查询")
-        try:
-            # 尝试使用增强版RAG处理
-            result = enhanced_query_rag(query)
-        except Exception as e:
-            app.logger.warning(f"增强版RAG处理失败，回退到标准RAG: {str(e)}")
-            # 回退到标准RAG
-            result = query_rag(query)
-            
-        # 3. RAG效果不佳时兜底增强版LLM
-        if is_rag_result_poor(query, result):
-            app.logger.info("RAG结果质量不佳，切换到直接大模型回答")
-            try:
-                direct_llm_response = enhanced_direct_query_llm(query)
-            except Exception as e:
-                app.logger.warning(f"增强版LLM处理失败，回退到标准LLM: {str(e)}")
-                direct_llm_response = direct_query_llm(query)
-                
-            result["answer"] = direct_llm_response["answer"]
-            result["is_direct_answer"] = direct_llm_response.get("is_direct_answer", True)
-        return jsonify(result)
-    except Exception as e:
-        app.logger.error(f"处理查询时出错: {str(e)}")
-        return jsonify({"error": f"服务器错误: {str(e)}"}), 500
 
 @app.route('/api/models/ml_models', methods=['GET'])
 def get_ml_models():
@@ -198,177 +211,162 @@ def get_ml_models():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
 @app.route('/api/chat', methods=['POST'])
 def chat_endpoint():
-    """处理聊天请求的API端点。"""
     data = request.get_json()
     if not data or 'query' not in data:
         app.logger.warning("API请求缺少 'query' 字段。请求体: %s", data)
         return jsonify({"error": "请求体中缺少 'query' 字段"}), 400
 
-    user_query = data.get('query') # 使用 .get() 更安全
-    use_existing_model = data.get('use_existing_model', True) # 默认为True，优先使用现有模型
-    if not isinstance(user_query, str) or not user_query.strip():
-        app.logger.warning(f"API接收到无效查询: '{user_query}' (类型: {type(user_query)})")
-        return jsonify({"error": "查询必须是非空字符串"}), 400
+    user_query = data.get('query', '').strip()
+    mode = data.get('mode')  # 'data_analysis' 或 'general_llm'
 
-    app.logger.info(f"API接收到查询: '{user_query}'")
-    ml_keywords = ['机器学习', '模型', '训练', '预测', '回归', '分类', 'ML', '决策树', '随机森林',
-                   '线性回归', '逻辑回归', '数据分析', '特征', '权重', '参数', '准确率', 'accuracy',
-                   'precision', 'recall']
-    ml_ops_keywords = ['训练', '预测', '比较', '评估', '构建', '解释', '自动', '集成', '版本', '分析', '推荐']
-    is_ml_query = any(keyword in user_query for keyword in ml_keywords)
-    is_ml_ops = any(op in user_query for op in ml_ops_keywords)
+    # 从请求中获取前端可能传递的上下文信息
+    data_preview = data.get('data_preview')  # 前端传来的数据预览 (list of dicts)
+    target_column = data.get('target_column')
+    selected_model_name = data.get('model_name')  # 前端选择的模型
+    data_path = data.get('data_path') # 如果需要完整数据路径
+
+    if not user_query:
+        app.logger.warning("API接收到空查询")
+        return jsonify({"error": "查询不能为空"}), 400
+
+    app.logger.info(f"API接收到查询: '{user_query[:100]}...', 模式: {mode}")
+
     try:
-        # 优先处理通用大模型回答模式
-        # 前端实际传递的通用大模型模式的 mode 值为 'general_llm'
-        if data.get('mode') == 'general_llm': 
-            app.logger.info("检测到通用大模型回答模式，直接调用LLM API")
-            try:
-                direct_llm_response = enhanced_direct_query_llm(user_query)
-                return jsonify({
-                    "answer": direct_llm_response.get("answer", "未能获取回答。"),
-                    "source_documents": direct_llm_response.get("source_documents", []),
-                    "is_ml_query": False,
-                    "is_direct_answer": True,
-                    "model_used": direct_llm_response.get("model_name", "General LLM (Enhanced)")
-                })
-            except Exception as e_enhanced_llm:
-                app.logger.error(f"增强版通用大模型LLM调用失败: {str(e_enhanced_llm)}，尝试标准LLM", exc_info=True)
-                try:
-                    direct_llm_response = direct_query_llm(user_query)
-                    return jsonify({
-                        "answer": direct_llm_response.get("answer", "未能获取回答。"),
-                        "source_documents": direct_llm_response.get("source_documents", []),
-                        "is_ml_query": False,
-                        "is_direct_answer": True,
-                        "model_used": "General LLM (Standard)"
-                    })
-                except Exception as e_standard_llm:
-                    app.logger.error(f"标准通用大模型LLM调用也失败: {str(e_standard_llm)}", exc_info=True)
-                    return jsonify({"error": f"通用大模型处理时出错: {str(e_standard_llm)}"}), 500
-        
-        # 检查是否为教程生成请求
-        elif (data.get('mode') == 'data_analysis' and
-            data.get('data_preview') and
-            data.get('model_name') and
-            data.get('target_column')):
-            
-            app.logger.info(f"检测到教程生成请求: 模型 '{data.get('model_name')}', 目标列 '{data.get('target_column')}'")
-            llm_ml_context = {
-                'data_preview': data.get('data_preview'),
-                'model_name': data.get('model_name'),
-                'target_column': data.get('target_column'),
-                'generate_tutorial': True
-            }
-            
-            try:
-                # user_query 也传递给LLM，以便它了解用户的原始意图
-                direct_llm_response = enhanced_direct_query_llm(user_query, llm_ml_context)
-                return jsonify({
-                    "answer": direct_llm_response.get("answer", "未能生成教程内容。"),
-                    "source_documents": [], 
-                    "is_ml_query": True, 
-                    "is_tutorial": True, 
-                    "ml_model_used": data.get('model_name')
-                })
-            except Exception as e:
-                app.logger.error(f"教程生成LLM调用失败: {str(e)}", exc_info=True)
-                return jsonify({"error": f"生成教程时出错: {str(e)}"}), 500
-        
-        elif is_ml_query and is_ml_ops:
-            app.logger.info(f"检测到机器学习操作类查询，将使用增强版ML Agent处理")
-            try:
-                # 尝试使用增强版ML代理
-                result = enhanced_query_ml_agent(user_query, use_existing_model=use_existing_model)
-            except Exception as e:
-                app.logger.warning(f"增强版ML代理处理失败，回退到标准ML代理: {str(e)}")
-                # 回退到标准ML代理
-                result = query_ml_agent(user_query, use_existing_model=use_existing_model)
-            
-            # 返回结果，保留特征分析数据和预测结果
-            response_data = {
-                "answer": result["answer"],
-                "source_documents": [],
-                "is_ml_query": True,
-                "feature_analysis": result.get("feature_analysis", {}),
-                "ml_model_used": result.get("model_used", "未知模型")
-            }
-            # 如果结果中包含预测，添加到响应中
-            if "prediction" in result:
-                response_data["prediction"] = result["prediction"]
-            return jsonify(response_data)
-        else:
-            app.logger.info(f"使用增强版RAG系统处理常规/知识类查询")
-            try:
-                # 尝试使用增强版RAG处理，启用机器学习集成
-                result = enhanced_query_rag(user_query, ml_integration=True)
-            except Exception as e:
-                app.logger.warning(f"增强版RAG处理失败，回退到标准RAG: {str(e)}")
-                # 回退到标准RAG
-                result = query_rag(user_query)
-                
-            result["is_ml_query"] = False
-            
-            # 检查是否需要进行机器学习集成
-            if is_ml_query and not is_ml_ops and "预测" in user_query:
-                app.logger.info("检测到预测类查询，尝试集成机器学习模型结果")
-                try:
-                    # 提取可能的预测目标和特征
-                    from rag_core_enhanced import extract_prediction_info, find_suitable_model, make_prediction_with_model
-                    prediction_target, features = extract_prediction_info(user_query)
-                    
-                    if prediction_target and features:
-                        # 查找适合该预测任务的模型
-                        model_name = find_suitable_model(prediction_target)
-                        
-                        if model_name:
-                            # 加载模型并进行预测
-                            model_result = make_prediction_with_model(model_name, features)
-                            
-                            # 将模型预测结果与RAG结果集成
-                            result = integrate_ml_with_rag(result, model_name, {
-                                "prediction": model_result.get("predictions"),
-                                "feature_importance": model_result.get("feature_importance", {}),
-                                "model_metrics": model_result.get("metrics", {})
-                            })
-                except Exception as e:
-                    app.logger.warning(f"机器学习集成失败: {str(e)}")
-            
-            # 如果RAG结果质量不佳，使用增强版LLM
-            if is_rag_result_poor(user_query, result):
-                app.logger.info("RAG结果质量不佳，切换到直接大模型回答")
-                try:
-                    # 如果有机器学习相关信息，将其传递给增强版LLM
-                    ml_context = None
-                    if result.get("ml_enhanced") or result.get("feature_analysis"):
-                        ml_context = {
-                            "model_name": result.get("ml_model_used", "未知模型"),
-                            "prediction": result.get("prediction"),
-                            "feature_importance": result.get("feature_analysis", {}).get("feature_importance", {}),
-                            "model_metrics": result.get("model_metrics", {})
-                        }
-                    
-                    direct_llm_response = enhanced_direct_query_llm(user_query, ml_context)
-                except Exception as e:
-                    app.logger.warning(f"增强版LLM处理失败，回退到标准LLM: {str(e)}")
-                    direct_llm_response = direct_query_llm(user_query)
-                    
-                result["answer"] = direct_llm_response["answer"]
-                result["is_direct_answer"] = direct_llm_response.get("is_direct_answer", True)
-                result["ml_enhanced_llm"] = direct_llm_response.get("ml_enhanced", False)
-            
-            # 如果结果中包含预测、模型指标或特征重要性，添加到响应中
-            if "prediction" in result:
-                result["prediction"] = result["prediction"]
-            if "model_metrics" in result:
-                result["model_metrics"] = result["model_metrics"]
-            if "feature_importance" in result:
-                result["feature_importance"] = result["feature_importance"]
+        # 功能 4: 用户使用通用大模型模式
+        if mode == 'general_llm':
+            app.logger.info("处理通用大模型模式查询")
+            # 直接调用LLM，Prompt可以简单包装或直接使用用户查询
+            prompt = f"请回答以下问题：\n{user_query}"
+            llm_response = enhanced_direct_query_llm(prompt)  # 假设它返回 {"answer": "...", ...}
+            return jsonify({
+                "answer": llm_response.get("answer", "未能获取回答。"),
+                "source_documents": llm_response.get("source_documents", []),  # RAG核心的LLM也可能返回空
+                "is_ml_query": False,  # 通常通用查询不是特定ML操作
+                "is_direct_answer": True,
+                "model_used": llm_response.get("model_name", "General LLM")
+            }), 200
 
-            return jsonify(result)
+        # --- 数据分析模式 (mode == 'data_analysis') ---
+        # 功能 3: 用户上传数据集和选择目标列和模型,然后为其生成具体的包含代码的教程
+        # 我们通过一个关键词或前端特定标记来识别教程生成请求
+        # 假设前端会在query中包含“生成教程”或通过一个额外参数标记
+        is_tutorial_request = ("教程" in user_query.lower() or "generate_tutorial" in data) and \
+                              data_preview and selected_model_name and target_column
+
+        if is_tutorial_request:
+            app.logger.info(f"处理教程生成请求: 模型 '{selected_model_name}', 目标列 '{target_column}'")
+            prompt_parts = [
+                f"请为以下场景生成一个详细的Python机器学习教程，使用语言为中文：",
+                f"用户原始问题（供参考，主要按以下要求生成教程）: {user_query}",
+                f"要使用的模型: {selected_model_name}",
+                f"目标预测列: {target_column}",
+                "教程应包含清晰的步骤、Python代码示例和必要的解释。代码应尽可能通用，并使用常见的库如 pandas 和 scikit-learn。",
+                "步骤应包括（但不限于）："
+                "  1. 简介和目标说明。",
+                "  2. 数据加载与探索性数据分析 (EDA)：假设用户已有一个Pandas DataFrame，其列名和数据类型可参考以下数据预览。",
+                "  3. 数据预处理：根据数据预览和常见场景，讨论可能需要的预处理步骤（如处理缺失值、分类特征编码、数值特征缩放）。请提供代码片段作为示例。",
+                "  4. 特征工程（如果适用）。",
+                "  5. 将数据集拆分为特征 (X) 和目标 (y)，然后划分为训练集和测试集。",
+                f"  6. 模型初始化与训练：实例化 '{selected_model_name}' 模型并进行训练。",
+                "  7. 使用模型进行预测。",
+                "  8. 模型评估：选择适合该模型和任务（分类/回归）的评估指标，并解释如何解读它们。",
+                "  9. 总结和后续步骤建议。",
+                "数据预览（前几行，用于理解数据结构和生成相关代码示例）：",
+                json.dumps(data_preview, indent=2, ensure_ascii=False),
+                "\n请确保代码块使用Markdown格式正确标识。"
+            ]
+            tutorial_prompt = "\n".join(prompt_parts)
+            app.logger.debug(f"教程生成Prompt (部分): {tutorial_prompt[:500]}...")
+
+            llm_response = enhanced_direct_query_llm(tutorial_prompt)
+            return jsonify({
+                "answer": llm_response.get("answer", "未能生成教程内容。"),
+                "source_documents": [],  # 教程通常不依赖RAG源文档
+                "is_ml_query": True,
+                "is_tutorial": True,
+                "ml_model_used": selected_model_name,
+                "target_column_for_tutorial": target_column
+            }), 200
+
+        # 功能 1 & 2: 用户基于上传的数据进行提问
+        if data_preview:  # 必须有数据预览才能进行这类分析
+            app.logger.info("处理基于数据的分析查询")
+            prompt_parts = [f"用户问题: {user_query}\n"]
+            prompt_parts.append("请根据以下提供的数据预览信息来回答用户的问题。")
+            prompt_parts.append("数据预览 (前几行):")
+            prompt_parts.append(json.dumps(data_preview, indent=2, ensure_ascii=False) + "\n")
+
+            if target_column:
+                prompt_parts.append(f"用户已指定的目标列 (用于预测或分析相关性): '{target_column}'\n")
+            if selected_model_name:
+                prompt_parts.append(f"用户当前选择或提及的模型是: '{selected_model_name}'\n")
+
+            # 根据问题类型调整指示
+            if "适合用什么模型进行分析" in user_query or "推荐模型" in user_query:
+                prompt_parts.append(
+                    "请基于数据的特点（如列名、数据类型暗示、值的分布等）推荐合适的机器学习模型，并解释推荐理由。")
+            elif "哪些特征最重要" in user_query and target_column:
+                prompt_parts.append(
+                    f"请分析对于预测目标列 '{target_column}'，数据预览中的哪些其他列（特征）可能最重要，并说明判断依据。")
+            else:
+                prompt_parts.append("请针对用户的问题，结合数据预览给出专业的分析和回答。")
+
+            data_context_prompt = "".join(prompt_parts)
+            app.logger.debug(f"数据上下文Prompt (部分): {data_context_prompt[:500]}...")
+
+            llm_response = enhanced_direct_query_llm(data_context_prompt)
+            return jsonify({
+                "answer": llm_response.get("answer", "未能基于数据分析回答。"),
+                "source_documents": [],
+                "is_ml_query": True,  # 假设这类问题与ML相关
+                "data_context_used": True,
+                "model_used": llm_response.get("model_name", "Contextual LLM")
+            }), 200
+
+        # 如果是数据分析模式，但没有足够上下文（如数据预览），则可能无法很好回答
+        # 可以尝试RAG或通用ML Agent，或者提示用户上传数据
+        app.logger.warning(f"数据分析模式查询 '{user_query}'，但缺少足够的数据上下文 (如data_preview)。")
+        # 尝试使用ML Agent (如果问题看起来是操作性的)
+        is_ml_query = any(keyword.lower() in user_query.lower() for keyword in APP_ML_KEYWORDS)
+        is_ml_ops = any(op.lower() in user_query.lower() for op in APP_ML_OPS_KEYWORDS)
+        if is_ml_query and is_ml_ops and enhanced_query_ml_agent:
+            try:
+                app.logger.info("尝试使用ML Agent处理（无数据上下文的操作类查询）")
+                # 注意：这里的ML Agent可能无法执行需要数据的操作
+                agent_result = enhanced_query_ml_agent(user_query,
+                                                       use_existing_model=data.get('use_existing_model', True))
+                return jsonify({
+                    "answer": agent_result.get("answer", "ML Agent未能处理此请求。"),
+                    "is_ml_query": True,
+                    "ml_model_used": agent_result.get("model_used", "ML Agent")
+                    # 其他 agent_result 中的字段，如 feature_analysis, prediction 等
+                }), 200
+            except Exception as e_agent:
+                app.logger.error(f"ML Agent处理失败: {str(e_agent)}", exc_info=True)
+                # 继续执行后续的RAG/LLM兜底
+
+        # 默认兜底：尝试RAG，如果RAG不好再用纯LLM (主要用于知识性问答)
+        app.logger.info(f"数据分析模式查询 '{user_query}' 无特定处理路径，尝试RAG")
+        rag_response = enhanced_query_rag(user_query)
+        if not is_rag_result_poor(user_query, rag_response):  # 使用您已有的 is_rag_result_poor
+            app.logger.info("RAG结果尚可")
+            return jsonify(rag_response), 200
+        else:
+            app.logger.info("RAG结果不佳，转通用LLM处理")
+            prompt = f"请回答以下问题：\n{user_query}"
+            llm_response = enhanced_direct_query_llm(prompt)
+            return jsonify({
+                "answer": llm_response.get("answer", "未能获取回答。"),
+                "source_documents": llm_response.get("source_documents", []),
+                "is_direct_answer": True,
+                "model_used": llm_response.get("model_name", "Fallback LLM")
+            }), 200
+
     except Exception as e:
-        app.logger.error(f"/api/chat 接口发生错误: {e}", exc_info=True)
+        app.logger.error(f"/api/chat 接口发生错误: {str(e)}", exc_info=True)
         return jsonify({"error": f"服务器内部错误，请稍后重试或联系管理员。"}), 500
 
 @app.route('/api/rebuild_vector_store', methods=['POST'])
@@ -441,6 +439,231 @@ def train_model_endpoint():
     except Exception as e:
         app.logger.error(f"/api/ml/train 接口发生错误: {e}", exc_info=True)
         return jsonify({"error": f"训练模型时发生错误: {str(e)}"}), 500
+
+
+# 在 app.py 的路由部分添加以下新端点
+
+# 功能 5.2: 模型比较 (模拟)
+@app.route('/api/simulate_model_comparison', methods=['POST'])
+def simulate_model_comparison_endpoint():
+    data = request.get_json()
+    if not data or not all(k in data for k in ['model_names', 'test_data_identifier', 'target_column']):
+        app.logger.warning(f"模拟模型比较请求缺少参数: {data}")
+        return jsonify({"error": "缺少必要参数 (model_names, test_data_identifier, target_column)"}), 400
+
+    model_names_list = data['model_names']
+    if not isinstance(model_names_list, list) or len(model_names_list) < 2:
+        return jsonify({"error": "model_names 必须是至少包含两个模型的列表"}), 400
+
+    prompt_parts = [
+        "请模拟以下机器学习模型的比较过程，并以中文回答：",
+        f"模型列表：{', '.join(model_names_list)}",
+        f"测试数据集标识：'{data['test_data_identifier']}' (例如：'当前上传的关于客户流失预测的数据' 或 '公开的鸢尾花分类数据集')",
+        f"目标列：'{data['target_column']}'\n",
+        "要求：",
+        "1. 为列表中的每个模型生成一组合理的、符合其典型应用场景的模拟评估指标。",
+        "   - 如果目标列暗示分类任务（例如，目标列是字符型或少数唯一值），请使用分类指标如：准确率 (Accuracy), 精确率 (Precision), 召回率 (Recall), F1分数 (F1-score)。数值请在0.6到0.98之间随机模拟。",
+        "   - 如果目标列暗示回归任务（例如，目标列是连续数值型），请使用回归指标如：R²分数 (R2 Score), 均方误差 (MSE), 平均绝对误差 (MAE)。R2分数在0.5到0.95之间，MSE/MAE根据常见场景模拟。",
+        "2. 对模拟结果进行简短总结，指出哪个模型在模拟中可能表现更优，并给出推测的理由。",
+        "3. 以严格的JSON格式返回结果，结构如下：",
+        """
+{
+  "comparison_results": [
+    {
+      "model_name": "模型A的名称", 
+      "metrics": {"指标1": "模拟值1", "指标2": "模拟值2"}
+    },
+    {
+      "model_name": "模型B的名称", 
+      "metrics": {"指标1": "模拟值1", "指标2": "模拟值2"}
+    }
+    // ... 更多模型
+  ],
+  "summary": "这里是模拟的总结文本...",
+  "test_data_info": { 
+      "identifier": "{data['test_data_identifier']}", 
+      "simulated_rows": "例如：约1000行", 
+      "simulated_features": "例如：约10个特征"
+  }
+}
+""",
+        "请确保'metrics'对象中的值是数值类型（如果适用，如准确率）或字符串。请务必确保您的整个输出就是一个单一的、完整且严格符合上述结构的JSON对象。不要在JSON对象之前或之后包含任何其他文本、注释、解释或Markdown的```json ```标记，直接输出JSON本身。"
+    ]
+    comparison_prompt = "\n".join(prompt_parts)
+    app.logger.info(f"模拟模型比较Prompt (部分): {comparison_prompt[:300]}...")
+
+    try:
+        # enhanced_direct_query_llm 应该返回一个字典，其中 "answer" 键包含LLM的原始文本输出
+        llm_raw_output_dict = enhanced_direct_query_llm(comparison_prompt)
+        if not llm_raw_output_dict or "answer" not in llm_raw_output_dict:
+            app.logger.error("enhanced_direct_query_llm 未返回预期的包含 'answer' 的字典。")
+            return jsonify({"error": "调用大模型时发生内部错误 (无响应)。"}), 500
+
+        llm_response_str = llm_raw_output_dict.get("answer", "")
+
+        simulated_results, error_msg = extract_and_parse_json_from_llm(llm_response_str, "ModelComparison")
+
+        if error_msg:  # 如果解析失败
+            return jsonify({
+                "error": error_msg,  # 使用辅助函数返回的错误信息
+                "raw_llm_response": llm_response_str  # 仍然返回原始响应
+            }), 500
+
+        # 基本的结构验证 (simulated_results 不为 None)
+        if not isinstance(simulated_results, dict) or \
+                "comparison_results" not in simulated_results or \
+                not isinstance(simulated_results["comparison_results"], list) or \
+                "summary" not in simulated_results:
+            app.logger.error(f"LLM返回的模拟比较结果JSON结构不符合预期: {simulated_results}")
+            return jsonify({
+                "error": "大模型返回的模拟比较结果JSON结构不正确。",
+                "parsed_response": simulated_results,  # 返回已解析（但结构错误）的内容
+                "raw_llm_response": llm_response_str
+            }), 500
+
+        # 可以添加更细致的结构验证，例如检查 comparison_results 列表中的元素
+        for item in simulated_results["comparison_results"]:
+            if not isinstance(item, dict) or "model_name" not in item or "metrics" not in item:
+                app.logger.error(f"模拟比较结果中 'comparison_results' 列表内元素结构错误: {item}")
+                return jsonify({
+                    "error": "模拟比较结果内部数据结构不正确。",
+                    "parsed_response": simulated_results,
+                    "raw_llm_response": llm_response_str
+                }), 500
+
+        return jsonify(simulated_results), 200
+    except Exception as e:
+        app.logger.error(f"模拟模型比较过程中发生错误: {str(e)}", exc_info=True)
+        return jsonify({"error": f"模拟模型比较时发生内部错误: {str(e)}"}), 500
+
+
+# 功能 5.3: 集成模型构建 (模拟)
+@app.route('/api/simulate_ensemble_building', methods=['POST'])
+def simulate_ensemble_building_endpoint():
+    data = request.get_json()
+    if not data or not all(k in data for k in ['base_models', 'ensemble_type', 'ensemble_name']):
+        app.logger.warning(f"模拟集成构建请求缺少参数: {data}")
+        return jsonify({"error": "缺少必要参数 (base_models, ensemble_type, ensemble_name)"}), 400
+
+    base_models_list = data['base_models']
+    ensemble_type = data['ensemble_type']
+    ensemble_name = data['ensemble_name']
+
+    if not isinstance(base_models_list, list) or len(base_models_list) < 2:
+        return jsonify({"error": "base_models 必须是至少包含两个模型的列表"}), 400
+    if not ensemble_name.strip():
+        return jsonify({"error": "ensemble_name 不能为空"}), 400
+
+    prompt_parts = [
+        f"请模拟构建一个名为 '{ensemble_name}' 的集成学习模型，并以中文回答：",
+        f"基础模型列表：{', '.join(base_models_list)}",
+        f"集成类型：{ensemble_type} (例如：Voting Classifier, Stacking Regressor, BaggingClassifier等)\n",
+        "请在回答中包含以下内容：",
+        "1. 一个模拟的“构建成功”或“已创建”的消息。",
+        f"2. 对这个名为 '{ensemble_name}' 的模拟集成模型的工作原理进行简要描述（根据其类型和基础模型）。",
+        "3. 列出这个模拟集成模型相对于其基础模型可能的潜在优势。",
+        "4. 简要描述它可能适用于什么样的数据集或问题场景。",
+        "5. 提供一些关于这个模拟集成模型的假设性元数据，例如模拟的创建时间戳、组合方式等。",
+        "请以严格的JSON格式返回结果，结构如下：",
+        """
+{
+  "success": true,
+  "message": "模拟的构建成功消息，例如：集成模型 '[ensemble_name]' 已成功模拟创建！",
+  "ensemble_name": "{ensemble_name}",
+  "ensemble_type": "{ensemble_type}",
+  "base_models_used": {base_models_list}, 
+  "description": "这里是集成模型工作原理的模拟描述...",
+  "potential_advantages": "这里是模拟的潜在优势列表或描述...",
+  "suitable_scenarios": "这里是模拟的适用场景描述...",
+  "model_info": {
+    "simulated_created_at": "例如：一个ISO格式的时间戳，如 YYYY-MM-DDTHH:MM:SSZ",
+    "simulated_combination_method": "例如：对投票分类器是'多数投票'或'加权投票'，对Stacking是'使用元学习器组合预测'等"
+  }
+}
+""",
+        "请确保整个响应是单一的、格式正确的JSON对象。"
+    ]
+    ensemble_prompt = "\n".join(prompt_parts)
+    app.logger.info(f"模拟集成构建Prompt (部分): {ensemble_prompt[:300]}...")
+
+    try:
+        llm_raw_output_dict = enhanced_direct_query_llm(ensemble_prompt)  # √ 使用正确的 ensemble_prompt
+        if not llm_raw_output_dict or "answer" not in llm_raw_output_dict:
+            app.logger.error("enhanced_direct_query_llm 未返回预期的包含 'answer' 的字典。")
+            return jsonify({"error": "调用大模型时发生内部错误 (无响应)。"}), 500
+
+        llm_response_str = llm_raw_output_dict.get("answer", "")
+
+        # --- 修改这里的日志标记 ---
+        simulated_results, error_msg = extract_and_parse_json_from_llm(llm_response_str,
+                                                                       "EnsembleBuilding")  # 修改为 "EnsembleBuilding"
+
+        if error_msg:
+            return jsonify({
+                "error": error_msg,
+                "raw_llm_response": llm_response_str
+            }), 500
+
+        # --- 修改这里的JSON结构验证 ---
+        expected_keys = ["success", "ensemble_name", "ensemble_type", "base_models_used",
+                         "description", "potential_advantages", "suitable_scenarios", "model_info"]
+
+        if not isinstance(simulated_results, dict):
+            app.logger.error(f"LLM返回的模拟集成结果不是一个字典: {simulated_results}")  # √ 日志文本正确
+            return jsonify({
+                "error": "大模型返回的模拟集成结果格式不正确 (非字典)。",  # √ 错误信息文本正确
+                "parsed_response": simulated_results,
+                "raw_llm_response": llm_response_str
+            }), 500
+
+        missing_keys = [key for key in expected_keys if key not in simulated_results]
+        if missing_keys:
+            app.logger.error(
+                f"LLM返回的模拟集成结果JSON缺少关键字段: {missing_keys}. 结果: {simulated_results}")  # √ 日志文本正确
+            return jsonify({
+                "error": f"大模型返回的模拟集成结果JSON缺少必要字段: {', '.join(missing_keys)}。",  # √ 错误信息文本正确
+                "parsed_response": simulated_results,
+                "raw_llm_response": llm_response_str
+            }), 500
+
+        # 可以选择性地添加对特定字段类型的进一步验证
+        if not isinstance(simulated_results.get("success"), bool):
+            app.logger.error(f"模拟集成结果中 'success' 字段类型错误. 结果: {simulated_results}")
+            return jsonify({
+                "error": "模拟集成结果中 'success' 字段类型非布尔值。",
+                "parsed_response": simulated_results, "raw_llm_response": llm_response_str
+            }), 500
+        if not isinstance(simulated_results.get("base_models_used"), list):
+            app.logger.error(f"模拟集成结果中 'base_models_used' 字段类型错误. 结果: {simulated_results}")
+            return jsonify({
+                "error": "模拟集成结果中 'base_models_used' 字段类型非列表。",
+                "parsed_response": simulated_results, "raw_llm_response": llm_response_str
+            }), 500
+        # ... 可以为 model_info 等其他字段添加类似检查 ...
+
+        # 移除或注释掉针对 comparison_results 的 for 循环验证
+        # for item in simulated_results["comparison_results"]: <--- 这个是错误的，应该移除
+
+        return jsonify(simulated_results), 201  # √ 使用 201 Created
+    except Exception as e:
+        app.logger.error(f"模拟集成模型构建过程中发生错误: {str(e)}", exc_info=True)  # √ 日志文本正确
+        return jsonify({"error": f"模拟集成模型构建时发生内部错误: {str(e)}"}), 500  # √ 错误信息文本正确
+
+    @app.route('/api/ml/model_versions', methods=['POST'])
+    def create_model_version_placeholder():
+        # data = request.get_json() # 可以接收数据但不处理
+        # model_name = data.get('model_name')
+        # version_info = data.get('version_info')
+        # app.logger.info(f"接收到创建模型版本请求 (前端模拟): {model_name} - {version_info}")
+        return jsonify({"success": True, "message": "模型版本信息已在前端记录 (模拟)。"}), 200
+
+    @app.route('/api/ml/model_versions/<model_name>', methods=['GET'])
+    def get_model_versions_placeholder(model_name):
+        # app.logger.info(f"接收到获取模型版本请求 (前端模拟): {model_name}")
+        # 模拟返回空列表或一个示例结构
+        return jsonify({"success": True, "versions": [], "message": "模型版本历史在前端管理 (模拟)。"}), 200
+
+    # 对部署相关的API也做类似处理
 
 @app.route('/api/ml/predict', methods=['POST'])
 def predict_endpoint():
@@ -583,9 +806,9 @@ def upload_data_endpoint():
                 "categorical_columns": categorical_columns,
                 "numerical_columns": numerical_columns,
                 "row_count": len(df),
-                "preview": df.head(5).to_dict('records')
+                "preview": df.head(10).to_dict('records')
             })
-            
+
             return jsonify(result), 200
         except Exception as e:
             app.logger.error(f"/api/ml/upload 接口发生错误: {e}", exc_info=True)
