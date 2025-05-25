@@ -1,43 +1,46 @@
 # config.py
 import os
+
 from dotenv import load_dotenv
 
-load_dotenv() # 从 .env 文件加载环境变量
+load_dotenv()  # Load environment variables from .env file
 
-# 百度AI Studio API 配置
+# Baidu AI Studio API Configuration
 AI_STUDIO_API_KEY = os.getenv("AI_STUDIO_API_KEY")
-AI_STUDIO_BASE_URL = "https://aistudio.baidu.com/llm/lmapi/v3" # 文档中指定的API服务域名
+# API service domain specified in the documentation
+AI_STUDIO_BASE_URL = "https://aistudio.baidu.com/llm/lmapi/v3"
 
-# 大语言模型ID (根据你的文档和需求选择)
-# 例如: "ernie-3.5-8k", "ernie-4.0-8k", "ernie-speed-8k" 等
+# Large Language Model ID (choose according to your documentation and needs)
+# Examples: "ernie-3.5-8k", "ernie-4.0-8k", "ernie-speed-8k", etc.
 BAIDU_LLM_MODEL_NAME = "ernie-4.5-turbo-128k"
 
-# Embedding 模型ID (根据你的文档和需求选择)
-# 例如: "embedding-v1", "bge-large-zh"
+# Embedding Model ID (choose according to your documentation and needs)
+# Examples: "embedding-v1", "bge-large-zh"
 BAIDU_EMBEDDING_MODEL_NAME = "bge-large-zh"
 
-# 知识库路径
+# Knowledge base path
 KNOWLEDGE_BASE_DIR = "knowledge_base"
 
-# ChromaDB 持久化存储路径
+# ChromaDB persistence storage path
 CHROMA_PERSIST_DIR = "chroma_db"
 
-# JSON 文件加载配置 (非常重要 - 需要根据你的JSON文件结构调整)
-# 此 jq_schema 用于从JSON文件中提取要进行向量化的文本内容。
-# 示例:
-# 如果JSON是: [{"title": "案例A", "text_body": "详细内容A"}, {"title": "案例B", "text_body": "详细内容B"}]
-# 则 jq_schema 可以是: '.[] | .text_body'
-# 或者 '.[] | "标题: " + .title + "\n正文: " + .text_body'
-# 如果JSON是: {"documents": [{"passage": "文本1"}, {"passage": "文本2"}]}
-# 则 jq_schema 可以是: '.documents[].passage'
-# 如果你的 `离婚诉讼文本.json` 文件中每个对象有一个名为 `sentence` 的字段包含主要文本:
-# IMPORTANT: 请根据你的实际JSON文件结构（例如 `离婚诉讼文本.json`）验证或修改此 jq_schema。
-# 当前的 '.[] | .sentence' 假定文件是一个包含对象的列表，每个对象都有一个 'sentence' 字段。
+# JSON file loading configuration (Very important - adjust according to your JSON file structure)
+# This jq_schema is used to extract text content for vectorization from JSON files.
+# Example:
+# If JSON is: [{"title": "Case A", "text_body": "Details A"}, {"title": "Case B", "text_body": "Details B"}]
+# Then jq_schema can be: '.[] | .text_body'
+# Or '.[] | "Title: " + .title + "\nBody: " + .text_body'
+# If JSON is: {"documents": [{"passage": "Text 1"}, {"passage": "Text 2"}]}
+# Then jq_schema can be: '.documents[].passage'
+# If your `divorce_litigation_texts.json` file has objects each with a 'sentence' field containing the main text:
+# IMPORTANT: Please verify or modify this jq_schema according to your actual JSON file structure
+# (e.g., `divorce_litigation_texts.json`).
+# The current '.[] | .sentence' assumes the file is a list of objects, each having a 'sentence' field.
 JSON_JQ_SCHEMA = '.[] | .sentence'
 
-# 文本分割参数
+# Text splitting parameters
 CHUNK_SIZE = 450
 CHUNK_OVERLAP = int(CHUNK_SIZE * 0.2)
 
-# Embedding API 调用时的批处理大小 (embedding-v1 API限制每次最多16个输入)
+# Batch size for Embedding API calls (embedding-v1 API limits to a maximum of 16 inputs per call)
 EMBEDDING_BATCH_SIZE = 16
