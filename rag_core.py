@@ -1,300 +1,324 @@
 # rag_core.py
-import os
 import json
-import pandas as pd
-from typing import List, Optional, Dict, Any
-import numpy as np  # 确保导入
+import logging # Added
+import os
+import shutil # Added for get_vector_store
+from typing import Any, Dict, List, Optional
 
-from langchain_community.document_loaders import (
-    PyPDFLoader,
-    UnstructuredExcelLoader,
-    TextLoader,
-    UnstructuredWordDocumentLoader  # 添加DOCX加载器
-)
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import Chroma
+import numpy as np
+import pandas as pd
 from langchain.chains import RetrievalQA
 from langchain_core.documents import Document
-from langchain_community.vectorstores.utils import filter_complex_metadata
-
-from config import (
-    KNOWLEDGE_BASE_DIR, CHROMA_PERSIST_DIR, JSON_JQ_SCHEMA,
-    CHUNK_SIZE, CHUNK_OVERLAP
+from langchain_community.document_loaders import (
+    PyPDFLoader, TextLoader, UnstructuredExcelLoader,
+    UnstructuredWordDocumentLoader
 )
-from baidu_llm import BaiduErnieEmbeddings, BaiduErnieLLM
+from langchain_community.vectorstores import Chroma
+from langchain_community.vectorstores.utils import filter_complex_metadata
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 
-# ---- 全局变量，用于缓存，避免重复加载 ----
+from baidu_llm import BaiduErnieEmbeddings, BaiduErnieLLM
+from config import (CHROMA_PERSIST_DIR, CHUNK_OVERLAP, CHUNK_SIZE,
+                    JSON_JQ_SCHEMA, KNOWLEDGE_BASE_DIR)
+
+# Initialize logger
+logger = logging.getLogger(__name__)
+
+# ---- Global variables for caching, to avoid repeated loading ----
 _VECTOR_STORE: Optional[Chroma] = None
 _QA_CHAIN: Optional[RetrievalQA] = None
 
+# Maximum retries for vector store creation
+MAX_VECTOR_STORE_RETRIES = 2
 
-# --------------------------------
 
+def load_and_parse_custom_json(
+    filepath: str, jq_schema_hint_param: str
+) -> List[Document]:
+    """
+    Loads and parses a custom JSON file using a JQ schema.
 
-# rag_core.py
+    Args:
+        filepath: Path to the JSON file.
+        jq_schema_hint_param: The JQ schema to apply for extracting data.
 
-# rag_core.py
-
-# rag_core.py
-
-def load_and_parse_custom_json(filepath: str, jq_schema_hint_param: str) -> List[Document]:
+    Returns:
+        A list of Document objects extracted from the JSON.
+    """
     docs: List[Document] = []
-    # 这个参数现在更多的是一个"概念上"的提示，我们主要关注从 list of dicts 中提取 'sentence'
+    logger.debug(f"Entering load_and_parse_custom_json for {filepath} using JQ schema: '{jq_schema_hint_param}'")
 
-    print(f"--- Debug: Entrando en load_and_parse_custom_json para {filepath} ---")
-    # print(f"--- Debug: jq_schema_hint_param recibido: '{jq_schema_hint_param}' ---") # 可以保留或移除
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
-            content = f.read()
+            json_data = json.load(f)
 
-        open_brackets = 0
-        start_index = -1
-        found_segments = 0
+        import jq # Import jq here as it's an optional dependency for this specific loader
 
-        for i, char in enumerate(content):
-            if char == '[':
-                if open_brackets == 0:
-                    start_index = i
-                open_brackets += 1
-            elif char == ']':
-                open_brackets -= 1
-                if open_brackets == 0 and start_index != -1:
-                    found_segments += 1
-                    json_array_str = content[start_index: i + 1]
-                    # print(f"\n--- Debug: Segmento JSON potencial encontrado (num {found_segments}): ---")
-                    # print(json_array_str[:200] + "..." if len(json_array_str) > 200 else json_array_str)
+        jq_program = jq.compile(jq_schema_hint_param)
+        extracted_items = jq_program.input(json_data).all()
+        
+        item_index = 0
+        for item_content in extracted_items:
+            page_content_to_use = ""
+            item_metadata = {}
 
-                    try:
-                        json_array = json.loads(json_array_str)
-                        # print(f"--- Debug: Segmento parseado con json.loads(). Tipo: {type(json_array)} ---")
+            if isinstance(item_content, str):
+                page_content_to_use = item_content
+            elif isinstance(item_content, dict):
+                if 'text' in item_content and isinstance(item_content['text'], str):
+                    page_content_to_use = item_content['text']
+                    for key, value in item_content.items():
+                        if key != 'text':
+                            item_metadata[key] = value
+                else:
+                    for value in item_content.values(): # Fallback
+                        if isinstance(value, str):
+                            page_content_to_use = value
+                            break
+                    if not page_content_to_use:
+                        logger.warning(f"JQ extracted an object, but no 'text' or other string field found. Item: {item_content}")
+                        continue 
+            else:
+                page_content_to_use = str(item_content)
+                logger.debug(f"JQ extracted an item of type {type(item_content)}, converting to string. Item: {page_content_to_use[:100]}...")
 
-                        if isinstance(json_array, list):  # <--- 只要它是列表，我们就尝试提取 sentence
-                            print(
-                                f"--- Debug: Segmento {found_segments} es una lista. Procesando items para extraer 'sentence'... ---")
-                            items_processed_in_segment = 0
-                            for item_index, item in enumerate(json_array):
-                                if isinstance(item, dict) and 'sentence' in item:  # 检查每个元素是否是包含'sentence'的字典
-                                    sentence_text = item.get('sentence')
-                                    if isinstance(sentence_text, str):
-                                        metadata = {"source": os.path.basename(filepath),
-                                                    "segment_index": found_segments,
-                                                    "item_index_in_segment": item_index}
-                                        if 'labels' in item and isinstance(item['labels'], list):
-                                            metadata['labels'] = ", ".join(item['labels']) if item['labels'] else "None"
-                                        docs.append(Document(page_content=sentence_text, metadata=metadata))
-                                        items_processed_in_segment += 1
-                            if items_processed_in_segment == 0:
-                                print(
-                                    f"--- Debug: En el segmento {found_segments}, no se encontraron items válidos con 'sentence'. ---")
-                            else:
-                                print(
-                                    f"--- Debug: En el segmento {found_segments}, se procesaron {items_processed_in_segment} items. Documentos actuales: {len(docs)} ---")
-                        else:
-                            print(
-                                f"警告 (Debug): JSON文件 {filepath} 中的片段未解析为列表。实际类型: {type(json_array)} 内容片段: {str(json_array)[:100]}...")
-                    except json.JSONDecodeError as jde:
-                        print(f"解析JSON片段时发生错误 (Debug): {jde}，片段: '{json_array_str[:200]}...'")
-                    except Exception as e_inner:
-                        print(f"处理解析后的JSON片段时发生未知错误 (Debug): {e_inner}")
-                    start_index = -1
+            if page_content_to_use:
+                metadata = {"source_filename": os.path.basename(filepath), "jq_result_index": item_index}
+                metadata.update(item_metadata)
+                
+                if 'labels' in metadata and isinstance(metadata['labels'], list):
+                    metadata['labels'] = ", ".join(metadata['labels']) if metadata['labels'] else "None"
+                elif 'labels' in metadata and not isinstance(metadata['labels'], str):
+                    metadata['labels'] = str(metadata['labels'])
 
-        if found_segments == 0:
-            print(
-                f"--- Debug: 没有在文件 '{filepath}' 中找到任何匹配 '[...]' 的片段。检查文件是否为空或格式完全不同。 ---")
+                docs.append(Document(page_content=page_content_to_use, metadata=metadata))
+                item_index += 1
+            else:
+                logger.debug(f"Extracted item did not yield page content. Item: {item_content}")
 
         if not docs:
-            print(f"警告 (Debug): 未能从自定义JSON文件 {filepath} 中提取任何文档。")
+            logger.warning(f"Failed to extract any documents from JSON file {filepath} using JQ schema.")
         else:
-            print(f"--- Debug: 从 {filepath} 成功提取了 {len(docs)} 个文档。 ---")
+            logger.info(f"Successfully extracted {len(docs)} documents from {filepath} using JQ schema.")
 
+    except json.JSONDecodeError as e_json_load:
+        logger.error(f"Could not decode JSON from file {filepath}. Error: {e_json_load}")
+    except ImportError:
+        logger.error("The 'jq' library is required for advanced JSON processing but is not installed. Please run 'pip install jq'.")
     except Exception as e:
-        print(f"加载或解析自定义JSON文件 {filepath} 时发生错误 (Debug): {e}")
+        logger.error(f"Error processing JSON file {filepath} with JQ: {e}")
     return docs
-def generate_csv_summary_documents(filepath: str, max_rows_for_summary: int = 20) -> List[Document]:
-    # ... (代码与之前版本相同) ...
+
+# --- CSV Summary Helper Functions ---
+def _create_csv_general_description_doc(df: pd.DataFrame, filename: str) -> Document:
+    description = (
+        f"Summary information for file '{filename}':\n"
+        f"This file is a CSV (Comma Separated Values) file.\n"
+        f"It has a total of {df.shape[0]} rows and {df.shape[1]} columns.\n"
+        f"Column names include: {', '.join(df.columns.tolist())}.\n"
+    )
+    return Document(
+        page_content=description,
+        metadata={"source_filename": filename, "content_type": "csv_description"}
+    )
+
+def _create_csv_numerical_summary_doc(df: pd.DataFrame, filename: str) -> Optional[Document]:
+    numeric_cols = df.select_dtypes(include=np.number).columns
+    if numeric_cols.empty:
+        return None
+    
+    summary_stats_text = f"\nStatistical summary of numerical columns in file '{filename}':\n"
+    for col in numeric_cols:
+        stats = df[col].describe()
+        summary_stats_text += (
+            f"Column '{col}': "
+            f"Mean: {stats.get('mean', 'N/A'):.2f}, "
+            f"Std: {stats.get('std', 'N/A'):.2f}, "
+            f"Min: {stats.get('min', 'N/A'):.2f}, "
+            f"25%: {stats.get('25%', 'N/A'):.2f}, "
+            f"Median: {stats.get('50%', 'N/A'):.2f}, "
+            f"75%: {stats.get('75%', 'N/A'):.2f}, "
+            f"Max: {stats.get('max', 'N/A'):.2f}\n"
+        )
+    return Document(
+        page_content=summary_stats_text,
+        metadata={"source_filename": filename, "content_type": "csv_numerical_summary"}
+    )
+
+def _create_csv_categorical_summary_doc(df: pd.DataFrame, filename: str) -> Optional[Document]:
+    non_numeric_cols = df.select_dtypes(exclude=np.number).columns
+    if non_numeric_cols.empty:
+        return None
+
+    categorical_summary_text = f"\nSummary of non-numerical columns in file '{filename}':\n"
+    for col in non_numeric_cols:
+        unique_values = df[col].unique()
+        if len(unique_values) < 15:
+            sample_unique_values = ', '.join(map(str, unique_values[:5]))
+            ellipsis = '...' if len(unique_values) > 5 else ''
+            categorical_summary_text += (
+                f"Column '{col}' unique value examples: "
+                f"{sample_unique_values}{ellipsis}\n"
+            )
+        else:
+            categorical_summary_text += f"Column '{col}' has {len(unique_values)} unique values.\n"
+    return Document(
+        page_content=categorical_summary_text,
+        metadata={"source_filename": filename, "content_type": "csv_categorical_summary"}
+    )
+
+def _create_csv_sample_rows_doc(df: pd.DataFrame, filename: str, max_rows_for_summary: int) -> Optional[Document]:
+    num_sample_rows = min(max_rows_for_summary // 2, len(df) // 2, 5)
+    if num_sample_rows <= 0:
+        return None
+
+    sample_data_text = f"\nSample data rows from file '{filename}':\n"
+    for i, row in df.head(num_sample_rows).iterrows():
+        row_values = [f"{col_name} is '{row[col_name]}'" for col_name in df.columns]
+        row_desc = f"Row {i + 1} data: {', '.join(row_values)}.\n"
+        sample_data_text += row_desc
+
+    if len(df) > num_sample_rows * 2:
+        sample_data_text += "...\n"
+        for i, row in df.tail(num_sample_rows).iterrows():
+            row_values = [f"{col_name} is '{row[col_name]}'" for col_name in df.columns]
+            row_idx_in_tail = len(df) - num_sample_rows + i + 1 - (len(df) - num_sample_rows) # Relative to tail start
+            row_desc = f"Row {len(df) - num_sample_rows + row_idx_in_tail} data: {', '.join(row_values)}.\n"
+            sample_data_text += row_desc
+            
+    return Document(
+        page_content=sample_data_text,
+        metadata={"source_filename": filename, "content_type": "csv_row_samples"}
+    )
+
+def generate_csv_summary_documents(
+    filepath: str, max_rows_for_summary: int = 20
+) -> List[Document]:
+    """
+    Generates descriptive Document objects summarizing a CSV file.
+
+    Args:
+        filepath: Path to the CSV file.
+        max_rows_for_summary: Maximum number of sample rows to include in the summary.
+
+    Returns:
+        A list of Document objects containing summaries of the CSV.
+    """
     docs: List[Document] = []
     filename = os.path.basename(filepath)
     try:
-        # 处理NaN值
-        df = pd.read_csv(filepath, keep_default_na=False, na_values=['NaN', 'N/A', 'NA', 'nan', 'null'])
-        description = (
-            f"关于文件 '{filename}' 的摘要信息：\n"
-            f"该文件是一个CSV（逗号分隔值）文件。\n"  # 移除了具体数据类型的描述，使其更通用
-            f"它总共有 {df.shape[0]} 行数据和 {df.shape[1]} 列。\n"
-            f"列名包括: {', '.join(df.columns.tolist())}。\n"
+        df = pd.read_csv(
+            filepath, keep_default_na=False,
+            na_values=['NaN', 'N/A', 'NA', 'nan', 'null']
         )
-        docs.append(
-            Document(page_content=description, metadata={"source": filename, "content_type": "csv_description"}))
-        numeric_cols = df.select_dtypes(include=np.number).columns
-        if not numeric_cols.empty:
-            summary_stats_text = f"\n文件 '{filename}' 中数值列的统计摘要:\n"
-            for col in numeric_cols:
-                stats = df[col].describe()
-                summary_stats_text += (
-                    f"列 '{col}': "
-                    f"均值: {stats.get('mean', 'N/A'):.2f}, 标准差: {stats.get('std', 'N/A'):.2f}, "
-                    f"最小值: {stats.get('min', 'N/A'):.2f}, 25分位数: {stats.get('25%', 'N/A'):.2f}, "
-                    f"中位数(50%): {stats.get('50%', 'N/A'):.2f}, 75分位数: {stats.get('75%', 'N/A'):.2f}, "
-                    f"最大值: {stats.get('max', 'N/A'):.2f}\n"
-                )
-            docs.append(Document(page_content=summary_stats_text,
-                                 metadata={"source": filename, "content_type": "csv_numerical_summary"}))
-        non_numeric_cols = df.select_dtypes(exclude=np.number).columns
-        if not non_numeric_cols.empty:
-            categorical_summary_text = f"\n文件 '{filename}' 中非数值列的摘要:\n"
-            for col in non_numeric_cols:
-                unique_values = df[col].unique()
-                if len(unique_values) < 15:
-                    categorical_summary_text += f"列 '{col}' 的唯一值示例: {', '.join(map(str, unique_values[:5]))}{'...' if len(unique_values) > 5 else ''}\n"
-                else:
-                    categorical_summary_text += f"列 '{col}' 有 {len(unique_values)} 个唯一值。\n"
-            docs.append(Document(page_content=categorical_summary_text,
-                                 metadata={"source": filename, "content_type": "csv_categorical_summary"}))
-        num_sample_rows = min(max_rows_for_summary // 2, len(df) // 2, 5)
-        if num_sample_rows > 0:
-            sample_data_text = f"\n文件 '{filename}' 的部分数据行示例:\n"
-            for i, row in df.head(num_sample_rows).iterrows():
-                row_desc = f"第 {i + 1} 行数据: " + ", ".join(
-                    [f"{col_name}为'{row[col_name]}'" for col_name in df.columns]) + "。\n"
-                sample_data_text += row_desc
-            if len(df) > num_sample_rows * 2:
-                sample_data_text += "...\n"
-                for i, row in df.tail(num_sample_rows).iterrows():
-                    row_desc = f"第 {i + 1} 行数据: " + ", ".join(
-                        [f"{col_name}为'{row[col_name]}'" for col_name in df.columns]) + "。\n"
-                    sample_data_text += row_desc
-            docs.append(Document(page_content=sample_data_text,
-                                 metadata={"source": filename, "content_type": "csv_row_samples"}))
-        print(f"为CSV文件 {filename} 生成了 {len(docs)} 个描述性文档。")
+        
+        general_desc_doc = _create_csv_general_description_doc(df, filename)
+        if general_desc_doc: docs.append(general_desc_doc)
+        
+        numerical_summary_doc = _create_csv_numerical_summary_doc(df, filename)
+        if numerical_summary_doc: docs.append(numerical_summary_doc)
+            
+        categorical_summary_doc = _create_csv_categorical_summary_doc(df, filename)
+        if categorical_summary_doc: docs.append(categorical_summary_doc)
+            
+        sample_rows_doc = _create_csv_sample_rows_doc(df, filename, max_rows_for_summary)
+        if sample_rows_doc: docs.append(sample_rows_doc)
+
+        logger.info(f"Generated {len(docs)} descriptive documents for CSV file {filename}.")
     except FileNotFoundError:
-        print(f"错误: CSV文件未找到于 {filepath}")
+        logger.error(f"CSV file not found at {filepath}")
     except pd.errors.EmptyDataError:
-        print(f"错误: CSV文件 {filepath} 为空。")
+        logger.error(f"CSV file {filepath} is empty.")
     except Exception as e:
-        print(f"处理CSV文件 {filepath} 时发生错误: {e}")
+        logger.error(f"Error processing CSV file {filepath}: {e}", exc_info=True)
     return docs
 
 
-# --- load_documents_from_kb 函数 (修改以支持DOCX) ---
 def load_documents_from_kb() -> List[Document]:
+    """
+    Loads documents from the knowledge base directory.
+    Supports PDF, DOCX, XLSX/XLS, JSON, TXT, and CSV (summary) files.
+    """
     loaded_docs: List[Document] = []
-    print("开始从知识库加载文档...")
+    logger.info("Starting to load documents from the knowledge base...") # Changed
     if not os.path.exists(KNOWLEDGE_BASE_DIR):
-        print(f"错误: 知识库目录 '{KNOWLEDGE_BASE_DIR}' 不存在。")
+        logger.error(f"Knowledge base directory '{KNOWLEDGE_BASE_DIR}' does not exist.") # Changed
         return []
-    
+
     for filename in os.listdir(KNOWLEDGE_BASE_DIR):
         filepath = os.path.join(KNOWLEDGE_BASE_DIR, filename)
         file_extension = os.path.splitext(filename)[1].lower()
+        logger.info(f"Processing file: {filename} (Extension: {file_extension})") # Changed
+
         try:
+            docs_from_file: List[Document] = []
+            loader_type = ""
+
             if file_extension == ".pdf":
-                print(f"正在加载PDF文件: {filename}")
+                loader_type = "PyPDFLoader"
+                logger.info(f"Loading PDF file: {filename}") # Changed
                 loader = PyPDFLoader(filepath)
-                pdf_docs = loader.load()
-                
-                # 确保文件名被添加到元数据
-                for doc in pdf_docs:
-                    if 'source' not in doc.metadata:
-                        doc.metadata['source'] = filename
-                    else:
-                        # 如果已有source但只包含路径，添加文件名
-                        doc.metadata['file_name'] = filename
-                
-                loaded_docs.extend(pdf_docs)
-                print(f"成功加载PDF: {filename}, 共{len(pdf_docs)}页")
-                
+                docs_from_file = loader.load()
             elif file_extension in [".docx", ".doc"]:
-                print(f"正在加载Word文档: {filename}")
-                try:
-                    loader = UnstructuredWordDocumentLoader(filepath, mode="elements")
-                    word_docs = loader.load()
-                    
-                    # 确保文件名被添加到元数据
-                    for doc in word_docs:
-                        if 'source' not in doc.metadata:
-                            doc.metadata['source'] = filename
-                        else:
-                            # 如果已有source但只包含路径，添加文件名
-                            doc.metadata['file_name'] = filename
-                    
-                    loaded_docs.extend(word_docs)
-                    print(f"成功加载Word文档: {filename}, 共{len(word_docs)}个元素")
-                except Exception as doc_error:
-                    print(f"加载Word文档 {filename} 失败: {doc_error}")
-                    
+                loader_type = "UnstructuredWordDocumentLoader"
+                logger.info(f"Loading Word document: {filename}") # Changed
+                loader = UnstructuredWordDocumentLoader(filepath, mode="elements")
+                docs_from_file = loader.load()
             elif file_extension in [".xlsx", ".xls"]:
-                print(f"正在尝试加载XLSX/XLS: {filename} (使用UnstructuredExcelLoader)")
-                try:
-                    loader = UnstructuredExcelLoader(filepath, mode="elements")
-                    excel_docs = loader.load()
-                    
-                    # 确保文件名被添加到元数据
-                    for doc in excel_docs:
-                        if 'source' not in doc.metadata:
-                            doc.metadata['source'] = filename
-                        else:
-                            # 如果已有source但只包含路径，添加文件名
-                            doc.metadata['file_name'] = filename
-                    
-                    loaded_docs.extend(excel_docs)
-                    print(f"成功加载XLSX/XLS: {filename}, 共{len(excel_docs)}个元素")
-                except Exception as ue_error:
-                    print(
-                        f"使用 UnstructuredExcelLoader 加载 {filename} 失败: {ue_error}. 如果是表格数据，请考虑转为CSV格式。")
+                loader_type = "UnstructuredExcelLoader"
+                logger.info(f"Attempting to load Excel file: {filename} (using UnstructuredExcelLoader)") # Changed
+                loader = UnstructuredExcelLoader(filepath, mode="elements")
+                docs_from_file = loader.load()
             elif file_extension == ".json":
-                print(f"正在使用自定义加载器处理JSON文件: {filename}")
-                custom_loaded_json_docs = load_and_parse_custom_json(filepath, JSON_JQ_SCHEMA)
-                if custom_loaded_json_docs:
-                    # 确保文件名被添加到元数据
-                    for doc in custom_loaded_json_docs:
-                        if 'source' not in doc.metadata:
-                            doc.metadata['source'] = filename
-                    
-                    loaded_docs.extend(custom_loaded_json_docs)
-                    print(f"通过自定义加载器成功从JSON文件 {filename} 加载 {len(custom_loaded_json_docs)} 个文档。")
-                else:
-                    print(f"警告: 自定义加载器未能从JSON文件 {filename} 中提取文档。")
+                loader_type = "CustomJSONLoader"
+                logger.info(f"Processing JSON file with custom loader: {filename}") # Changed
+                docs_from_file = load_and_parse_custom_json(filepath, JSON_JQ_SCHEMA)
             elif file_extension == ".txt":
-                print(f"正在加载TXT文件: {filename}")
+                loader_type = "TextLoader"
+                logger.info(f"Loading TXT file: {filename}") # Changed
                 loader = TextLoader(filepath, encoding='utf-8')
-                txt_docs = loader.load()
-                
-                # 确保文件名被添加到元数据
-                for doc in txt_docs:
-                    if 'source' not in doc.metadata:
-                        doc.metadata['source'] = filename
-                    else:
-                        # 如果已有source但只包含路径，添加文件名
-                        doc.metadata['file_name'] = filename
-                
-                loaded_docs.extend(txt_docs)
-                print(f"成功加载TXT: {filename}, 共{len(txt_docs)}个文本块")
+                docs_from_file = loader.load()
             elif file_extension == ".csv":
-                print(f"正在为CSV文件生成描述性文档: {filename}")
-                csv_summary_docs = generate_csv_summary_documents(filepath)
-                if csv_summary_docs:
-                    loaded_docs.extend(csv_summary_docs)
-                else:
-                    print(f"警告: 未能为CSV文件 {filename} 生成描述性文档。")
+                loader_type = "CSVDescriber"
+                logger.info(f"Generating descriptive documents for CSV file: {filename}") # Changed
+                docs_from_file = generate_csv_summary_documents(filepath)
             else:
-                print(f"跳过不支持的文件类型: {filename}")
-        except Exception as e:
-            print(f"加载文档 {filename} 时发生顶层错误: {e}")
-            continue
+                logger.info(f"Skipping unsupported file type: {filename}") # Changed
+                continue
+
+            for doc in docs_from_file:
+                doc.metadata['source_filename'] = filename # Standardized metadata key
+                # doc.metadata['source_filepath'] = filepath # Optional: if full path is needed
             
+            loaded_docs.extend(docs_from_file)
+            logger.info( # Changed
+                f"Successfully loaded {len(docs_from_file)} document(s)/element(s) "
+                f"from {filename} using {loader_type}."
+            )
+
+        except Exception as e:
+            logger.error(f"Error loading document {filename}: {e}", exc_info=True) # Changed, added exc_info
+            continue
+
     if not loaded_docs:
-        print("警告: 未加载到任何文档。请检查知识库目录和文件格式/内容。")
+        logger.warning( # Changed
+            "No documents were loaded. "
+            "Please check the knowledge base directory and file formats/content."
+        )
     else:
-        print(f"总共加载文档数量: {len(loaded_docs)}")
-        
+        logger.info(f"Total documents loaded: {len(loaded_docs)}") # Changed
+
     return loaded_docs
 
 
-# --- split_documents 函数 (保持不变) ---
 def split_documents(documents: List[Document]) -> List[Document]:
-    # ... (代码与之前版本相同) ...
+    """
+    Splits a list of Documents into smaller chunks.
+    """
     if not documents:
+        logger.info("No documents provided to split.") # Changed
         return []
+
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=CHUNK_SIZE,
         chunk_overlap=CHUNK_OVERLAP,
@@ -302,200 +326,254 @@ def split_documents(documents: List[Document]) -> List[Document]:
         add_start_index=True,
     )
     chunks = text_splitter.split_documents(documents)
-    print(f"将 {len(documents)} 个文档切分为 {len(chunks)} 个文本块。")
+    logger.info(f"Split {len(documents)} document(s) into {len(chunks)} text chunks.") # Changed
     return chunks
 
 
-# --- get_vector_store 函数 (添加 global 声明) ---
-def get_vector_store(force_recreate: bool = False) -> Optional[Chroma]:
-    global _VECTOR_STORE  # <--- 添加这一行
+def get_vector_store(force_recreate: bool = False, retry_count: int = 0) -> Optional[Chroma]: # Added retry_count
+    """
+    Gets the vector store, loading from disk if available or creating a new one.
+    Uses a global variable `_VECTOR_STORE` for in-memory caching.
+    Includes a retry mechanism for creation failures.
+    """
+    global _VECTOR_STORE
     if _VECTOR_STORE is not None and not force_recreate:
-        print("从内存返回已存在的向量数据库。")
+        logger.info("Returning existing vector database from memory.") # Changed
         return _VECTOR_STORE
 
+    if retry_count > MAX_VECTOR_STORE_RETRIES:
+        logger.error("Maximum retries reached for getting vector store. Aborting.")
+        return None
+
     embeddings = BaiduErnieEmbeddings()
-    chroma_db_exists = os.path.exists(CHROMA_PERSIST_DIR) and len(os.listdir(CHROMA_PERSIST_DIR)) > 0
+    chroma_db_exists = (
+        os.path.exists(CHROMA_PERSIST_DIR) and
+        os.path.isdir(CHROMA_PERSIST_DIR) and
+        len(os.listdir(CHROMA_PERSIST_DIR)) > 0
+    )
 
     if chroma_db_exists and not force_recreate:
-        print(f"从磁盘加载已存在的向量数据库: {CHROMA_PERSIST_DIR}")
+        logger.info(f"Loading existing vector database from disk: {CHROMA_PERSIST_DIR}") # Changed
         try:
             _VECTOR_STORE = Chroma(
                 persist_directory=CHROMA_PERSIST_DIR,
                 embedding_function=embeddings
             )
-            try:
-                _VECTOR_STORE.similarity_search("test", k=1)
-                print("向量数据库加载成功并通过测试查询。")
-            except Exception as e:
-                print(f"向量数据库加载后测试查询失败: {e}。可能需要重建。")
-                return get_vector_store(force_recreate=True)  # 注意: 递归调用也需要global
+            _VECTOR_STORE.similarity_search("test query", k=1)
+            logger.info("Vector database loaded successfully and passed test query.") # Changed
         except Exception as e:
-            print(f"从磁盘加载向量数据库失败: {e}。将尝试创建新的向量数据库。")
-            return get_vector_store(force_recreate=True)  # 注意: 递归调用也需要global
-
+            logger.warning( # Changed
+                f"Failed to load vector database from disk: {e}. "
+                f"Attempting to create a new one (retry {retry_count + 1})."
+            )
+            return get_vector_store(force_recreate=True, retry_count=retry_count + 1) # Incremented retry_count
     else:
         if force_recreate and chroma_db_exists:
-            print(f"强制重建: 正在删除旧的Chroma数据库于 {CHROMA_PERSIST_DIR}")
-            import shutil
-            shutil.rmtree(CHROMA_PERSIST_DIR)
+            logger.info( # Changed
+                f"Force recreate: Deleting old Chroma database at {CHROMA_PERSIST_DIR}"
+            )
+            shutil.rmtree(CHROMA_PERSIST_DIR) # Moved import to top
             os.makedirs(CHROMA_PERSIST_DIR, exist_ok=True)
 
-        print("正在创建新的向量数据库...")
+        logger.info("Creating new vector database...") # Changed
         documents = load_documents_from_kb()
         if not documents:
-            print("错误: 知识库中未找到任何文档，无法创建向量数据库。")
+            logger.error("No documents found in knowledge base. Cannot create vector database.") # Changed
             return None
 
         chunks = split_documents(documents)
         if not chunks:
-            print("错误: 文档切分后未产生任何文本块，无法创建向量数据库。")
+            logger.error("No chunks produced after document splitting. Cannot create vector database.") # Changed
             return None
 
         try:
-            print("正在过滤复杂元数据...")
+            logger.info("Filtering complex metadata...") # Changed
             chunks_for_chroma = filter_complex_metadata(chunks)
-            print(f"元数据过滤完成，处理了 {len(chunks_for_chroma)} 个文本块用于Chroma。")
+            logger.info( # Changed
+                f"Metadata filtering complete. Processed {len(chunks_for_chroma)} "
+                f"chunks for Chroma."
+            )
         except Exception as e:
-            print(f"过滤复杂元数据时发生错误: {e}。将尝试使用原始chunks。")
+            logger.warning( # Changed
+                f"Error filtering complex metadata: {e}. "
+                f"Attempting to use original chunks."
+            )
             chunks_for_chroma = chunks
 
-        print(f"正在对 {len(chunks_for_chroma)} 个文本块进行Embedding并创建Chroma数据库。此过程可能需要较长时间...")
+        logger.info( # Changed
+            f"Embedding {len(chunks_for_chroma)} text chunks and creating Chroma database. "
+            f"This may take a long time..."
+        )
         try:
             _VECTOR_STORE = Chroma.from_documents(
                 documents=chunks_for_chroma,
                 embedding=embeddings,
                 persist_directory=CHROMA_PERSIST_DIR
             )
-            print(f"新的向量数据库创建成功并已持久化到: {CHROMA_PERSIST_DIR}")
+            logger.info( # Changed
+                f"New vector database created successfully and persisted to: {CHROMA_PERSIST_DIR}"
+            )
         except Exception as e:
-            print(f"创建向量数据库时发生严重错误: {e}")
-            _VECTOR_STORE = None  # 确保失败时 _VECTOR_STORE 被设为 None
-            return None
+            logger.error(f"Critical error creating vector database: {e}", exc_info=True) # Changed
+            _VECTOR_STORE = None
+            if retry_count < MAX_VECTOR_STORE_RETRIES:
+                logger.info(f"Retrying vector store creation (attempt {retry_count + 1}/{MAX_VECTOR_STORE_RETRIES})...")
+                return get_vector_store(force_recreate=True, retry_count=retry_count + 1)
+            else:
+                logger.error("Max retries reached for vector store creation after critical error.")
+                return None
     return _VECTOR_STORE
 
 
-# --- get_qa_chain 函数 (添加 global 声明) ---
 def get_qa_chain(force_recreate_vs: bool = False) -> Optional[RetrievalQA]:
-    global _QA_CHAIN, _VECTOR_STORE  # <--- 修改这一行, _VECTOR_STORE也可能在递归调用中被修改
+    """
+    Gets the QA chain, creating it if necessary.
+    Uses global variables `_QA_CHAIN` and `_VECTOR_STORE` for caching.
+    """
+    global _QA_CHAIN, _VECTOR_STORE
     if _QA_CHAIN is not None and not force_recreate_vs:
-        print("从内存返回已存在的QA链。")
+        logger.info("Returning existing QA chain from memory.") # Changed
         return _QA_CHAIN
 
-    # get_vector_store 可能会修改全局的 _VECTOR_STORE
     vector_store = get_vector_store(force_recreate=force_recreate_vs)
-    if vector_store is None:  # vector_store 可能是 get_vector_store 返回的局部变量或更新后的全局_VECTOR_STORE
-        print("错误: 无法获取向量数据库，因此无法创建QA链。")
-        _QA_CHAIN = None  # 确保 _QA_CHAIN 在失败时是 None
+    if vector_store is None:
+        logger.error("Cannot get vector database, so QA chain cannot be created.") # Changed
+        _QA_CHAIN = None 
         return None
 
     llm = BaiduErnieLLM()
-    retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": 3})
+    retriever = vector_store.as_retriever(
+        search_type="similarity", search_kwargs={"k": 3}
+    )
 
     try:
         _QA_CHAIN = RetrievalQA.from_chain_type(
             llm=llm,
-            chain_type="stuff",
+            chain_type="stuff", 
             retriever=retriever,
             return_source_documents=True,
         )
-        print("QA链创建成功。")
+        logger.info("QA chain created successfully.") # Changed
     except Exception as e:
-        print(f"创建QA链时发生错误: {e}")
-        _QA_CHAIN = None  # 确保 _QA_CHAIN 在失败时是 None
+        logger.error(f"Error creating QA chain: {e}", exc_info=True) # Changed
+        _QA_CHAIN = None 
     return _QA_CHAIN
 
 
-# --- query_rag 函数 (添加 global 声明，如果它打算修改全局变量，但这里主要是读取) ---
 def query_rag(question: str) -> Dict[str, Any]:
-    global _QA_CHAIN  # <--- 添加这一行 (主要是为了明确是读取全局的)
-    print(f"\n接收到查询: {question}")
+    """
+    Queries the RAG system with a given question.
+    """
+    global _QA_CHAIN 
+    logger.info(f"Received query: {question}") # Changed
     if not question or not isinstance(question, str) or not question.strip():
-        return {"answer": "请输入一个有效的问题。", "source_documents": []}
+        return {"answer": "Please enter a valid question.", "source_documents": []}
 
-    # get_qa_chain 内部会处理 _QA_CHAIN 的状态
-    qa_chain_instance = get_qa_chain()  # 获取 qa_chain 实例
+    qa_chain_instance = get_qa_chain()
     if qa_chain_instance is None:
-        return {"answer": "错误: RAG问答链未成功初始化，无法回答问题。", "source_documents": []}
+        # Changed
+        logger.error("RAG QA chain not initialized successfully. Cannot answer question.")
+        return {
+            "answer": "Error: RAG QA chain not initialized successfully. Cannot answer question.",
+            "source_documents": []
+        }
 
     try:
-        print("正在调用QA链进行查询...")
-        result = qa_chain_instance.invoke({"query": question})  # 使用获取到的实例
-        answer = result.get("result", "未能找到明确的答案。")
+        logger.info("Invoking QA chain for query...") # Changed
+        result = qa_chain_instance.invoke({"query": question})
+        answer = result.get("result", "Could not find a definitive answer.")
         source_docs_raw = result.get("source_documents", [])
-        # rag_core.py in query_rag function
-        vector_store_instance = get_vector_store()
+
+        vector_store_instance = get_vector_store() 
         if vector_store_instance:
-            print(f"--- DEBUG: 直接从vector_store检索与问题 '{question}' 相关的内容 ---")
+            logger.debug(f"Directly retrieving content related to '{question}' from vector_store") # Changed
             try:
-                retrieved_docs_direct = vector_store_instance.similarity_search_with_score(question, k=5)
+                retrieved_docs_direct = vector_store_instance.similarity_search_with_score(
+                    question, k=5
+                )
                 if retrieved_docs_direct:
-                    print(f"--- DEBUG: 直接检索到的前 {len(retrieved_docs_direct)} 个文档 (包含分数): ---")
+                    logger.debug( # Changed
+                        f"Top {len(retrieved_docs_direct)} "
+                        f"directly retrieved documents (with scores):"
+                    )
                     for i, (doc, score) in enumerate(retrieved_docs_direct):
-                        print(
-                            f"  DOC {i + 1}, Score: {score:.4f}, Source: {doc.metadata.get('source', 'N/A')}, Page: {doc.metadata.get('page', 'N/A')}")
-                        print(f"    Content (部分): {doc.page_content[:150]}...\n")
+                        source = doc.metadata.get('source_filename', 'N/A') # Use source_filename
+                        page = doc.metadata.get('page', 'N/A') 
+                        logger.debug( # Changed
+                            f"  DOC {i + 1}, Score: {score:.4f}, Source: {source}, Page: {page}"
+                        )
+                        logger.debug(f"    Content (snippet): {doc.page_content[:150]}...\n") # Changed
                 else:
-                    print("--- DEBUG: 直接从vector_store未检索到任何文档。 ---")
+                    logger.debug("No documents retrieved directly from vector_store.") # Changed
             except Exception as e_direct_search:
-                print(f"--- DEBUG: 直接从vector_store检索时发生错误: {e_direct_search} ---")
+                logger.debug(f"Error during direct vector_store search: {e_direct_search}") # Changed
+
         formatted_sources = []
         if source_docs_raw:
             for doc_item in source_docs_raw:
                 if isinstance(doc_item, Document):
+                    content_snippet = doc_item.page_content
+                    if len(content_snippet) > 500:
+                        content_snippet = content_snippet[:500] + "..."
                     source_info = {
-                        "page_content": doc_item.page_content[:500] + "..." if len(
-                            doc_item.page_content) > 500 else doc_item.page_content,
-                        "metadata": doc_item.metadata
+                        "page_content": content_snippet,
+                        "metadata": doc_item.metadata # Metadata already contains source_filename
                     }
                     formatted_sources.append(source_info)
-        print(f"答案: {answer}")
+
+        logger.info(f"Answer: {answer}") # Changed
         if formatted_sources:
-            print(f"参考来源 (部分): {formatted_sources[0]['metadata'] if formatted_sources else '无'}")
+            logger.info( # Changed
+                f"Reference sources (first source metadata): "
+                f"{formatted_sources[0]['metadata'] if formatted_sources else 'None'}"
+            )
         return {"answer": answer, "source_documents": formatted_sources}
     except Exception as e:
-        print(f"RAG查询过程中发生错误: {e}")
-        return {"answer": f"处理您的问题时发生错误: {e}", "source_documents": []}
+        logger.error(f"Error during RAG query processing: {e}", exc_info=True) # Changed
+        return {"answer": f"Error processing your question: {e}", "source_documents": []}
 
 
-# --- initialize_rag_system 函数 (添加 global 声明，如果它打算修改全局变量，但这里主要是读取) ---
 def initialize_rag_system(force_recreate_vs: bool = False):
-    global _QA_CHAIN  # <--- 添加这一行 (主要是为了明确是读取全局的)
-    print("正在初始化RAG系统...")
+    """
+    Initializes the RAG system by ensuring the QA chain is created.
+    """
+    global _QA_CHAIN 
+    logger.info("Initializing RAG system...") # Changed
     try:
-        # get_qa_chain 内部会处理 _QA_CHAIN 的状态
-        qa_chain_instance = get_qa_chain(force_recreate_vs=force_recreate_vs)  # 获取实例
-        if qa_chain_instance:  # 检查获取到的实例
-            print("RAG系统初始化成功。")
+        qa_chain_instance = get_qa_chain(force_recreate_vs=force_recreate_vs)
+        if qa_chain_instance:
+            logger.info("RAG system initialized successfully.") # Changed
         else:
-            print("警告: RAG系统初始化可能未完全成功，QA链未能创建。")
+            logger.warning("RAG system may not have initialized completely; QA chain not created.") # Changed
     except Exception as e:
-        print(f"初始化RAG系统失败: {e}")
-        raise
+        logger.error(f"Failed to initialize RAG system: {e}", exc_info=True) # Changed
+        raise 
 
-def direct_query_llm(query: str) -> Dict:
+
+def direct_query_llm(query: str) -> Dict[str, Any]:
     """
-    直接查询大语言模型，不使用RAG
-    
+    Directly queries the Large Language Model without using RAG.
+
     Args:
-        query: 用户查询文本
-        
-    Returns:
-        包含回答的字典
-    """
-    from baidu_llm import BaiduErnieLLM
-    
-    llm = BaiduErnieLLM()
-    
-    # 构造提示词
-    prompt = f"""请直接回答以下问题。基于你已有的知识，如果你不确定，请说明。请保持回答简洁、准确。
-    
-问题: {query}
+        query: The user's query text.
 
-回答:"""
-    
-    # 获取回答
+    Returns:
+        A dictionary containing the answer.
+    """
+    logger.debug(f"Directly querying LLM with: {query[:100]}...") # Log entry
+    llm = BaiduErnieLLM()
+
+    prompt = f"""Please answer the following question directly.
+Based on your existing knowledge, if you are unsure, please state so.
+Keep the answer concise and accurate.
+
+Question: {query}
+
+Answer:"""
+
     answer = llm.predict(prompt)
-    
+    logger.debug(f"LLM direct response received: {answer[:100]}...") # Log exit
+
     return {
         "answer": answer.strip(),
         "source_documents": [],

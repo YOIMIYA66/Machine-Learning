@@ -1,50 +1,56 @@
 # ml_models.py
+import datetime
+import inspect  # For checking model class parameter signatures
+import json
 import os
 import pickle
+import threading
+import time
+from functools import lru_cache
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+
+import multiprocessing
 import numpy as np
 import pandas as pd
-import json
-import datetime
-import time
-import threading
-from functools import lru_cache
-from typing import Dict, Any, List, Optional, Tuple, Union, Callable
-from sklearn.preprocessing import StandardScaler, LabelEncoder
-from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.linear_model import LinearRegression, LogisticRegression
-from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor, VotingClassifier, VotingRegressor, StackingClassifier, StackingRegressor, BaggingClassifier, BaggingRegressor
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.svm import SVC
-from sklearn.naive_bayes import MultinomialNB
-from sklearn.cluster import KMeans
-from sklearn.metrics import (
-    accuracy_score, precision_score, recall_score, f1_score,
-    mean_squared_error, r2_score, mean_absolute_error,
-    classification_report, confusion_matrix, roc_auc_score,
-    explained_variance_score
-)
-import multiprocessing
 from joblib import Parallel, delayed
-import inspect  # 用于检查模型类的参数签名
 
-# 模型保存目录
+# Scikit-learn imports
+from sklearn.cluster import KMeans
+from sklearn.ensemble import (BaggingClassifier, BaggingRegressor,
+                              RandomForestClassifier, RandomForestRegressor,
+                              StackingClassifier, StackingRegressor,
+                              VotingClassifier, VotingRegressor)
+from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.metrics import (accuracy_score, classification_report,
+                             confusion_matrix, explained_variance_score,
+                             f1_score, mean_absolute_error, mean_squared_error,
+                             precision_score, r2_score, recall_score,
+                             roc_auc_score)
+from sklearn.model_selection import GridSearchCV, train_test_split
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier
+
+
+# Directory for saving models
 MODELS_DIR = "ml_models"
 os.makedirs(MODELS_DIR, exist_ok=True)
 
-# 模型缓存系统
-_MODEL_CACHE = {}  # 模型缓存字典
-_MODEL_CACHE_LOCK = threading.RLock()  # 缓存锁
-_MODEL_CACHE_MAX_SIZE = 10  # 最大缓存模型数量
-_MODEL_CACHE_ACCESS_TIMES = {}  # 记录每个模型的最后访问时间
+# Model Caching System
+_MODEL_CACHE: Dict[str, Tuple[Any, Dict[str, Any], Dict[str, Any]]] = {} # Model cache dictionary
+_MODEL_CACHE_LOCK = threading.RLock()  # Cache lock
+_MODEL_CACHE_MAX_SIZE = 10  # Maximum number of models to cache
+_MODEL_CACHE_ACCESS_TIMES: Dict[str, float] = {}  # Records last access time for each model
 
-# 模型映射表，便于通过名称查找模型
+# Model mapping for easy lookup by name
 MODEL_TYPES = {
-    # 回归模型
+    # Regression Models
     "linear_regression": LinearRegression,
     "random_forest_regressor": RandomForestRegressor,
     
-    # 分类模型
+    # Classification Models
     "logistic_regression": LogisticRegression,
     "decision_tree": DecisionTreeClassifier,
     "random_forest_classifier": RandomForestClassifier,
@@ -52,10 +58,10 @@ MODEL_TYPES = {
     "svm_classifier": SVC,
     "naive_bayes": MultinomialNB,
     
-    # 聚类模型
+    # Clustering Models
     "kmeans": KMeans,
     
-    # 集成模型类型
+    # Ensemble Model Types
     "voting_classifier": VotingClassifier,
     "voting_regressor": VotingRegressor,
     "stacking_classifier": StackingClassifier,
@@ -64,577 +70,602 @@ MODEL_TYPES = {
     "bagging_regressor": BaggingRegressor
 }
 
-# 模型类别分组，便于前端展示和选择
+# Model categories for frontend display and selection
 MODEL_CATEGORIES = {
-    "regression": ["linear_regression"],
-    "classification": ["logistic_regression", "knn_classifier", "decision_tree", "svm_classifier", "naive_bayes"],
+    "regression": ["linear_regression", "random_forest_regressor"],
+    "classification": [
+        "logistic_regression", "knn_classifier", "decision_tree",
+        "svm_classifier", "naive_bayes", "random_forest_classifier"
+    ],
     "clustering": ["kmeans"]
 }
 
-# 模型详细信息，包含图标和描述
+# Detailed model information including icons and descriptions
 MODEL_DETAILS = {
     "linear_regression": {
-        "display_name": "线性回归模型",
+        "display_name": "Linear Regression Model",
         "icon_class": "fa-chart-line",
-        "description": "线性回归是一种基本的统计模型，用于预测连续型变量。它通过建立自变量与因变量之间的线性关系，找出最佳拟合直线，适用于简单的数值预测任务。"
+        "description": "A basic statistical model for predicting continuous variables. "
+                       "It establishes a linear relationship between independent and dependent "
+                       "variables, finding the best-fitting line. Suitable for simple numerical prediction tasks."
     },
     "logistic_regression": {
-        "display_name": "逻辑回归模型",
+        "display_name": "Logistic Regression Model",
         "icon_class": "fa-code-branch",
-        "description": "逻辑回归是一种用于二分类问题的统计模型，通过Sigmoid函数将线性模型的输出转换为概率值。它计算效率高，易于实现，适合处理线性可分的分类问题。"
+        "description": "A statistical model for binary classification problems. It converts "
+                       "the output of a linear model into probability values using the Sigmoid function. "
+                       "It is computationally efficient, easy to implement, and suitable for linearly separable classification problems."
     },
     "knn_classifier": {
-        "display_name": "K-近邻法预测模型(KNN)",
+        "display_name": "K-Nearest Neighbors (KNN) Prediction Model",
         "icon_class": "fa-project-diagram",
-        "description": "K-近邻算法是一种基于实例的学习方法，通过计算新样本与训练集中所有样本的距离，选取最近的K个邻居进行投票或平均，从而进行分类或回归预测。"
+        "description": "An instance-based learning method that classifies or predicts by "
+                       "calculating the distance between a new sample and all samples in the training set, "
+                       "selecting the K nearest neighbors for voting or averaging."
     },
     "decision_tree": {
-        "display_name": "决策树",
+        "display_name": "Decision Tree",
         "icon_class": "fa-sitemap",
-        "description": "决策树是一种树形结构的分类模型，通过一系列条件判断将数据划分为不同类别。它直观易懂，可解释性强，能够处理非线性关系，但容易过拟合。"
+        "description": "A tree-structured classification model that divides data into different "
+                       "categories through a series of conditional judgments. It is intuitive, highly interpretable, "
+                       "can handle non-linear relationships, but is prone to overfitting."
     },
     "svm_classifier": {
-        "display_name": "向量机模型",
+        "display_name": "Support Vector Machine (SVM) Model",
         "icon_class": "fa-vector-square",
-        "description": "支持向量机(SVM)是一种强大的分类算法，通过寻找最优超平面来区分不同类别的数据点。它在高维空间中表现良好，可以通过核函数处理非线性问题，适合小型复杂数据集。"
+        "description": "A powerful classification algorithm that distinguishes different classes "
+                       "of data points by finding an optimal hyperplane. It performs well in high-dimensional spaces, "
+                       "can handle non-linear problems using kernel functions, and is suitable for small, complex datasets."
     },
     "naive_bayes": {
-        "display_name": "朴素贝叶斯分类器",
+        "display_name": "Naive Bayes Classifier",
         "icon_class": "fa-percentage",
-        "description": "朴素贝叶斯是基于贝叶斯定理的概率分类器，假设特征之间相互独立。它训练速度快，需要较少的训练数据，特别适合文本分类和多分类问题，但对特征相关性较强的数据效果可能不佳。"
+        "description": "A probabilistic classifier based on Bayes' theorem, assuming features are "
+                       "mutually independent. It trains quickly, requires less training data, is particularly "
+                       "suited for text classification and multi-class problems, but may not perform well on "
+                       "data with strong feature correlations."
     },
     "kmeans": {
-        "display_name": "K-Means 模型",
+        "display_name": "K-Means Model",
         "icon_class": "fa-object-group",
-        "description": "K-Means是一种常用的聚类算法，通过迭代优化将数据点分配到K个簇中。它实现简单，计算效率高，适合大规模数据集的无监督学习，但对初始聚类中心敏感，且难以处理非球形簇。"
+        "description": "A common clustering algorithm that partitions data points into K clusters "
+                       "through iterative optimization. It is simple to implement, computationally efficient, "
+                       "suitable for large-scale unsupervised learning, but is sensitive to initial cluster centers "
+                       "and struggles with non-spherical clusters."
     }
+    # Add details for RandomForest and ensemble models if they are user-selectable directly
 }
 
-# 模型默认参数
+# Default model parameters
 DEFAULT_MODEL_PARAMS = {
     "linear_regression": {},
-    "logistic_regression": {"max_iter": 1000, "C": 1.0},
-    "decision_tree": {"max_depth": 5},
-    "random_forest_classifier": {"n_estimators": 100, "max_depth": 5},
-    "random_forest_regressor": {"n_estimators": 100, "max_depth": 5},
+    "logistic_regression": {"max_iter": 1000, "C": 1.0, "solver": "liblinear"}, # Added solver for default
+    "decision_tree": {"max_depth": 5, "random_state": 42},
+    "random_forest_classifier": {"n_estimators": 100, "max_depth": 5, "random_state": 42},
+    "random_forest_regressor": {"n_estimators": 100, "max_depth": 5, "random_state": 42},
     "knn_classifier": {"n_neighbors": 5},
-    "svm_classifier": {"C": 1.0, "kernel": "rbf"},
+    "svm_classifier": {"C": 1.0, "kernel": "rbf", "probability": True, "random_state": 42}, # Added probability for consistency
     "naive_bayes": {"alpha": 1.0},
-    "kmeans": {"n_clusters": 3, "random_state": 42}
+    "kmeans": {"n_clusters": 3, "random_state": 42, "n_init": "auto"} # Set n_init explicitly
 }
 
-# 数据预处理函数
+
 def preprocess_data(
     data: pd.DataFrame,
     target_column: str,
-    categorical_columns: List[str] = None,
-    numerical_columns: List[str] = None,
+    categorical_columns: Optional[List[str]] = None,
+    numerical_columns: Optional[List[str]] = None,
     test_size: float = 0.2,
-    scale_data: bool = True
+    scale_data: bool = True,
+    random_state: int = 42
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, Dict[str, Any]]:
     """
-    预处理数据用于机器学习模型训练。
-    
+    Preprocesses data for machine learning model training.
+
     Args:
-        data: 输入的DataFrame
-        target_column: 目标列名称
-        categorical_columns: 需要进行编码的分类特征列表
-        numerical_columns: 需要进行标准化的数值特征列表
-        test_size: 测试集比例
-        scale_data: 是否标准化数值特征
-        
+        data: Input DataFrame.
+        target_column: Name of the target column.
+        categorical_columns: List of categorical feature names for encoding.
+        numerical_columns: List of numerical feature names for scaling.
+        test_size: Proportion of the dataset to include in the test split.
+        scale_data: Whether to scale numerical features.
+        random_state: Random seed for reproducibility.
+
     Returns:
-        X_train: 训练特征
-        X_test: 测试特征
-        y_train: 训练目标
-        y_test: 测试目标
-        preprocessors: 预处理器字典，包含编码器和缩放器
+        A tuple containing: X_train, X_test, y_train, y_test, preprocessors dictionary.
     """
-    # 拷贝数据，避免修改原始DataFrame
     df = data.copy()
-    
-    # 准备预处理器字典
-    preprocessors = {}
-    
-    # 处理分类特征
+    preprocessors: Dict[str, Any] = {'label_encoders': {}, 'scaler': None}
+
+    # Handle categorical features
     if categorical_columns:
-        encoders = {}
         for col in categorical_columns:
-            if col in df.columns:
+            if col in df.columns and col != target_column: # Ensure not to encode target here
                 le = LabelEncoder()
                 df[col] = le.fit_transform(df[col].astype(str))
-                encoders[col] = le
-        preprocessors['label_encoders'] = encoders
+                preprocessors['label_encoders'][col] = le
     
-    # 分离特征和目标
-    if target_column in df.columns:
-        y = df[target_column].values
-        X = df.drop(columns=[target_column])
-    else:
-        raise ValueError(f"目标列 '{target_column}' 未在数据中找到")
+    if target_column not in df.columns:
+        raise ValueError(f"Target column '{target_column}' not found in data.")
     
-    # 划分训练集和测试集
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=42)
+    # Encode target column if it's categorical (object or many unique numericals)
+    if df[target_column].dtype == 'object' or \
+       (pd.api.types.is_numeric_dtype(df[target_column]) and df[target_column].nunique() < 0.1 * len(df[target_column])): # Heuristic for categorical numeric
+        le_target = LabelEncoder()
+        df[target_column] = le_target.fit_transform(df[target_column].astype(str))
+        preprocessors['label_encoders'][target_column] = le_target # Store target encoder as well
+
+    y = df[target_column].values
+    X_df = df.drop(columns=[target_column])
     
-    # 标准化数值特征
+    # Identify feature columns if not fully specified
+    if numerical_columns is None and categorical_columns is None:
+        numerical_columns = X_df.select_dtypes(include=np.number).columns.tolist()
+        categorical_columns = X_df.select_dtypes(exclude=np.number).columns.tolist()
+    elif numerical_columns is None:
+        numerical_columns = [col for col in X_df.columns if col not in (categorical_columns or [])]
+    elif categorical_columns is None:
+        categorical_columns = [col for col in X_df.columns if col not in (numerical_columns or [])]
+
+    # Ensure all identified columns exist in X_df
+    all_feature_cols = (numerical_columns or []) + (categorical_columns or [])
+    X = X_df[[col for col in all_feature_cols if col in X_df.columns]]
+
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=test_size, random_state=random_state, stratify=(y if df[target_column].nunique() > 1 else None)
+    )
+
+    # Scale numerical features
     if scale_data and numerical_columns:
         scaler = StandardScaler()
-        numeric_cols_present = [col for col in numerical_columns if col in X.columns]
-        if numeric_cols_present:
-            X_train_numeric = X_train[numeric_cols_present]
-            X_train[numeric_cols_present] = scaler.fit_transform(X_train_numeric)
-            
-            X_test_numeric = X_test[numeric_cols_present]
-            X_test[numeric_cols_present] = scaler.transform(X_test_numeric)
-            
+        # Filter numerical_columns to only those present in X_train (after split and potential column drops)
+        numerical_cols_in_X_train = [col for col in numerical_columns if col in X_train.columns]
+        if numerical_cols_in_X_train:
+            X_train[numerical_cols_in_X_train] = scaler.fit_transform(X_train[numerical_cols_in_X_train])
+            X_test[numerical_cols_in_X_train] = scaler.transform(X_test[numerical_cols_in_X_train])
             preprocessors['scaler'] = scaler
-    
+            preprocessors['scaled_numerical_columns'] = numerical_cols_in_X_train
+
+
     return X_train.values, X_test.values, y_train, y_test, preprocessors
 
-# 训练机器学习模型的函数
+
 def train_model(
     model_type: str,
     data: Union[pd.DataFrame, str],
     target_column: str,
-    model_name: str = None,
-    categorical_columns: List[str] = None,
-    numerical_columns: List[str] = None,
-    model_params: Dict[str, Any] = None,
-    test_size: float = 0.2
+    model_name: Optional[str] = None,
+    categorical_columns: Optional[List[str]] = None,
+    numerical_columns: Optional[List[str]] = None,
+    model_params: Optional[Dict[str, Any]] = None,
+    test_size: float = 0.2,
+    random_state: int = 42
 ) -> Dict[str, Any]:
     """
-    训练机器学习模型并保存
-    
-    参数:
-        model_type: 模型类型（例如："linear_regression", "logistic_regression"等）
-        data: DataFrame数据或CSV文件路径
-        target_column: 目标变量列名
-        model_name: 模型保存名称（如果为None，则使用模型类型作为名称）
-        categorical_columns: 分类特征列表
-        numerical_columns: 数值特征列表
-        model_params: 模型参数字典
-        test_size: 测试集比例
-        
-    返回:
-        包含模型信息的字典
+    Trains a machine learning model and saves it.
+
+    Args:
+        model_type: Model type (e.g., "linear_regression").
+        data: DataFrame or path to CSV/Excel file.
+        target_column: Name of the target variable column.
+        model_name: Name to save the model. Auto-generated if None.
+        categorical_columns: List of categorical feature names.
+        numerical_columns: List of numerical feature names.
+        model_params: Dictionary of model parameters.
+        test_size: Proportion for the test set split.
+        random_state: Random seed for reproducibility.
+
+    Returns:
+        Dictionary containing model information.
     """
-    # 加载数据（如果是文件路径）
     if isinstance(data, str):
-        if data.endswith('.csv'):
+        if data.lower().endswith('.csv'):
             df = pd.read_csv(data)
-        elif data.endswith('.xlsx'):
+        elif data.lower().endswith(('.xlsx', '.xls')):
             df = pd.read_excel(data)
         else:
-            raise ValueError(f"不支持的文件格式: {data}")
+            raise ValueError(f"Unsupported file format: {data}. Only CSV and Excel are supported.")
         
-        # 对大型数据集进行内存优化
-        if len(df) > 10000 or df.memory_usage().sum() > 100*1024*1024:  # 10k行或100MB
+        if len(df) > 10000 or df.memory_usage(deep=True).sum() > 100 * 1024 * 1024: # 10k rows or 100MB
             df = optimize_dataframe_memory(df)
-    else:
+    elif isinstance(data, pd.DataFrame):
         df = data.copy()
-    
-    # 如果模型类型无效，引发错误
+    else:
+        raise TypeError("Data must be a pandas DataFrame or a file path string.")
+
     if model_type not in MODEL_TYPES:
-        valid_types = list(MODEL_TYPES.keys())
-        raise ValueError(f"无效的模型类型: {model_type}。有效类型: {valid_types}")
-    
-    # 自动识别分类和数值特征（如果未指定）
-    if categorical_columns is None or numerical_columns is None:
-        categorical_cols = []
-        numerical_cols = []
-        
-        for col in df.columns:
-            if col == target_column:
-                continue
-                
-            if pd.api.types.is_numeric_dtype(df[col]):
-                if df[col].nunique() < min(10, len(df) // 10):  # 如果唯一值较少，可能是分类变量
-                    categorical_cols.append(col)
-                else:
-                    numerical_cols.append(col)
-            else:
-                categorical_cols.append(col)
-        
-        categorical_columns = categorical_columns or categorical_cols
-        numerical_columns = numerical_columns or numerical_cols
-    
-    # 数据预处理
+        raise ValueError(f"Invalid model type: {model_type}. Valid types: {list(MODEL_TYPES.keys())}")
+
+    # Auto-identify column types if not specified
+    if categorical_columns is None and numerical_columns is None:
+        temp_X = df.drop(columns=[target_column], errors='ignore')
+        numerical_columns = temp_X.select_dtypes(include=np.number).columns.tolist()
+        categorical_columns = temp_X.select_dtypes(exclude=np.number).columns.tolist()
+        print(f"Auto-identified numerical columns: {numerical_columns}")
+        print(f"Auto-identified categorical columns: {categorical_columns}")
+
+
     X_train, X_test, y_train, y_test, preprocessors = preprocess_data(
-        df, target_column, categorical_columns, numerical_columns, test_size
+        df, target_column, categorical_columns, numerical_columns, test_size, random_state=random_state
     )
+
+    current_model_params = DEFAULT_MODEL_PARAMS.get(model_type, {}).copy()
+    if model_params: # User-provided params override defaults
+        current_model_params.update(model_params)
     
-    # 使用默认参数或自定义参数创建模型
-    if model_params is None:
-        model_params = DEFAULT_MODEL_PARAMS.get(model_type, {})
-    
-    # 实例化模型
-    model = MODEL_TYPES[model_type](**model_params)
-    
-    # 训练模型
+    # Add random_state to model params if model supports it and it's not already set
+    model_class = MODEL_TYPES[model_type]
+    model_signature = inspect.signature(model_class.__init__)
+    if 'random_state' in model_signature.parameters and 'random_state' not in current_model_params:
+        current_model_params['random_state'] = random_state
+
+
+    model = model_class(**current_model_params)
     model.fit(X_train, y_train)
-    
-    # 评估模型
     metrics = evaluate_model(model, X_test, y_test, model_type)
-    
-    # 生成唯一模型名称（如果未提供）
+
     if model_name is None:
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         model_name = f"{model_type}_{timestamp}"
-    
-    # 保存模型、预处理器和元数据
+
     metadata = {
+        "model_name": model_name, # Ensure model_name is part of metadata
         "model_type": model_type,
         "target_column": target_column,
         "categorical_columns": categorical_columns,
-        "numerical_columns": numerical_columns,
+        "numerical_columns": numerical_columns, # Store identified numerical columns
+        "scaled_numerical_columns": preprocessors.get('scaled_numerical_columns'), # Store actually scaled columns
         "metrics": metrics,
-        "model_params": model_params,
+        "model_params": current_model_params, # Store used parameters
         "created_at": datetime.datetime.now().isoformat(),
         "data_shape": df.shape,
         "data_columns": df.columns.tolist(),
+        "feature_names_in": list(X.columns) if isinstance(X, pd.DataFrame) else None # Store feature names if X was DataFrame
     }
-    
-    # 保存模型
+
     model_path = os.path.join(MODELS_DIR, f"{model_name}.pkl")
     with open(model_path, "wb") as f:
         pickle.dump((model, preprocessors, metadata), f)
-    
-    print(f"模型已保存至: {model_path}")
-    
-    # 返回结果
+    print(f"Model saved to: {model_path}")
+
     return {
         "model_name": model_name,
         "model_type": model_type,
         "metrics": metrics,
-        "feature_importance": getattr(model, "feature_importances_", None)
+        "feature_importance": getattr(model, "feature_importances_", None) # Keep this for quick access if needed
     }
 
-# 加载模型函数
+
 def load_model(model_name: str) -> Tuple[Any, Dict[str, Any], Dict[str, Any]]:
     """
-    从文件加载机器学习模型和预处理器，使用缓存优化性能
-    
-    返回:
-        (模型对象, 预处理器, 元数据)
+    Loads a machine learning model, its preprocessors, and metadata from a file.
+    Uses an LRU cache for performance optimization.
+
+    Returns:
+        A tuple: (model_object, preprocessors_dict, metadata_dict).
     """
-    # 获取模型文件路径
     model_path = os.path.join(MODELS_DIR, f"{model_name}.pkl")
-    
     if not os.path.exists(model_path):
-        raise FileNotFoundError(f"模型文件不存在: {model_path}")
-    
-    # 获取文件的修改时间作为缓存键的一部分
+        raise FileNotFoundError(f"Model file not found: {model_path}")
+
     file_mtime = os.path.getmtime(model_path)
     cache_key = f"{model_name}_{file_mtime}"
-    
-    # 检查缓存
+
     with _MODEL_CACHE_LOCK:
         if cache_key in _MODEL_CACHE:
-            # 更新访问时间
             _MODEL_CACHE_ACCESS_TIMES[cache_key] = time.time()
+            print(f"Loading model {model_name} from cache.")
             return _MODEL_CACHE[cache_key]
-        
-        # 从文件加载模型
+
+        print(f"Loading model {model_name} from file: {model_path}")
         start_time = time.time()
         try:
             with open(model_path, "rb") as f:
                 loaded_data = pickle.load(f)
             
-            # 处理不同格式的模型文件
-            if isinstance(loaded_data, tuple):
-                if len(loaded_data) == 2:
-                    # 旧格式: (model, preprocessors)
-                    model, preprocessors = loaded_data
-                    metadata = {}
-                elif len(loaded_data) == 3:
-                    # 新格式: (model, preprocessors, metadata)
-                    model, preprocessors, metadata = loaded_data
-                else:
-                    raise ValueError(f"未知的模型文件格式，元组长度: {len(loaded_data)}")
-            else:
-                # 单一对象格式
+            if isinstance(loaded_data, tuple) and len(loaded_data) == 3:
+                model, preprocessors, metadata = loaded_data
+            elif isinstance(loaded_data, tuple) and len(loaded_data) == 2: # Legacy format
+                model, preprocessors = loaded_data
+                metadata = {} # Create empty metadata for legacy models
+                print(f"Warning: Model {model_name} loaded in legacy format (no metadata found in .pkl).")
+            else: # Assume it's just the model object for very old formats
                 model = loaded_data
                 preprocessors = {}
                 metadata = {}
-            
-            # 记录加载时间
+                print(f"Warning: Model {model_name} loaded in very old format (only model object found).")
+
+
             load_time = time.time() - start_time
-            print(f"模型 {model_name} 加载耗时: {load_time:.4f}秒")
-            
-            # 缓存结果
+            print(f"Model {model_name} loaded in {load_time:.4f} seconds.")
+
             result = (model, preprocessors, metadata)
-            
-            # 检查缓存大小，如果超过限制则移除最老的
             if len(_MODEL_CACHE) >= _MODEL_CACHE_MAX_SIZE:
                 _clean_model_cache()
-            
             _MODEL_CACHE[cache_key] = result
             _MODEL_CACHE_ACCESS_TIMES[cache_key] = time.time()
-            
             return result
         except Exception as e:
-            print(f"加载模型 {model_name} 时出错: {str(e)}")
+            print(f"Error loading model {model_name}: {str(e)}")
             raise
 
+
 def _clean_model_cache():
-    """清理模型缓存，移除最久未访问的模型"""
+    """Cleans the model cache by removing the least recently used item."""
     if not _MODEL_CACHE:
         return
-    
-    # 按访问时间排序
-    sorted_keys = sorted(_MODEL_CACHE_ACCESS_TIMES.keys(), 
-                         key=lambda k: _MODEL_CACHE_ACCESS_TIMES[k])
-    
-    # 移除最久未访问的模型
-    oldest_key = sorted_keys[0]
+    # Sort by access time (oldest first)
+    oldest_key = min(_MODEL_CACHE_ACCESS_TIMES, key=_MODEL_CACHE_ACCESS_TIMES.get)
     _MODEL_CACHE.pop(oldest_key, None)
     _MODEL_CACHE_ACCESS_TIMES.pop(oldest_key, None)
-    print(f"从缓存中移除最久未访问的模型: {oldest_key.split('_')[0]}")
+    print(f"Removed least recently used model from cache: {oldest_key.split('_')[0]}")
+
 
 def clear_model_cache():
-    """清空模型缓存"""
+    """Clears the entire model cache."""
     with _MODEL_CACHE_LOCK:
         _MODEL_CACHE.clear()
         _MODEL_CACHE_ACCESS_TIMES.clear()
-    print("模型缓存已清空")
+    print("Model cache cleared.")
 
-# 预测函数 - 使用已训练模型进行预测
+
 def predict(
     model_name: str,
     input_data: Union[pd.DataFrame, Dict[str, Any], List[Dict[str, Any]]],
-    target_column: str = None
-) -> Dict[str, Any]:
+) -> Dict[str, Any]: # Removed target_column as it's not used for prediction input
     """
-    使用保存的模型进行预测
-    
+    Makes predictions using a saved model.
+
     Args:
-        model_name: 模型名称
-        input_data: 输入数据（DataFrame或字典或字典列表）
-        target_column: 目标列名（如果在输入数据中存在）
+        model_name: Name of the model.
+        input_data: Input data (DataFrame, single dict, or list of dicts).
         
     Returns:
-        Dictionary包含预测结果和相关信息
+        Dictionary containing predictions and related information.
     """
-    # 将输入数据转换为DataFrame
     if isinstance(input_data, dict):
-        input_data = pd.DataFrame([input_data])
+        input_df = pd.DataFrame([input_data])
     elif isinstance(input_data, list):
-        input_data = pd.DataFrame(input_data)
+        input_df = pd.DataFrame(input_data)
+    elif isinstance(input_data, pd.DataFrame):
+        input_df = input_data.copy()
+    else:
+        raise TypeError("input_data must be a pandas DataFrame, a dictionary, or a list of dictionaries.")
+
+    model, preprocessors, metadata = load_model(model_name)
     
-    # 保存副本
-    input_df = input_data.copy()
+    # Use feature names from metadata if available, falling back to model's if any
+    feature_names_in = metadata.get("feature_names_in", None)
+    if feature_names_in is None and hasattr(model, 'feature_names_in_'):
+        feature_names_in = model.feature_names_in_
     
-    # 加载模型和预处理器
-    model, preprocessors, _ = load_model(model_name)
-    
-    # 应用预处理变换
+    # Ensure input_df has the correct columns in the correct order
+    if feature_names_in is not None:
+        missing_cols = set(feature_names_in) - set(input_df.columns)
+        if missing_cols:
+            raise ValueError(f"Input data is missing columns: {missing_cols}")
+        input_df_processed = input_df[feature_names_in].copy() # Reorder/select columns
+    else:
+        # If no feature_names_in, assume input_df is already correctly ordered/featured
+        # This might be risky if preprocessors rely on specific column names/order
+        print("Warning: 'feature_names_in' not found in model metadata or model object. Assuming input data is correctly ordered.")
+        input_df_processed = input_df.copy()
+
+
+    # Apply preprocessing transformations
     if 'label_encoders' in preprocessors:
         for col, encoder in preprocessors['label_encoders'].items():
-            if col in input_df.columns:
-                input_df[col] = input_df[col].astype(str)
-                try:
-                    input_df[col] = encoder.transform(input_df[col])
-                except ValueError:
-                    # 处理未知类别
-                    print(f"警告: 列 '{col}' 包含模型训练期间未见过的类别。将使用默认值0。")
-                    input_df[col] = 0
+            if col in input_df_processed.columns and col != metadata.get("target_column"): # Don't encode target if present
+                input_df_processed[col] = input_df_processed[col].astype(str)
+                # Handle unseen labels during transform
+                input_df_processed[col] = input_df_processed[col].apply(
+                    lambda x: encoder.transform([x])[0] if x in encoder.classes_ else -1 # Or handle as NaN / specific category
+                )
+                if (input_df_processed[col] == -1).any():
+                     print(f"Warning: Column '{col}' contained unseen labels, encoded as -1.")
+
+
+    if 'scaler' in preprocessors and preprocessors['scaler'] is not None:
+        scaled_num_cols = metadata.get('scaled_numerical_columns', []) # Use columns that were actually scaled
+        # Ensure only existing columns are selected for scaling
+        cols_to_scale = [col for col in scaled_num_cols if col in input_df_processed.columns]
+        if cols_to_scale:
+            input_df_processed[cols_to_scale] = preprocessors['scaler'].transform(input_df_processed[cols_to_scale])
     
-    # 标准化数值特征
-    if 'scaler' in preprocessors and hasattr(preprocessors['scaler'], 'transform'):
-        numeric_cols = [col for col in input_df.columns if col in preprocessors['scaler'].feature_names_in_]
-        if numeric_cols:
-            input_df[numeric_cols] = preprocessors['scaler'].transform(input_df[numeric_cols])
+    X_predict = input_df_processed.values
+    predictions = model.predict(X_predict)
     
-    # 删除目标列（如果存在）
-    if target_column and target_column in input_df.columns:
-        actual_values = input_df[target_column].values
-        X = input_df.drop(columns=[target_column]).values
-    else:
-        actual_values = None
-        X = input_df.values
-    
-    # 进行预测
-    predictions = model.predict(X)
-    
-    # 准备返回结果
     result = {
         "model_name": model_name,
         "predictions": predictions.tolist(),
-        "input_data": input_data.to_dict('records')
     }
     
-    # 如果有实际值，计算评估指标
-    if actual_values is not None:
-        if hasattr(model, "predict_proba"):
-            result["is_classification"] = True
-            result["accuracy"] = accuracy_score(actual_values, predictions)
-        else:
-            result["is_classification"] = False
-            result["mse"] = mean_squared_error(actual_values, predictions)
-            result["r2"] = r2_score(actual_values, predictions)
-    
+    if hasattr(model, "predict_proba"):
+        try:
+            probabilities = model.predict_proba(X_predict)
+            # Format probabilities based on number of classes
+            if probabilities.shape[1] == 2: # Binary classification
+                 result["probabilities"] = probabilities[:, 1].tolist() # Prob of positive class
+            else: # Multiclass
+                # Return list of probability arrays, or dict mapping class name to prob
+                if hasattr(preprocessors.get('label_encoders',{}).get(metadata.get("target_column")), 'classes_'):
+                    classes = preprocessors['label_encoders'][metadata.get("target_column")].classes_
+                    result["probabilities"] = [{cls_name: prob for cls_name, prob in zip(classes, prob_array)} for prob_array in probabilities]
+                else:
+                    result["probabilities"] = probabilities.tolist()
+
+        except Exception as e_proba:
+            print(f"Could not get probabilities: {e_proba}")
+
+
     return result
 
-# 列出所有可用模型
-def list_available_models() -> List[Dict[str, Any]]:  # 修改返回类型提示
+
+def list_available_models() -> List[Dict[str, Any]]:
     """
-    列出所有可用的模型，仅返回可JSON序列化的元数据。
+    Lists all available models, returning JSON-serializable metadata.
     """
-    models_metadata = []  # 改名为 models_metadata
+    models_metadata = []
+    if not os.path.exists(MODELS_DIR):
+        logger.warning(f"Models directory '{MODELS_DIR}' not found when listing models.")
+        return []
+
     for filename in os.listdir(MODELS_DIR):
         if filename.endswith(".pkl"):
             model_name = os.path.splitext(filename)[0]
             try:
-                # 我们仍然需要加载模型来获取其类型和可能的元数据
-                # 但我们不会将模型对象本身放入返回的字典中
-                model_obj, preprocessors, metadata = load_model(model_name)  # load_model现在返回3个值
+                _, _, metadata = load_model(model_name) # Load to get metadata
 
-                # 从模型对象推断类型 (如果元数据中没有)
-                model_type_from_obj = next((k for k, v in MODEL_TYPES.items() if isinstance(model_obj, v)), "unknown")
-
-                # 优先使用元数据中的类型，其次是推断的类型
-                model_type = metadata.get("model_type", model_type_from_obj)
-
-                # 准备模型元数据字典
+                model_type = metadata.get("model_type", "unknown")
                 detail_info = MODEL_DETAILS.get(model_type, {})
+                
                 model_info = {
                     "name": model_name,
                     "type": model_type,
                     "path": os.path.join(MODELS_DIR, filename),
-                    "params": metadata.get("model_params", {}),
+                    "params": metadata.get("model_params", {}), # Already stringified if needed
                     "display_name": detail_info.get("display_name", model_name.replace("_", " ").title()),
-                    "icon_class": detail_info.get("icon_class", "fa-brain"),
+                    "icon_class": detail_info.get("icon_class", "fa-brain"), # Default icon
                     "description": detail_info.get("description", f"A {model_type} model."),
-                    "created_at": metadata.get("created_at", None),
-                    "internal_name": model_name, # 与前端 data-model-name 对应
+                    "created_at": metadata.get("created_at"),
+                    "internal_name": model_name, # For frontend data-model-name
+                    "target_column": metadata.get("target_column"),
+                    "feature_columns": metadata.get("feature_columns_in", metadata.get("categorical_columns", []) + metadata.get("numerical_columns", [])), # Prefer feature_names_in if available
+                    "metrics": metadata.get("metrics")
                 }
-
-                # 确保所有值都是可序列化的
-                for key, value in list(model_info.items()):  # 使用list复制，因为可能在迭代中修改
-                    if not isinstance(value, (str, int, float, bool, list, dict, type(None))):
-                        model_info[key] = str(value)  # 将不可序列化的值转为字符串
-
-                if metadata:  # 将其他元数据项也加入，确保它们可序列化
-                    for meta_key, meta_value in metadata.items():
-                        if meta_key not in model_info:  # 避免覆盖已有的键
-                            if isinstance(meta_value, (str, int, float, bool, list, dict, type(None))):
-                                model_info[meta_key] = meta_value
-                            else:
-                                model_info[meta_key] = str(meta_value)
-
+                
+                # Ensure all values are serializable (should mostly be handled by metadata saving)
+                for key, value in list(model_info.items()):
+                    if not isinstance(value, (str, int, float, bool, list, dict)) and value is not None:
+                        model_info[key] = str(value)
+                
                 models_metadata.append(model_info)
             except Exception as e:
-                # 使用 app.logger (如果已配置) 或 print
-                print(f"加载或处理模型元数据 {model_name} 时出错: {e}")
-                # 可以选择跳过此模型或添加一个带错误标记的条目
+                logger.error(f"Error loading or processing metadata for model {model_name}: {e}")
                 models_metadata.append({
-                    "name": model_name,
-                    "type": "error",
-                    "path": os.path.join(MODELS_DIR, filename),
-                    "error_message": str(e)
+                    "name": model_name, "type": "error",
+                    "path": os.path.join(MODELS_DIR, filename), "error_message": str(e)
                 })
     return models_metadata
 
-# 根据问题描述选择合适的模型
-def select_model_for_task(task_description: str) -> Optional[str]:
+
+def select_model_for_task(task_description: str) -> Optional[Dict[str, Any]]: # Return dict for more info
     """
-    基于任务描述选择最合适的模型
+    Selects the most suitable model based on a task description.
+    (Simplified keyword-based implementation)
     """
     available_models = list_available_models()
     if not available_models:
         return None
-    
-    # 这里可以实现更智能的模型选择逻辑
-    # 例如使用关键词匹配或基于任务特征进行选择
-    
-    # 关键词映射
-    keywords = {
-        "回归": ["linear_regression", "random_forest_regressor"],
-        "预测数值": ["linear_regression", "random_forest_regressor"],
-        "价格预测": ["linear_regression", "random_forest_regressor"],
-        "销量预测": ["linear_regression", "random_forest_regressor"],
-        "分类": ["logistic_regression", "decision_tree", "random_forest_classifier"],
-        "是否": ["logistic_regression", "decision_tree", "random_forest_classifier"],
-        "风险识别": ["logistic_regression", "random_forest_classifier"],
-        "信贷风险": ["decision_tree", "random_forest_classifier"],
-        "健康风险": ["logistic_regression", "random_forest_classifier"],
-        "客户流失": ["logistic_regression", "random_forest_classifier"]
+
+    # English keywords
+    keywords_map = {
+        "regression": ["linear_regression", "random_forest_regressor"],
+        "predict numerical value": ["linear_regression", "random_forest_regressor"],
+        "price prediction": ["linear_regression", "random_forest_regressor"],
+        "sales forecast": ["linear_regression", "random_forest_regressor"],
+        "classification": ["logistic_regression", "decision_tree", "random_forest_classifier", "knn_classifier", "svm_classifier", "naive_bayes"],
+        "is it": ["logistic_regression", "decision_tree", "random_forest_classifier"], # "yes/no" type questions
+        "risk identification": ["logistic_regression", "random_forest_classifier"],
+        "credit risk": ["decision_tree", "random_forest_classifier"],
+        "health risk": ["logistic_regression", "random_forest_classifier"],
+        "customer churn": ["logistic_regression", "random_forest_classifier"]
     }
     
-    # 根据任务描述匹配关键词
-    preferred_types = []
-    for keyword, model_types in keywords.items():
-        if keyword in task_description:
-            preferred_types.extend(model_types)
+    task_desc_lower = task_description.lower()
+    preferred_model_types = []
+    for keyword, model_types_list in keywords_map.items():
+        if keyword in task_desc_lower:
+            preferred_model_types.extend(model_types_list)
     
-    # 如果找到匹配的模型类型，选择该类型的第一个可用模型
-    if preferred_types:
+    recommendations = []
+    # First, check for preferred types
+    if preferred_model_types:
         for model_info in available_models:
-            if model_info["type"] in preferred_types:
-                return model_info["name"]
+            if model_info["type"] in preferred_model_types:
+                 recommendations.append({
+                     "model_type": model_info["type"],
+                     "model_name": model_info["name"],
+                     "confidence": 0.7, # Higher confidence for keyword match
+                     "reason": f"Matches task description keyword related to '{model_info['type']}'."
+                 })
     
-    # 如果没有找到匹配的模型，返回第一个可用模型
-    return available_models[0]["name"] if available_models else None 
+    # Add other available models with lower confidence if no strong match or to provide options
+    for model_info in available_models:
+        if not any(r['model_name'] == model_info['name'] for r in recommendations):
+            recommendations.append({
+                "model_type": model_info["type"],
+                "model_name": model_info["name"],
+                "confidence": 0.3, # Lower confidence for general models
+                "reason": "General purpose model, might be applicable."
+            })
 
-# 模型版本控制和管理
-def save_model_with_version(model, model_name, preprocessors=None, metadata=None, version=None):
-    """
-    保存模型并进行版本管理
+    if not recommendations: return None
     
+    # Sort by confidence (desc) then by name (asc)
+    recommendations.sort(key=lambda x: (-x['confidence'], x['model_name']))
+
+    return {
+        "recommended_model": recommendations[0]['model_name'] if recommendations else None, # Top recommendation
+        "recommendations": recommendations # List of all recommendations with scores
+    }
+
+
+def save_model_with_version(
+    model: Any,
+    model_name: str,
+    preprocessors: Optional[Dict[str, Any]] = None,
+    metadata: Optional[Dict[str, Any]] = None,
+    version: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Saves a model with version management.
+
     Args:
-        model: 模型对象
-        model_name: 模型基本名称
-        preprocessors: 预处理器字典
-        metadata: 模型元数据
-        version: 版本号(可选)，如不提供则使用时间戳
-        
+        model: The trained model object.
+        model_name: Base name for the model.
+        preprocessors: Dictionary of preprocessors used.
+        metadata: Model metadata.
+        version: Optional version string. If None, a timestamp-based version is generated.
+
     Returns:
-        包含版本信息的字典
+        Dictionary containing version information.
     """
     if version is None:
-        # 自动生成版本号
         version = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     
-    # 版本文件夹
     version_dir = os.path.join(MODELS_DIR, f"{model_name}_versions")
     os.makedirs(version_dir, exist_ok=True)
     
-    # 完整版本模型名称
     versioned_model_name = f"{model_name}_v{version}"
     model_path = os.path.join(version_dir, f"{versioned_model_name}.pkl")
     
-    # 保存模型和预处理器
     with open(model_path, "wb") as f:
         pickle.dump((model, preprocessors or {}, metadata or {}), f)
     
-    # 保存版本元数据
     version_info = {
-        "model_name": model_name,
-        "version": version,
-        "timestamp": datetime.datetime.now().isoformat(),
-        "path": model_path,
+        "model_name": model_name, "version": version,
+        "timestamp": datetime.datetime.now().isoformat(), "path": model_path,
     }
+    if metadata: version_info.update(metadata)
     
-    # 如果提供了元数据，将其合并
-    if metadata:
-        version_info.update(metadata)
-    
-    # 保存版本信息
     version_info_path = os.path.join(version_dir, f"{versioned_model_name}_info.json")
-    with open(version_info_path, "w") as f:
-        json.dump(version_info, f, indent=2)
+    with open(version_info_path, "w", encoding='utf-8') as f:
+        json.dump(version_info, f, indent=2, ensure_ascii=False)
     
     return version_info
 
-def list_model_versions(model_name):
+
+def list_model_versions(model_name: str) -> List[Dict[str, Any]]:
     """
-    列出模型的所有版本
-    
+    Lists all versions of a given model.
+
     Args:
-        model_name: 模型基本名称
-        
+        model_name: Base name of the model.
+
     Returns:
-        版本信息列表
+        A list of version information dictionaries.
     """
     version_dir = os.path.join(MODELS_DIR, f"{model_name}_versions")
     if not os.path.exists(version_dir):
@@ -642,738 +673,622 @@ def list_model_versions(model_name):
     
     versions = []
     for filename in os.listdir(version_dir):
-        if filename.endswith("_info.json"):
-            with open(os.path.join(version_dir, filename), "r") as f:
-                version_info = json.load(f)
-                versions.append(version_info)
-    
-    # 按时间戳排序
-    versions.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
+        if filename.endswith("_info.json"): # Assuming info files denote versions
+            try:
+                with open(os.path.join(version_dir, filename), "r", encoding='utf-8') as f:
+                    versions.append(json.load(f))
+            except json.JSONDecodeError:
+                logger.error(f"Could not decode JSON for version info file: {filename}")
+            except Exception as e:
+                 logger.error(f"Error reading version info file {filename}: {e}")
+
+    versions.sort(key=lambda x: x.get("timestamp", ""), reverse=True) # Newest first
     return versions
 
-def load_model_version(model_name, version):
+
+def load_model_version(model_name: str, version: str) -> Tuple[Any, Dict[str, Any], Dict[str, Any]]:
     """
-    加载特定版本的模型
-    
+    Loads a specific version of a model.
+
     Args:
-        model_name: 模型基本名称
-        version: 版本号
-        
+        model_name: Base name of the model.
+        version: Version string.
+
     Returns:
-        (模型, 预处理器, 元数据)
+        A tuple: (model_object, preprocessors_dict, metadata_dict).
     """
     version_dir = os.path.join(MODELS_DIR, f"{model_name}_versions")
     model_path = os.path.join(version_dir, f"{model_name}_v{version}.pkl")
     
     if not os.path.exists(model_path):
-        raise FileNotFoundError(f"模型版本不存在: {model_path}")
+        raise FileNotFoundError(f"Model version file not found: {model_path}")
     
     with open(model_path, "rb") as f:
-        model, preprocessors, metadata = pickle.load(f)
-    
-    return model, preprocessors, metadata
+        return pickle.load(f) # Assumes (model, preprocessors, metadata) structure
 
-# 模型集成功能
+
 def create_ensemble_model(
-    base_models,
-    ensemble_type='voting',
-    weights=None,
-    final_estimator=None,
-    meta_features=False,
-    save_name=None
-):
+    base_models: List[Union[str, Tuple[str, Any]]], # Can be names or (name, model_obj)
+    ensemble_type: str = 'voting',
+    weights: Optional[List[float]] = None,
+    final_estimator: Optional[Any] = None, # For stacking
+    meta_features: bool = False, # For stacking, passthrough original features
+    save_name: Optional[str] = None
+) -> Dict[str, Any]:
     """
-    创建集成模型
-    
+    Creates an ensemble model from base models.
+
     Args:
-        base_models: 基础模型列表（模型名称或(名称,模型)元组）
-        ensemble_type: 集成类型，'voting'|'stacking'|'bagging'
-        weights: 各模型权重（用于voting）
-        final_estimator: 最终估计器（用于stacking）
-        meta_features: 是否使用元特征（用于stacking）
-        save_name: 保存集成模型的名称
-        
+        base_models: List of base model names or (name, model_object) tuples.
+        ensemble_type: 'voting', 'stacking', or 'bagging'.
+        weights: Weights for voting ensemble.
+        final_estimator: Meta-learner for stacking.
+        meta_features: Whether to use original features in meta-learner for stacking.
+        save_name: Name to save the ensemble model.
+
     Returns:
-        集成模型对象，以及相关信息
+        Dictionary with ensemble model info.
     """
-    # 加载模型和预处理器
-    model_list = []
-    is_classifier = True
-    preprocessors_dict = {}
-    metadata_dict = {}
+    loaded_base_models = []
+    is_classifier_list = [] # To check consistency
     
     for item in base_models:
-        try:
-            if isinstance(item, tuple) and len(item) == 2:
-                # 已提供(名称,模型)元组
-                model_name, model = item
-                _, preprocessors, metadata = load_model(model_name)
-            else:
-                # 只提供了模型名称
-                model_name = item
-                model, preprocessors, metadata = load_model(model_name)
-            
-            # 判断是分类还是回归
-            if not hasattr(model, "predict_proba"):
-                is_classifier = False
-            
-            # 确保模型名称是字符串类型
-            if not isinstance(model_name, str):
-                model_name = str(model_name)
-                
-            model_list.append((model_name, model))
-            preprocessors_dict[model_name] = preprocessors
-            metadata_dict[model_name] = metadata
-        except Exception as e:
-            print(f"加载模型 {model_name} 时出错: {e}")
-            raise ValueError(f"无法加载模型 {model_name}: {str(e)}")
-    
-    # 创建集成模型
-    ensemble_model = None
+        model_obj, model_name_str = None, None
+        if isinstance(item, tuple) and len(item) == 2:
+            model_name_str, model_obj = item
+        elif isinstance(item, str):
+            model_name_str = item
+            model_obj, _, _ = load_model(model_name_str) # Load preprocessors and metadata too
+        else:
+            raise ValueError(f"Invalid item in base_models: {item}. Must be name or (name, model_obj).")
+
+        if not isinstance(model_name_str, str): model_name_str = str(model_name_str) # Ensure name is string
+        
+        loaded_base_models.append((model_name_str, model_obj))
+        is_classifier_list.append(hasattr(model_obj, "predict_proba"))
+
+    if not all(is_classifier_list) and not all(not x for x in is_classifier_list):
+        raise ValueError("All base models must be of the same type (all classifiers or all regressors).")
+    is_ensemble_classifier = is_classifier_list[0]
+
+    ensemble_model: Any = None
     if ensemble_type == 'voting':
-        if is_classifier:
+        if is_ensemble_classifier:
             ensemble_model = VotingClassifier(
-                estimators=model_list,
-                voting='soft' if all(hasattr(m[1], "predict_proba") for m in model_list) else 'hard',
+                estimators=loaded_base_models,
+                voting='soft' if all(hasattr(m[1], "predict_proba") for m in loaded_base_models) else 'hard',
                 weights=weights
             )
         else:
-            ensemble_model = VotingRegressor(
-                estimators=model_list,
-                weights=weights
-            )
+            ensemble_model = VotingRegressor(estimators=loaded_base_models, weights=weights)
     elif ensemble_type == 'stacking':
-        if is_classifier:
+        if is_ensemble_classifier:
             ensemble_model = StackingClassifier(
-                estimators=model_list,
-                final_estimator=final_estimator,
-                passthrough=meta_features
+                estimators=loaded_base_models, final_estimator=final_estimator, passthrough=meta_features
             )
         else:
             ensemble_model = StackingRegressor(
-                estimators=model_list,
-                final_estimator=final_estimator,
-                passthrough=meta_features
+                estimators=loaded_base_models, final_estimator=final_estimator, passthrough=meta_features
             )
     elif ensemble_type == 'bagging':
-        # 对于bagging，我们使用第一个模型作为基础估计器
-        base_estimator = model_list[0][1]
-        if is_classifier:
-            ensemble_model = BaggingClassifier(base_estimator=base_estimator)
+        base_estimator_obj = loaded_base_models[0][1] # Bagging uses one type of base estimator
+        if is_ensemble_classifier:
+            ensemble_model = BaggingClassifier(base_estimator=base_estimator_obj)
         else:
-            ensemble_model = BaggingRegressor(base_estimator=base_estimator)
+            ensemble_model = BaggingRegressor(base_estimator=base_estimator_obj)
     else:
-        raise ValueError(f"不支持的集成类型: {ensemble_type}")
-    
-    # 创建集成元数据
+        raise ValueError(f"Unsupported ensemble type: {ensemble_type}")
+
+    ensemble_name = save_name or f"{ensemble_type}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
     ensemble_metadata = {
-        'ensemble_type': ensemble_type,
-        'base_models': [m[0] for m in model_list],
-        'is_classifier': is_classifier,
-        'weights': weights,
-        'description': f"{ensemble_type.capitalize()} 集成模型，基于 {', '.join([m[0] for m in model_list])}"
+        'model_name': ensemble_name, 'ensemble_type': ensemble_type,
+        'base_model_names': [m[0] for m in loaded_base_models],
+        'is_classifier': is_ensemble_classifier, 'weights': weights,
+        'description': f"{ensemble_type.capitalize()} ensemble model based on {', '.join([m[0] for m in loaded_base_models])}."
     }
-    
-    # 保存集成模型
-    if save_name:
-        ensemble_name = save_name
-    else:
-        ensemble_name = f"{ensemble_type}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
-    
-    # 创建组合预处理器
-    ensemble_preprocessors = {
-        'base_model_preprocessors': preprocessors_dict
-    }
-    
+    # Ensemble preprocessors might be complex; for now, assume base models are used with their own or compatible preprocessed data.
+    # A true ensemble pipeline would need careful handling of preprocessing if base models require different steps.
+    ensemble_preprocessors = {'note': 'Preprocessing should be handled before feeding data to this ensemble or ensure base models use compatible preprocessed data.'}
+
+
     model_path = os.path.join(MODELS_DIR, f"{ensemble_name}.pkl")
     with open(model_path, "wb") as f:
         pickle.dump((ensemble_model, ensemble_preprocessors, ensemble_metadata), f)
     
     return {
-        'model': ensemble_model,
-        'preprocessors': ensemble_preprocessors,
-        'metadata': ensemble_metadata,
-        'model_name': ensemble_name,
-        'model_path': model_path
+        'model_name': ensemble_name, 'model_path': model_path,
+        'model': ensemble_model, 'preprocessors': ensemble_preprocessors, 'metadata': ensemble_metadata
     }
 
-# 自动模型选择和超参数优化
+
 def auto_model_selection(
-    data_path,
-    target_column,
-    categorical_columns=None,
-    numerical_columns=None,
-    cv=5,
-    metric='auto',
-    models_to_try=None
-):
+    data_path: str,
+    target_column: str,
+    categorical_columns: Optional[List[str]] = None,
+    numerical_columns: Optional[List[str]] = None,
+    cv: int = 5,
+    metric: str = 'auto',
+    models_to_try: Optional[List[str]] = None,
+    random_state: int = 42
+) -> Dict[str, Any]:
     """
-    自动选择最佳模型和参数
-    
+    Automatically selects the best model and parameters using GridSearchCV.
+
     Args:
-        data_path: 数据文件路径
-        target_column: 目标列名
-        categorical_columns: 分类特征列表
-        numerical_columns: 数值特征列表
-        cv: 交叉验证折数
-        metric: 评估指标，'auto'表示自动选择
-        models_to_try: 要尝试的模型类型列表，None表示尝试所有合适的模型
-        
+        data_path: Path to the data file (CSV, Excel, JSON).
+        target_column: Name of the target column.
+        categorical_columns: List of categorical feature names.
+        numerical_columns: List of numerical feature names.
+        cv: Number of cross-validation folds.
+        metric: Evaluation metric ('auto', or specific scikit-learn scorer).
+        models_to_try: List of model types to try. None means try all suitable.
+        random_state: Random seed for reproducibility.
+
     Returns:
-        最佳模型及其信息
+        Dictionary with the best model, its parameters, and performance.
     """
-    # 加载数据
-    if data_path.endswith('.csv'):
+    if data_path.lower().endswith('.csv'):
         data = pd.read_csv(data_path, keep_default_na=False, na_values=['NaN', 'N/A', 'NA', 'nan', 'null'])
-    elif data_path.endswith(('.xls', '.xlsx')):
+    elif data_path.lower().endswith(('.xls', '.xlsx')):
         data = pd.read_excel(data_path, keep_default_na=False, na_values=['NaN', 'N/A', 'NA', 'nan', 'null'])
-    elif data_path.endswith('.json'):
+    elif data_path.lower().endswith('.json'): # Added JSON support
         data = pd.read_json(data_path)
-        data = data.fillna('')
+        data = data.fillna('') # Simple fill for JSON, might need more sophisticated handling
     else:
-        raise ValueError("目前只支持CSV、Excel和JSON文件格式")
+        raise ValueError("Unsupported file format. Only CSV, Excel, and JSON are supported.")
         
-    # 确保目标列存在于数据中
     if target_column not in data.columns:
-        raise ValueError(f"目标列 '{target_column}' 不在数据中。可用列: {', '.join(data.columns)}")
+        raise ValueError(f"Target column '{target_column}' not in data. Available columns: {', '.join(data.columns)}")
         
-    # 处理缺失值
     if data.isna().any().any():
-        print("警告：数据中存在缺失值，将使用适当的策略处理")
-        # 对数值列使用均值填充，对分类列使用众数填充
+        print("Warning: Missing values detected in data. Applying simple imputation (mean/mode).")
         for col in data.columns:
             if pd.api.types.is_numeric_dtype(data[col]):
                 data[col] = data[col].fillna(data[col].mean())
             else:
                 data[col] = data[col].fillna(data[col].mode()[0] if not data[col].mode().empty else '')
     
-    # 预处理数据
-    X_train, X_test, y_train, y_test, preprocessors = preprocess_data(
-        data,
-        target_column,
-        categorical_columns,
-        numerical_columns
+    X_train_np, X_test_np, y_train, y_test, preprocessors = preprocess_data(
+        data, target_column, categorical_columns, numerical_columns, random_state=random_state
     )
     
-    # 自动判断是分类还是回归任务
-    unique_values = np.unique(y_train)
-    is_classification = len(unique_values) < 20  # 简单判断，可优化
-    
-    # 定义要尝试的模型和参数网格
+    unique_y_values = np.unique(y_train)
+    is_classification_task = len(unique_y_values) < 20 or not pd.api.types.is_numeric_dtype(y_train)
+
     if models_to_try is None:
-        if is_classification:
-            models_to_try = ['logistic_regression', 'decision_tree', 'random_forest_classifier', 'knn_classifier', 'svm_classifier']
-        else:
-            models_to_try = ['linear_regression', 'decision_tree', 'random_forest_regressor']
+        models_to_try = MODEL_CATEGORIES['classification'] if is_classification_task else MODEL_CATEGORIES['regression']
     
-    # 为每个模型定义参数网格
+    # Refined param_grids
     param_grids = {
-        'logistic_regression': {
-            'C': [0.1, 1.0, 10.0],
-            'solver': ['liblinear', 'saga'],
-            'max_iter': [1000]
-        },
-        'decision_tree': {
-            'max_depth': [None, 5, 10],
-            'min_samples_split': [2, 5, 10]
-        },
-        'random_forest_classifier': {
-            'n_estimators': [50, 100],
-            'max_depth': [None, 10],
-            'min_samples_split': [2, 5]
-        },
-        'random_forest_regressor': {
-            'n_estimators': [50, 100],
-            'max_depth': [None, 10],
-            'min_samples_split': [2, 5]
-        },
-        'knn_classifier': {
-            'n_neighbors': [3, 5, 7],
-            'weights': ['uniform', 'distance']
-        },
-        'svm_classifier': {
-            'C': [0.1, 1.0, 10.0],
-            'kernel': ['linear', 'rbf']
-        },
-        'linear_regression': {
-            'fit_intercept': [True, False],
-            'positive': [False, True]
-        }
+        'logistic_regression': {'C': [0.1, 1.0, 10.0], 'solver': ['liblinear'], 'max_iter': [1000, 2000]},
+        'decision_tree': {'max_depth': [None, 5, 10, 15], 'min_samples_split': [2, 5, 10], 'min_samples_leaf': [1,2,5]},
+        'random_forest_classifier': {'n_estimators': [50, 100, 150], 'max_depth': [None, 10, 20], 'min_samples_split': [2, 5]},
+        'random_forest_regressor': {'n_estimators': [50, 100, 150], 'max_depth': [None, 10, 20], 'min_samples_split': [2, 5]},
+        'knn_classifier': {'n_neighbors': [3, 5, 7, 9], 'weights': ['uniform', 'distance'], 'metric': ['euclidean', 'manhattan']},
+        'svm_classifier': {'C': [0.1, 1.0, 10.0], 'kernel': ['linear', 'rbf'], 'gamma': ['scale', 'auto']},
+        'linear_regression': {'fit_intercept': [True, False]}
     }
     
-    # 设置评估指标
-    if metric == 'auto':
-        if is_classification:
-            metric = 'f1_weighted'
-        else:
-            metric = 'neg_mean_squared_error'
+    scoring_metric = metric
+    if scoring_metric == 'auto':
+        scoring_metric = 'f1_weighted' if is_classification_task else 'neg_mean_squared_error'
     
-    # 每个模型搜索最佳参数
-    best_score = float('-inf')
-    best_model = None
-    best_params = None
-    best_name = None
-    all_models_results = []
+    best_cv_score = -float('inf')
+    best_model_instance = None
+    best_model_params = None
+    best_model_type_name = None
+    all_model_run_results = []
     
-    for model_type in models_to_try:
-        if model_type not in MODEL_TYPES:
-            print(f"警告：模型类型 {model_type} 不在支持列表中，将跳过。")
+    for model_type_key in models_to_try:
+        if model_type_key not in MODEL_TYPES:
+            print(f"Warning: Model type {model_type_key} is not supported. Skipping.")
             continue
         
-        print(f"正在训练和优化 {model_type} 模型...")
-        
-        # 获取模型类和参数网格
-        model_class = MODEL_TYPES[model_type]
-        param_grid = param_grids.get(model_type, {})
+        print(f"Training and optimizing {model_type_key} model...")
+        model_class_ref = MODEL_TYPES[model_type_key]
+        current_param_grid = param_grids.get(model_type_key, {})
         
         try:
-            # 创建和训练网格搜索
-            grid_search = GridSearchCV(
-                model_class(),
-                param_grid,
-                cv=cv,
-                scoring=metric,
-                n_jobs=-1 if model_type != 'svm_classifier' else 1  # SVM可能很慢
+            # Ensure n_jobs is set if model supports it
+            model_init_params = {}
+            model_signature = inspect.signature(model_class_ref.__init__)
+            if 'random_state' in model_signature.parameters: model_init_params['random_state'] = random_state
+            if 'n_jobs' in model_signature.parameters and model_type_key != 'svm_classifier': model_init_params['n_jobs'] = -1
+
+
+            grid_search_cv = GridSearchCV(
+                model_class_ref(**model_init_params), current_param_grid, cv=cv,
+                scoring=scoring_metric, n_jobs=(1 if model_type_key == 'svm_classifier' else -1) # SVM can be slow with n_jobs=-1 for some kernels
             )
-            grid_search.fit(X_train, y_train)
+            grid_search_cv.fit(X_train_np, y_train)
             
-            # 评估最佳模型
-            best_estimator = grid_search.best_estimator_
+            current_best_estimator = grid_search_cv.best_estimator_
+            y_pred_test = current_best_estimator.predict(X_test_np)
             
-            if is_classification:
-                y_pred = best_estimator.predict(X_test)
-                accuracy = accuracy_score(y_test, y_pred)
-                f1 = f1_score(y_test, y_pred, average='weighted')
-                precision = precision_score(y_test, y_pred, average='weighted', zero_division=0)
-                recall = recall_score(y_test, y_pred, average='weighted', zero_division=0)
-                
-                test_score = f1  # 使用F1作为测试集评分
-                model_metrics = {
-                    'accuracy': accuracy,
-                    'f1': f1,
-                    'precision': precision,
-                    'recall': recall
-                }
-            else:
-                y_pred = best_estimator.predict(X_test)
-                mse = mean_squared_error(y_test, y_pred)
-                rmse = np.sqrt(mse)
-                mae = mean_absolute_error(y_test, y_pred)
-                r2 = r2_score(y_test, y_pred)
-                
-                test_score = -mse  # 使用负MSE作为测试集评分（越高越好）
-                model_metrics = {
-                    'mse': mse,
-                    'rmse': rmse,
-                    'mae': mae,
-                    'r2': r2
-                }
+            test_set_score = f1_score(y_test, y_pred_test, average='weighted') if is_classification_task \
+                else -mean_squared_error(y_test, y_pred_test) # Use negative MSE for regressors
+
+            current_model_metrics = evaluate_model(current_best_estimator, X_test_np, y_test, model_type_key)
+
+            all_model_run_results.append({
+                'model_type': model_type_key, 'best_params': grid_search_cv.best_params_,
+                'cv_score': grid_search_cv.best_score_, 'test_score': test_set_score, # Using consistent scoring direction
+                'metrics_on_test': current_model_metrics
+            })
             
-            # 记录此模型的结果
-            model_result = {
-                'model_type': model_type,
-                'best_params': grid_search.best_params_,
-                'cv_score': grid_search.best_score_,
-                'test_score': test_score,
-                'metrics': model_metrics
-            }
-            all_models_results.append(model_result)
+            if grid_search_cv.best_score_ > best_cv_score:
+                best_cv_score = grid_search_cv.best_score_
+                best_model_instance = current_best_estimator
+                best_model_params = grid_search_cv.best_params_
+                best_model_type_name = model_type_key
             
-            # 更新最佳模型（基于CV分数）
-            if grid_search.best_score_ > best_score:
-                best_score = grid_search.best_score_
-                best_model = best_estimator
-                best_params = grid_search.best_params_
-                best_name = model_type
+            print(f"  {model_type_key} optimization complete. CV Score: {grid_search_cv.best_score_:.4f}, Test Score: {test_set_score:.4f}")
             
-            print(f"  {model_type} 优化完成。CV分数: {grid_search.best_score_:.4f}, 测试分数: {test_score:.4f}")
-            
-        except Exception as e:
-            print(f"训练 {model_type} 时出错: {e}")
+        except Exception as e_grid:
+            print(f"Error training {model_type_key}: {e_grid}")
     
-    if best_model is None:
-        raise ValueError("没有找到有效的模型")
+    if best_model_instance is None:
+        raise ValueError("No valid model could be trained successfully.")
     
-    # 保存最佳模型
-    model_name = f"automl_{best_name}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
-    metadata = {
-        'model_type': best_name,
-        'model_params': best_params,
-        'cv_score': best_score,
-        'all_models_results': all_models_results,
-        'best_model_idx': [i for i, r in enumerate(all_models_results) if r['model_type'] == best_name][0],
-        'is_classification': is_classification,
-        'metric': metric,
-        'created_by': 'auto_model_selection'
+    final_model_name = f"automl_{best_model_type_name}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    final_metadata = {
+        'model_name': final_model_name, 'model_type': best_model_type_name,
+        'model_params': best_model_params, 'cv_score': best_cv_score,
+        'all_models_results': all_model_run_results, # Store results of all tried models
+        'is_classification': is_classification_task, 'metric_used': scoring_metric,
+        'created_by': 'auto_model_selection', 'random_state': random_state,
+        'target_column': target_column, 'categorical_columns': categorical_columns,
+        'numerical_columns': numerical_columns,
+        'scaled_numerical_columns': preprocessors.get('scaled_numerical_columns'),
+        'feature_names_in': list(X.columns) if isinstance(X, pd.DataFrame) else None
     }
     
-    model_path = os.path.join(MODELS_DIR, f"{model_name}.pkl")
-    with open(model_path, "wb") as f:
-        pickle.dump((best_model, preprocessors, metadata), f)
+    final_model_path = os.path.join(MODELS_DIR, f"{final_model_name}.pkl")
+    with open(final_model_path, "wb") as f:
+        pickle.dump((best_model_instance, preprocessors, final_metadata), f)
+    print(f"Best auto-selected model '{final_model_name}' saved to {final_model_path}")
     
     return {
-        'model_name': model_name,
-        'model_type': best_name,
-        'model_path': model_path,
-        'model': best_model,
-        'preprocessors': preprocessors,
-        'params': best_params,
-        'cv_score': best_score,
-        'is_classification': is_classification,
-        'all_models_results': all_models_results
+        'model_name': final_model_name, 'model_type': best_model_type_name,
+        'model_path': final_model_path, 'model': best_model_instance,
+        'preprocessors': preprocessors, 'params': best_model_params,
+        'cv_score': best_cv_score, 'is_classification': is_classification_task,
+        'all_models_results': all_model_run_results
     }
 
-# 模型可解释性功能
-def explain_model_prediction(model_name, input_data):
+
+def explain_model_prediction(model_name: str, input_data: Union[Dict[str, Any], pd.DataFrame]) -> Dict[str, Any]:
     """
-    解释模型预测结果
-    
+    Explains a model's prediction (basic implementation).
+
     Args:
-        model_name: 模型名称
-        input_data: 输入数据（字典或数据框）
-        
+        model_name: Name of the model.
+        input_data: Input data (single dictionary or DataFrame for multiple).
+
     Returns:
-        解释结果，包含特征重要性和其他解释信息
+        Explanation result, including feature importance and contributions.
     """
-    # 加载模型
-    model, preprocessors, _ = load_model(model_name)
+    model, preprocessors, metadata = load_model(model_name)
     
-    # 转换输入数据为DataFrame
     if isinstance(input_data, dict):
         input_df = pd.DataFrame([input_data])
-    elif isinstance(input_data, list) and all(isinstance(item, dict) for item in input_data):
-        input_df = pd.DataFrame(input_data)
-    else:
+    elif isinstance(input_data, pd.DataFrame):
         input_df = input_data.copy()
+    else:
+        raise TypeError("input_data must be a dictionary or pandas DataFrame.")
+
+    # Apply preprocessing (consistent with predict function)
+    input_df_processed = input_df.copy() # Start with a copy of the original input structure
     
-    # 应用预处理
-    # 处理分类特征
+    # Use feature names from metadata if available
+    feature_names_in = metadata.get("feature_names_in", None)
+    if feature_names_in is None and hasattr(model, 'feature_names_in_'):
+        feature_names_in = model.feature_names_in_
+
+    if feature_names_in is not None:
+        # Ensure all necessary columns are present and in order
+        current_cols = input_df_processed.columns.tolist()
+        if not all(fn in current_cols for fn in feature_names_in):
+            raise ValueError(f"Input data missing required features. Expected: {feature_names_in}")
+        input_df_processed = input_df_processed[feature_names_in]
+    else:
+        print("Warning: Feature names for model input not found in metadata. Assuming input_data columns are correct and ordered.")
+
+
     if 'label_encoders' in preprocessors:
         for col, encoder in preprocessors['label_encoders'].items():
-            if col in input_df.columns:
-                input_df[col] = input_df[col].astype(str)
-                try:
-                    input_df[col] = encoder.transform(input_df[col])
-                except ValueError:
-                    # 处理未知类别
-                    print(f"警告: 列 '{col}' 包含模型训练期间未见过的类别。将使用默认值0。")
-                    input_df[col] = 0
+            if col in input_df_processed.columns and col != metadata.get("target_column"):
+                input_df_processed[col] = input_df_processed[col].astype(str)
+                input_df_processed[col] = input_df_processed[col].apply(
+                    lambda x: encoder.transform([x])[0] if x in encoder.classes_ else -1
+                )
     
-    # 标准化数值特征
-    if 'scaler' in preprocessors and hasattr(preprocessors['scaler'], 'transform'):
-        numeric_cols = [col for col in input_df.columns if col in preprocessors['scaler'].feature_names_in_]
-        if numeric_cols:
-            input_df[numeric_cols] = preprocessors['scaler'].transform(input_df[numeric_cols])
+    if 'scaler' in preprocessors and preprocessors['scaler'] is not None:
+        scaled_num_cols = metadata.get('scaled_numerical_columns', [])
+        cols_to_scale = [col for col in scaled_num_cols if col in input_df_processed.columns]
+        if cols_to_scale:
+            input_df_processed[cols_to_scale] = preprocessors['scaler'].transform(input_df_processed[cols_to_scale])
     
-    # 获取预测
-    prediction = model.predict(input_df)
+    X_explain = input_df_processed.values
+    prediction = model.predict(X_explain)
     
-    # 计算特征重要性
-    feature_importance = {}
-    
-    # 对于树模型，我们可以直接获取特征重要性
+    feature_importance_dict = {}
+    feature_names = feature_names_in if feature_names_in else input_df_processed.columns.tolist()
+
     if hasattr(model, 'feature_importances_'):
-        importance = model.feature_importances_
-        for i, col in enumerate(input_df.columns):
-            feature_importance[col] = float(importance[i])
-    # 对于线性模型，我们可以获取系数
+        importances = model.feature_importances_
+        feature_importance_dict = {name: float(imp) for name, imp in zip(feature_names, importances)}
     elif hasattr(model, 'coef_'):
-        coef = model.coef_
-        if coef.ndim == 1:
-            for i, col in enumerate(input_df.columns):
-                feature_importance[col] = float(coef[i])
-        else:
-            # 对于多类别分类
-            for i, col in enumerate(input_df.columns):
-                feature_importance[col] = float(np.mean(abs(coef[:, i])))
+        coefs = model.coef_
+        if coefs.ndim == 1: # Simple linear model or binary logistic
+            feature_importance_dict = {name: float(coef) for name, coef in zip(feature_names, coefs)}
+        else: # Multiclass logistic, etc. Take mean of absolute coefs per feature
+            feature_importance_dict = {name: float(np.mean(np.abs(coefs[:, i]))) for i, name in enumerate(feature_names)}
     
-    # 排序并规范化特征重要性
-    if feature_importance:
-        # 转换为列表并排序
-        feature_imp_list = [(col, imp) for col, imp in feature_importance.items()]
-        feature_imp_list.sort(key=lambda x: abs(x[1]), reverse=True)
-        
-        # 计算当前预测的特征贡献
-        feature_contributions = []
-        for col, imp in feature_imp_list:
-            idx = list(input_df.columns).index(col)
-            value = input_df.iloc[0, idx]
-            
-            # 计算贡献 (仅适用于线性模型，对于其他模型这是一个近似)
-            if hasattr(model, 'coef_'):
-                if model.coef_.ndim == 1:
-                    contribution = float(value * model.coef_[idx])
-                else:
-                    contribution = float(value * np.mean(model.coef_[:, idx]))
-            else:
-                contribution = float(value * imp)
-            
-            feature_contributions.append({
-                'feature': col,
-                'importance': float(imp),
-                'value': float(value),
-                'contribution': contribution
-            })
-    else:
-        feature_contributions = []
+    # Simplified feature contributions (for linear models or tree-based with LIME/SHAP this would be more complex)
+    feature_contributions = []
+    if feature_importance_dict and not input_df_processed.empty:
+        # This is a very basic approximation of contribution
+        # For proper contributions, tools like SHAP or LIME are needed.
+        first_input_sample = input_df_processed.iloc[0]
+        for feature_name, importance_value in feature_importance_dict.items():
+            if feature_name in first_input_sample: # Ensure feature exists in the sample
+                original_value = input_df[feature_name].iloc[0] # Get original value before preprocessing for display
+                processed_value = first_input_sample[feature_name]
+                # Basic "contribution" might be feature_value * importance (for some models)
+                # This is highly model-dependent and simplified here.
+                contribution_approx = processed_value * importance_value 
+                feature_contributions.append({
+                    'feature': feature_name,
+                    'original_value': original_value, # Display original value
+                    'processed_value': float(processed_value), # Actual value used by model
+                    'importance': float(importance_value),
+                    'contribution_approximation': float(contribution_approx)
+                })
     
     return {
         'prediction': prediction.tolist(),
-        'feature_importance': feature_importance,
-        'feature_contributions': feature_contributions,
-        'input_data': input_df.to_dict('records')
+        'feature_importance': feature_importance_dict,
+        'feature_contributions': feature_contributions, # Simplified
+        'input_data_processed': input_df_processed.to_dict('records')
     }
 
-# 模型评估与比较
-def compare_models(model_names, test_data_path, target_column):
+
+def compare_models(model_names: List[str], test_data_path: str, target_column: str) -> Dict[str, Any]:
     """
-    比较多个模型在测试集上的表现
-    
+    Compares multiple models on a test set.
+
     Args:
-        model_names: 要比较的模型名称列表
-        test_data_path: 测试数据路径
-        target_column: 目标列名
-        
+        model_names: List of model names to compare.
+        test_data_path: Path to the test data file.
+        target_column: Name of the target column.
+
     Returns:
-        比较结果
+        Comparison results dictionary.
     """
-    # 加载测试数据
-    if test_data_path.endswith('.csv'):
+    if test_data_path.lower().endswith('.csv'):
         test_data = pd.read_csv(test_data_path, keep_default_na=False, na_values=['NaN', 'N/A', 'NA', 'nan', 'null'])
-    elif test_data_path.endswith(('.xls', '.xlsx')):
+    elif test_data_path.lower().endswith(('.xls', '.xlsx')):
         test_data = pd.read_excel(test_data_path, keep_default_na=False, na_values=['NaN', 'N/A', 'NA', 'nan', 'null'])
-    elif test_data_path.endswith('.json'):
-        test_data = pd.read_json(test_data_path)
-        test_data = test_data.fillna('')
     else:
-        raise ValueError("目前只支持CSV、Excel和JSON文件格式")
-    
-    # 确保目标列存在于数据中
-    if target_column not in test_data.columns:
-        raise ValueError(f"目标列 '{target_column}' 不在测试数据中。可用列: {', '.join(test_data.columns)}")
+        raise ValueError("Unsupported test data file format. Only CSV and Excel are supported.")
         
-    X_test = test_data.drop(columns=[target_column])
-    y_test = test_data[target_column]
+    if target_column not in test_data.columns:
+        raise ValueError(f"Target column '{target_column}' not found in test data.")
+        
+    y_test_actual = test_data[target_column]
     
-    # 存储每个模型的评估结果
-    results = []
-    
-    for model_name in model_names:
-        # 加载模型
+    comparison_results_list = []
+    for model_name_item in model_names:
         try:
-            model, preprocessors, _ = load_model(model_name)
+            model_obj, preprocessors, metadata = load_model(model_name_item)
             
-            # 应用预处理
-            X_processed = X_test.copy()
+            # Prepare X_test based on this model's features
+            feature_cols_for_model = metadata.get("feature_names_in", test_data.drop(columns=[target_column]).columns.tolist())
             
-            # 应用标签编码器
+            # Ensure all required feature columns are in test_data
+            missing_model_features = set(feature_cols_for_model) - set(test_data.columns)
+            if missing_model_features:
+                raise ValueError(f"Test data is missing columns required by model {model_name_item}: {missing_model_features}")
+
+            X_test_current_model_df = test_data[feature_cols_for_model].copy()
+
+
+            # Apply preprocessing specific to this model
             if 'label_encoders' in preprocessors:
                 for col, encoder in preprocessors['label_encoders'].items():
-                    if col in X_processed.columns:
-                        X_processed[col] = X_processed[col].astype(str)
-                        try:
-                            X_processed[col] = encoder.transform(X_processed[col])
-                        except ValueError:
-                            # 处理未知类别
-                            print(f"警告: 列 '{col}' 包含模型训练期间未见过的类别。将使用默认值0。")
-                            X_processed[col] = 0
+                    if col in X_test_current_model_df.columns and col != target_column:
+                         X_test_current_model_df[col] = X_test_current_model_df[col].astype(str).apply(
+                            lambda x: encoder.transform([x])[0] if x in encoder.classes_ else -1
+                        )
             
-            # 应用标准化
-            if 'scaler' in preprocessors and hasattr(preprocessors['scaler'], 'transform'):
-                numeric_cols = [col for col in X_processed.columns if col in preprocessors['scaler'].feature_names_in_]
-                if numeric_cols:
-                    X_processed[numeric_cols] = preprocessors['scaler'].transform(X_processed[numeric_cols])
-            
-            # 判断是分类还是回归
-            is_classifier = hasattr(model, "predict_proba")
-            
-            # 进行预测
-            y_pred = model.predict(X_processed)
-            
-            # 计算评估指标
-            metrics = {}
-            if is_classifier:
-                metrics["accuracy"] = accuracy_score(y_test, y_pred)
-                metrics["precision"] = precision_score(y_test, y_pred, average="weighted", zero_division=0)
-                metrics["recall"] = recall_score(y_test, y_pred, average="weighted", zero_division=0)
-                metrics["f1"] = f1_score(y_test, y_pred, average="weighted", zero_division=0)
-            else:
-                metrics["mse"] = mean_squared_error(y_test, y_pred)
-                metrics["rmse"] = np.sqrt(metrics["mse"])
-                metrics["mae"] = mean_absolute_error(y_test, y_pred)
-                metrics["r2"] = r2_score(y_test, y_pred)
-            
-            # 存储结果
-            results.append({
-                "model_name": model_name,
-                "is_classifier": is_classifier,
-                "metrics": metrics
-            })
-            
-        except Exception as e:
-            print(f"评估模型 {model_name} 时出错: {e}")
-            results.append({
-                "model_name": model_name,
-                "error": str(e)
-            })
-    
-    # 整理比较结果
-    comparison = {
-        "models": results,
-        "test_data": test_data_path,
-        "target_column": target_column,
-        "timestamp": datetime.datetime.now().isoformat()
-    }
-    
-    # 对于分类模型和回归模型分别找出最佳模型
-    best_classifier = None
-    best_regressor = None
-    best_classifier_score = -float('inf')
-    best_regressor_score = -float('inf')
-    
-    for result in results:
-        if "error" in result:
-            continue
-            
-        if result["is_classifier"]:
-            # 使用F1分数作为分类器评分
-            if result["metrics"]["f1"] > best_classifier_score:
-                best_classifier_score = result["metrics"]["f1"]
-                best_classifier = result["model_name"]
-        else:
-            # 使用R2分数作为回归器评分
-            if result["metrics"]["r2"] > best_regressor_score:
-                best_regressor_score = result["metrics"]["r2"]
-                best_regressor = result["model_name"]
-    
-    comparison["best_classifier"] = best_classifier
-    comparison["best_regressor"] = best_regressor
-    
-    return comparison 
+            if 'scaler' in preprocessors and preprocessors['scaler'] is not None:
+                scaled_num_cols = metadata.get('scaled_numerical_columns', [])
+                cols_to_scale = [col for col in scaled_num_cols if col in X_test_current_model_df.columns]
+                if cols_to_scale:
+                    X_test_current_model_df[cols_to_scale] = preprocessors['scaler'].transform(X_test_current_model_df[cols_to_scale])
 
-def optimize_ensemble_weights(base_models, X, y, n_trials=10):
-    """优化集成模型权重"""
-    loaded_models = []
-    for model_name in base_models:
-        model, preprocessors, _ = load_model(model_name)
-        loaded_models.append(model)
+            X_test_values = X_test_current_model_df.values
+            y_pred_values = model_obj.predict(X_test_values)
+            
+            is_classifier_model = hasattr(model_obj, "predict_proba")
+            current_metrics = evaluate_model(model_obj, X_test_values, y_test_actual, metadata.get("model_type","unknown")) # Use evaluate_model
+            
+            comparison_results_list.append({
+                "model_name": model_name_item, "is_classifier": is_classifier_model,
+                "metrics": current_metrics
+            })
+        except Exception as e_comp:
+            print(f"Error evaluating model {model_name_item} during comparison: {e_comp}")
+            comparison_results_list.append({"model_name": model_name_item, "error": str(e_comp)})
     
-    # 使用贝叶斯优化寻找最佳权重
+    # Determine best classifier and regressor from results
+    best_classifier_name, best_regressor_name = None, None
+    highest_f1, highest_r2 = -float('inf'), -float('inf')
+
+    for res_item in comparison_results_list:
+        if "error" not in res_item:
+            if res_item["is_classifier"] and res_item["metrics"].get("f1", -1) > highest_f1:
+                highest_f1 = res_item["metrics"]["f1"]
+                best_classifier_name = res_item["model_name"]
+            elif not res_item["is_classifier"] and res_item["metrics"].get("r2", -1) > highest_r2:
+                highest_r2 = res_item["metrics"]["r2"]
+                best_regressor_name = res_item["model_name"]
+                
+    return {
+        "models": comparison_results_list, "test_data_path": test_data_path,
+        "target_column": target_column, "timestamp": datetime.datetime.now().isoformat(),
+        "best_classifier": best_classifier_name, "best_regressor": best_regressor_name
+    }
+
+
+def optimize_ensemble_weights(
+    base_models: List[str], X: pd.DataFrame, y: pd.Series, n_trials: int = 10, cv_folds: int = 3 # Reduced CV for speed
+) -> Optional[List[float]]:
+    """Optimizes weights for a voting ensemble (simplified)."""
     from sklearn.model_selection import cross_val_score
-    from sklearn.ensemble import VotingClassifier, VotingRegressor
-    import numpy as np
     
-    best_score = 0
-    best_weights = None
+    loaded_models_list = []
+    for model_name_str in base_models:
+        model_obj, _, _ = load_model(model_name_str)
+        loaded_models_list.append(model_obj)
     
-    for _ in range(n_trials):
-        # 生成随机权重
-        weights = np.random.dirichlet(np.ones(len(loaded_models)))
+    if not loaded_models_list: return None
+
+    is_classification_ensemble = hasattr(loaded_models_list[0], 'predict_proba')
+    best_score_ensemble = -float('inf')
+    optimal_weights: Optional[List[float]] = None
+    
+    for _ in range(n_trials): # Random search for weights
+        current_weights = np.random.dirichlet(np.ones(len(loaded_models_list)))
         
-        # 创建加权集成
-        if hasattr(loaded_models[0], 'predict_proba'):
-            ensemble = VotingClassifier(
-                estimators=[(f"model_{i}", m) for i, m in enumerate(loaded_models)],
-                weights=weights,
-                voting='soft'
+        if is_classification_ensemble:
+            ensemble_clf = VotingClassifier(
+                estimators=[(f"model_{i}", m) for i, m in enumerate(loaded_models_list)],
+                weights=current_weights, voting='soft' # Prefer soft voting if possible
             )
+            scoring_metric = 'f1_weighted'
         else:
-            ensemble = VotingRegressor(
-                estimators=[(f"model_{i}", m) for i, m in enumerate(loaded_models)],
-                weights=weights
+            ensemble_clf = VotingRegressor(
+                estimators=[(f"model_{i}", m) for i, m in enumerate(loaded_models_list)],
+                weights=current_weights
             )
-        
-        # 评估性能
-        score = np.mean(cross_val_score(ensemble, X, y, cv=5))
-        
-        if score > best_score:
-            best_score = score
-            best_weights = weights
-    
-    return best_weights
+            scoring_metric = 'r2'
+            
+        try:
+            # Note: X should be preprocessed appropriately before this function if models expect it
+            cv_score_mean = np.mean(cross_val_score(ensemble_clf, X, y, cv=cv_folds, scoring=scoring_metric))
+            if cv_score_mean > best_score_ensemble:
+                best_score_ensemble = cv_score_mean
+                optimal_weights = current_weights.tolist()
+        except Exception as e_cv:
+            print(f"Error during ensemble weight optimization CV: {e_cv}")
+            continue # Try next set of weights
+            
+    return optimal_weights
+
 
 def optimize_dataframe_memory(df: pd.DataFrame) -> pd.DataFrame:
     """
-    优化DataFrame的内存使用，对大型数据集特别有效
-    
+    Optimizes memory usage of a DataFrame, especially useful for large datasets.
+
     Args:
-        df: 输入的DataFrame
-        
+        df: Input DataFrame.
+
     Returns:
-        优化后的DataFrame
+        DataFrame optimized for memory.
     """
-    start_mem = df.memory_usage().sum() / 1024**2
-    print(f"原始DataFrame内存使用: {start_mem:.2f} MB")
+    start_mem_mb = df.memory_usage(deep=True).sum() / 1024**2
+    print(f"Original DataFrame memory usage: {start_mem_mb:.2f} MB")
     
     optimized_df = df.copy()
     
-    # 数值类型优化
-    for col in df.columns:
-        col_type = df[col].dtype
+    for col in optimized_df.columns:
+        col_type = optimized_df[col].dtype
         
-        # 整数类型优化
         if pd.api.types.is_integer_dtype(col_type):
-            c_min = df[col].min()
-            c_max = df[col].max()
-            
-            # 根据值范围选择最小的整数类型
-            if c_min >= 0:
-                if c_max < 256:
-                    optimized_df[col] = df[col].astype(np.uint8)
-                elif c_max < 65536:
-                    optimized_df[col] = df[col].astype(np.uint16)
-                elif c_max < 4294967296:
-                    optimized_df[col] = df[col].astype(np.uint32)
-                else:
-                    optimized_df[col] = df[col].astype(np.uint64)
+            c_min, c_max = optimized_df[col].min(), optimized_df[col].max()
+            if c_min >= np.iinfo(np.int8).min and c_max <= np.iinfo(np.int8).max:
+                optimized_df[col] = optimized_df[col].astype(np.int8)
+            elif c_min >= np.iinfo(np.int16).min and c_max <= np.iinfo(np.int16).max:
+                optimized_df[col] = optimized_df[col].astype(np.int16)
+            elif c_min >= np.iinfo(np.int32).min and c_max <= np.iinfo(np.int32).max:
+                optimized_df[col] = optimized_df[col].astype(np.int32)
             else:
-                if c_min > -128 and c_max < 128:
-                    optimized_df[col] = df[col].astype(np.int8)
-                elif c_min > -32768 and c_max < 32768:
-                    optimized_df[col] = df[col].astype(np.int16)
-                elif c_min > -2147483648 and c_max < 2147483648:
-                    optimized_df[col] = df[col].astype(np.int32)
-                else:
-                    optimized_df[col] = df[col].astype(np.int64)
-                    
-        # 浮点类型优化
+                optimized_df[col] = optimized_df[col].astype(np.int64)
         elif pd.api.types.is_float_dtype(col_type):
-            # 检查是否可以用较小精度的浮点数
-            optimized_df[col] = df[col].astype(np.float32)
-            
-        # 对象类型优化 (主要是字符串)
-        elif pd.api.types.is_object_dtype(col_type):
-            # 检查是否可以转为分类类型
-            if df[col].nunique() < 0.5 * len(df):
-                optimized_df[col] = df[col].astype('category')
-    
-    end_mem = optimized_df.memory_usage().sum() / 1024**2
-    print(f"优化后DataFrame内存使用: {end_mem:.2f} MB, 减少了 {100 * (start_mem - end_mem) / start_mem:.1f}%")
+            # Downcast floats to float32 if possible without significant precision loss
+            # This is a simple downcast; more sophisticated checks could be added
+            optimized_df[col] = pd.to_numeric(optimized_df[col], downcast='float')
+        elif pd.api.types.is_object_dtype(col_type) or pd.api.types.is_string_dtype(col_type):
+            # Convert object columns that are mostly unique strings to 'category' type
+            if optimized_df[col].nunique() / len(optimized_df[col]) < 0.5: # Heuristic
+                 try:
+                    optimized_df[col] = optimized_df[col].astype('category')
+                 except TypeError: # If column contains mixed types that cannot be categorized
+                    pass
+
+    end_mem_mb = optimized_df.memory_usage(deep=True).sum() / 1024**2
+    reduction_pct = 100 * (start_mem_mb - end_mem_mb) / start_mem_mb if start_mem_mb > 0 else 0
+    print(f"Optimized DataFrame memory usage: {end_mem_mb:.2f} MB, reduced by {reduction_pct:.1f}%")
     
     return optimized_df
 
-def evaluate_model(model, X_test, y_test, model_type: str) -> Dict[str, Any]:
+
+def evaluate_model(model: Any, X_test: np.ndarray, y_test: np.ndarray, model_type: str) -> Dict[str, Any]:
     """
-    评估模型性能，返回相关评估指标
-    
+    Evaluates model performance and returns relevant metrics.
+
     Args:
-        model: 训练好的模型
-        X_test: 测试集特征
-        y_test: 测试集标签
-        model_type: 模型类型
-        
+        model: Trained model object.
+        X_test: Test set features.
+        y_test: Test set labels.
+        model_type: String identifier for the model type (e.g., "logistic_regression").
+
     Returns:
-        包含评估指标的字典
+        Dictionary containing evaluation metrics.
     """
-    # 进行预测
     y_pred = model.predict(X_test)
-    
-    # 初始化指标字典
     metrics = {}
+
+    # Determine if classification or regression based on model_type or attributes
+    is_classifier = "classifier" in model_type or "logreg" in model_type or \
+                    hasattr(model, 'predict_proba') or isinstance(model, (SVC, KNeighborsClassifier, DecisionTreeClassifier, RandomForestClassifier, MultinomialNB))
     
-    # 判断模型类型并计算相应指标
-    if any(t in model_type for t in ["regression", "svr", "lars"]):
-        # 回归模型评估
+    if is_classifier:
+        metrics = {
+            "accuracy": float(accuracy_score(y_test, y_pred)),
+            "precision": float(precision_score(y_test, y_pred, average="weighted", zero_division=0)),
+            "recall": float(recall_score(y_test, y_pred, average="weighted", zero_division=0)),
+            "f1": float(f1_score(y_test, y_pred, average="weighted", zero_division=0))
+        }
+        if hasattr(model, 'predict_proba') and len(np.unique(y_test)) == 2: # Binary classification ROC AUC
+            try:
+                y_prob = model.predict_proba(X_test)[:, 1]
+                metrics["roc_auc"] = float(roc_auc_score(y_test, y_prob))
+            except Exception as e_roc:
+                print(f"Could not compute ROC AUC: {e_roc}")
+        
+        # Detailed classification report (text format for now, can be parsed if needed)
+        try:
+            # Ensure target names are strings for classification_report
+            unique_labels = np.unique(np.concatenate((y_test, y_pred))).astype(str)
+            report = classification_report(y_test.astype(str), y_pred.astype(str), target_names=unique_labels, output_dict=True, zero_division=0)
+            
+            # Simplify report for JSON
+            simple_report = {}
+            for lbl, mtrcs in report.items():
+                if isinstance(mtrcs, dict):
+                    simple_report[lbl] = {k_m: float(v_m) for k_m, v_m in mtrcs.items() if isinstance(v_m, (int, float))}
+                elif isinstance(mtrcs, (int, float)):
+                     simple_report[lbl] = float(mtrcs)
+            metrics["classification_report_dict"] = simple_report
+
+        except Exception as e_report:
+            print(f"Could not generate classification report: {e_report}")
+            metrics["classification_report_error"] = str(e_report)
+
+    else: # Regression
         metrics = {
             "mse": float(mean_squared_error(y_test, y_pred)),
             "rmse": float(np.sqrt(mean_squared_error(y_test, y_pred))),
@@ -1381,462 +1296,365 @@ def evaluate_model(model, X_test, y_test, model_type: str) -> Dict[str, Any]:
             "r2": float(r2_score(y_test, y_pred)),
             "explained_variance": float(explained_variance_score(y_test, y_pred))
         }
-    else:
-        # 分类模型评估
-        try:
-            # 处理可能的数据类型问题
-            y_test = np.array(y_test)
-            y_pred = np.array(y_pred)
-            
-            # 基本分类指标
-            metrics = {
-                "accuracy": float(accuracy_score(y_test, y_pred)),
-                "precision": float(precision_score(y_test, y_pred, average="weighted", zero_division=0)),
-                "recall": float(recall_score(y_test, y_pred, average="weighted", zero_division=0)),
-                "f1": float(f1_score(y_test, y_pred, average="weighted", zero_division=0))
-            }
-            
-            # 对于二分类问题，添加额外的指标
-            if len(np.unique(y_test)) == 2:
-                # 确保模型有predict_proba方法
-                if hasattr(model, 'predict_proba'):
-                    y_prob = model.predict_proba(X_test)[:, 1]
-                    metrics["roc_auc"] = float(roc_auc_score(y_test, y_prob))
-                
-                # 添加混淆矩阵
-                cm = confusion_matrix(y_test, y_pred)
-                tn, fp, fn, tp = cm.ravel()
-                metrics["confusion_matrix"] = {
-                    "true_negative": int(tn),
-                    "false_positive": int(fp),
-                    "false_negative": int(fn),
-                    "true_positive": int(tp)
-                }
-                
-                # 计算特异性和敏感性
-                specificity = tn / (tn + fp) if (tn + fp) > 0 else 0
-                sensitivity = tp / (tp + fn) if (tp + fn) > 0 else 0
-                metrics["specificity"] = float(specificity)
-                metrics["sensitivity"] = float(sensitivity)
-            
-            # 添加详细的分类报告
-            report = classification_report(y_test, y_pred, output_dict=True)
-            # 转换数据类型以确保JSON可序列化
-            json_report = {}
-            for k, v in report.items():
-                if isinstance(v, dict):
-                    json_report[k] = {sk: float(sv) for sk, sv in v.items() if not isinstance(sv, np.ndarray)}
-                elif not isinstance(v, np.ndarray):
-                    json_report[k] = float(v)
-            
-            metrics["classification_report"] = json_report
-            
-        except Exception as e:
-            # 记录评估过程中的错误，但不中断执行
-            print(f"评估模型时发生错误: {str(e)}")
-            metrics["evaluation_error"] = str(e)
-    
-    # 确保所有指标都是JSON可序列化的
-    return {k: (float(v) if isinstance(v, (np.number, np.ndarray)) else v) 
-            for k, v in metrics.items()}
+    return metrics
 
-# 添加对大型数据集的处理函数
+
 def process_large_dataset(
     data_path: str, 
-    processing_func: Callable, 
+    processing_func: Callable[[pd.DataFrame, Any], Any], # Callable type hint
     chunk_size: int = 100000,
     **kwargs
-) -> Any:
+) -> Any: # Return type depends on processing_func
     """
-    分块处理大型数据集文件
-    
+    Processes large dataset files in chunks.
+
     Args:
-        data_path: 数据文件路径
-        processing_func: 处理每个数据块的函数
-        chunk_size: 每个块的行数
-        **kwargs: 传递给处理函数的额外参数
+        data_path: Path to the data file.
+        processing_func: Function to process each data chunk.
+        chunk_size: Number of rows per chunk.
+        **kwargs: Additional arguments for the processing function.
         
     Returns:
-        处理结果，根据处理函数的返回值而定
+        Result of processing, type depends on processing_func.
     """
     if not os.path.exists(data_path):
-        raise FileNotFoundError(f"数据文件不存在: {data_path}")
+        raise FileNotFoundError(f"Data file not found: {data_path}")
     
     file_extension = os.path.splitext(data_path)[1].lower()
-    
-    results = []
+    processed_results = []
     
     try:
-        # CSV文件处理
         if file_extension == '.csv':
-            # 首先检查文件大小
-            file_size = os.path.getsize(data_path) / (1024 * 1024)  # MB
-            print(f"处理CSV文件: {data_path}, 大小: {file_size:.2f} MB")
+            file_size_mb = os.path.getsize(data_path) / (1024 * 1024)
+            print(f"Processing CSV file: {data_path}, Size: {file_size_mb:.2f} MB")
             
-            # 如果文件较小，直接处理
-            if file_size < 100:  # 小于100MB直接读取
-                df = pd.read_csv(data_path)
-                return processing_func(df, **kwargs)
+            if file_size_mb < 100: # Process smaller files in one go
+                df_full = pd.read_csv(data_path)
+                return processing_func(df_full, **kwargs)
             
-            # 分块读取大文件
-            reader = pd.read_csv(data_path, chunksize=chunk_size)
-            for i, chunk in enumerate(reader):
-                print(f"处理数据块 {i+1}, 大小: {len(chunk)} 行")
-                chunk_result = processing_func(chunk, **kwargs)
-                results.append(chunk_result)
+            chunk_iterator = pd.read_csv(data_path, chunksize=chunk_size)
+            for i, chunk_df in enumerate(chunk_iterator):
+                print(f"Processing chunk {i+1}, Size: {len(chunk_df)} rows")
+                processed_results.append(processing_func(chunk_df, **kwargs))
                 
-        # Excel文件处理
-        elif file_extension in ['.xlsx', '.xls']:
-            # Excel文件通常较小，直接读取
-            df = pd.read_excel(data_path)
-            return processing_func(df, **kwargs)
+        elif file_extension in ['.xlsx', '.xls']: # Excel files are usually smaller
+            df_excel = pd.read_excel(data_path)
+            return processing_func(df_excel, **kwargs)
             
-        # Parquet文件处理（高效存储格式）
-        elif file_extension == '.parquet':
-            # 分块读取
-            df = pd.read_parquet(data_path)
-            total_rows = len(df)
-            
-            # 如果行数少于chunk_size，直接处理
-            if total_rows <= chunk_size:
-                return processing_func(df, **kwargs)
-            
-            # 分块处理
-            for i in range(0, total_rows, chunk_size):
-                end = min(i + chunk_size, total_rows)
-                print(f"处理数据块 {i//chunk_size + 1}, 行 {i} 到 {end}")
-                chunk = df.iloc[i:end]
-                chunk_result = processing_func(chunk, **kwargs)
-                results.append(chunk_result)
-                
+        elif file_extension == '.parquet': # Parquet can be read efficiently
+            # Parquet can be read in chunks too if needed, but often pandas handles large parquet well
+            df_parquet = pd.read_parquet(data_path) 
+            # Simple example: if very large, could implement chunking similar to CSV
+            if len(df_parquet) > chunk_size * 2: # Arbitrary threshold for example
+                 for i in range(0, len(df_parquet), chunk_size):
+                    chunk_df = df_parquet.iloc[i:i + chunk_size]
+                    print(f"Processing Parquet chunk {i//chunk_size + 1}")
+                    processed_results.append(processing_func(chunk_df, **kwargs))
+            else:
+                return processing_func(df_parquet, **kwargs)
         else:
-            raise ValueError(f"不支持的文件格式: {file_extension}")
+            raise ValueError(f"Unsupported file format: {file_extension}")
             
-        # 合并结果
-        if results and hasattr(results[0], '__add__'):
-            # 如果结果可以相加（例如列表、数据帧等）
-            final_result = results[0]
-            for result in results[1:]:
-                final_result += result
-            return final_result
-        else:
-            # 否则返回结果列表
-            return results
+        # Consolidate results if possible (e.g., list of DataFrames)
+        if processed_results:
+            if all(isinstance(res, pd.DataFrame) for res in processed_results):
+                return pd.concat(processed_results)
+            # Add other consolidation logic if needed for other types of results
+        return processed_results # Return list of results if not DataFrames
             
     except Exception as e:
-        print(f"处理大型数据集时出错: {str(e)}")
+        print(f"Error processing large dataset: {str(e)}")
         raise
 
+
 def batch_predict(
-    model_name: str,
-    data_path: str,
-    output_path: str = None,
-    chunk_size: int = 100000
+    model_name: str, data_path: str,
+    output_path: Optional[str] = None, chunk_size: int = 100000
 ) -> str:
     """
-    分批处理大型数据集进行预测，避免内存溢出
-    
+    Performs batch prediction on a large dataset to avoid memory issues.
+
     Args:
-        model_name: 模型名称
-        data_path: 输入数据路径
-        output_path: 输出结果路径（可选）
-        chunk_size: 每批处理的行数
+        model_name: Name of the model.
+        data_path: Path to the input data file.
+        output_path: Optional path for the output results.
+        chunk_size: Number of rows to process in each batch.
         
     Returns:
-        输出结果的文件路径
+        Path to the output file containing predictions.
     """
-    import csv  # 导入CSV模块用于文件操作
+    import csv # Local import for file operations
     
-    print(f"开始批量预测，使用模型: {model_name}")
+    print(f"Starting batch prediction with model: {model_name}")
     
-    # 如果未指定输出路径，生成一个
     if output_path is None:
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        basename = os.path.splitext(os.path.basename(data_path))[0]
-        output_path = f"{basename}_predictions_{timestamp}.csv"
+        base, ext = os.path.splitext(os.path.basename(data_path))
+        output_path = f"{base}_predictions_{timestamp}.csv"
     
-    # 加载模型
     model, preprocessors, metadata = load_model(model_name)
     
-    # 获取特征列
-    categorical_columns = metadata.get("categorical_columns", [])
-    numerical_columns = metadata.get("numerical_columns", [])
-    all_features = categorical_columns + numerical_columns
-    
-    # 定义处理函数
-    def process_chunk(chunk):
-        # 验证数据
-        missing_cols = [col for col in all_features if col not in chunk.columns]
+    # Determine feature columns from metadata or model if possible
+    feature_columns = metadata.get("feature_names_in", metadata.get("categorical_columns", []) + metadata.get("numerical_columns", []))
+    if not feature_columns and hasattr(model, 'feature_names_in_'):
+        feature_columns = model.feature_names_in_
+    if not feature_columns:
+        # As a last resort, try to infer from a sample of the data, excluding known target if any
+        # This is risky and should ideally be avoided by having features in metadata.
+        sample_df_features = pd.read_csv(data_path, nrows=5) if data_path.lower().endswith('.csv') else pd.read_excel(data_path, nrows=5)
+        if metadata.get("target_column") in sample_df_features.columns:
+            feature_columns = sample_df_features.drop(columns=[metadata.get("target_column")]).columns.tolist()
+        else:
+            feature_columns = sample_df_features.columns.tolist()
+        print(f"Warning: Feature columns inferred from data sample: {feature_columns}")
+
+
+    def _process_chunk_for_prediction(chunk_df: pd.DataFrame) -> pd.DataFrame:
+        if not feature_columns: # Should not happen if inference above works
+             raise ValueError("Feature columns for prediction could not be determined.")
+        
+        # Ensure only necessary features are present and in correct order
+        missing_cols = set(feature_columns) - set(chunk_df.columns)
         if missing_cols:
-            raise ValueError(f"数据中缺少以下特征列: {missing_cols}")
+            raise ValueError(f"Chunk data is missing columns: {missing_cols}")
         
-        # 提取特征
-        X = chunk[all_features].copy()
+        X_chunk = chunk_df[feature_columns].copy()
         
-        # 应用预处理器
-        X_processed = apply_preprocessors(X, preprocessors, categorical_columns, numerical_columns)
+        # Apply preprocessors (reusing the apply_preprocessors logic)
+        X_processed_values = apply_preprocessors(
+            X_chunk, preprocessors, 
+            metadata.get("categorical_columns", []), 
+            metadata.get("scaled_numerical_columns", metadata.get("numerical_columns", [])) # Prefer scaled_numerical_columns
+        )
         
-        # 进行预测
-        predictions = model.predict(X_processed)
+        predictions_chunk = model.predict(X_processed_values)
         
-        # 创建结果DataFrame
-        result_df = chunk.copy()
-        result_df['prediction'] = predictions
-        
-        return result_df
+        result_df_chunk = chunk_df.copy()
+        result_df_chunk['prediction'] = predictions_chunk
+        return result_df_chunk
     
     try:
-        # 分块处理数据
         file_extension = os.path.splitext(data_path)[1].lower()
         
-        # 对于CSV文件的特殊处理
         if file_extension == '.csv':
-            # 先读取一小部分来获取列名
-            sample_df = pd.read_csv(data_path, nrows=5)
-            headers = sample_df.columns.tolist()
-            
-            # 打开输出文件
-            with open(output_path, 'w', newline='') as f_out:
-                # 写入表头
-                writer = csv.writer(f_out)
-                writer.writerow(headers + ['prediction'])
-                
-                # 分块读取和处理
+            first_chunk = True
+            with open(output_path, 'w', newline='', encoding='utf-8') as f_out:
                 for chunk in pd.read_csv(data_path, chunksize=chunk_size):
-                    # 处理数据块
-                    result_chunk = process_chunk(chunk)
-                    
-                    # 写入结果（不包含表头）
-                    result_chunk.to_csv(f_out, header=False, index=False, mode='a')
-        else:
-            # 对于其他文件格式，使用通用处理方法
-            results = process_large_dataset(
+                    result_chunk_df = _process_chunk_for_prediction(chunk)
+                    result_chunk_df.to_csv(f_out, header=first_chunk, index=False, mode='a')
+                    first_chunk = False
+        else: # For Excel or other formats that might not support easy chunking in read_
+              # We use the generic process_large_dataset which loads then chunks if large
+            all_results_df = process_large_dataset(
                 data_path=data_path,
-                processing_func=process_chunk,
+                processing_func=_process_chunk_for_prediction,
                 chunk_size=chunk_size
             )
-            
-            # 保存结果
-            if isinstance(results, pd.DataFrame):
-                results.to_csv(output_path, index=False)
-            elif isinstance(results, list):
-                # 合并所有结果
-                pd.concat(results).to_csv(output_path, index=False)
-        
-        print(f"批量预测完成，结果已保存至: {output_path}")
+            if isinstance(all_results_df, pd.DataFrame):
+                all_results_df.to_csv(output_path, index=False)
+            elif isinstance(all_results_df, list) and all(isinstance(item, pd.DataFrame) for item in all_results_df): # If list of DFs
+                pd.concat(all_results_df).to_csv(output_path, index=False)
+
+        print(f"Batch prediction complete. Results saved to: {output_path}")
         return output_path
         
     except Exception as e:
-        print(f"批量预测过程中出错: {str(e)}")
+        print(f"Error during batch prediction: {str(e)}")
         raise
 
-def apply_preprocessors(X, preprocessors, categorical_columns, numerical_columns):
+
+def apply_preprocessors(
+    X: pd.DataFrame,
+    preprocessors: Dict[str, Any],
+    categorical_columns: Optional[List[str]],
+    numerical_columns: Optional[List[str]] # Should be the list of columns that were scaled
+) -> np.ndarray:
     """
-    应用预处理器到输入数据
-    
+    Applies preprocessors to input data.
+
     Args:
-        X: 输入特征
-        preprocessors: 预处理器字典
-        categorical_columns: 分类特征列表
-        numerical_columns: 数值特征列表
+        X: Input features DataFrame.
+        preprocessors: Dictionary of preprocessors.
+        categorical_columns: List of categorical feature names.
+        numerical_columns: List of numerical feature names that were scaled.
         
     Returns:
-        处理后的特征矩阵
+        Processed feature matrix as a NumPy array.
     """
     X_processed = X.copy()
     
-    # 应用标签编码器
     if 'label_encoders' in preprocessors and categorical_columns:
         for col in categorical_columns:
             if col in X_processed.columns and col in preprocessors['label_encoders']:
                 le = preprocessors['label_encoders'][col]
-                # 处理未知类别
                 X_processed[col] = X_processed[col].astype(str)
-                unique_values = set(X_processed[col].unique())
-                known_values = set(le.classes_)
-                unknown_values = unique_values - known_values
                 
-                if unknown_values:
-                    print(f"警告: 列 {col} 包含未知类别: {unknown_values}")
-                    # 将未知类别设为最常见类别
-                    most_common = X_processed[col][X_processed[col].isin(known_values)].mode()
-                    most_common = most_common[0] if not most_common.empty else le.classes_[0]
-                    X_processed.loc[X_processed[col].isin(unknown_values), col] = most_common
-                
-                X_processed[col] = le.transform(X_processed[col])
-    
-    # 应用标准化器
-    if 'scaler' in preprocessors and numerical_columns:
-        numeric_cols_present = [col for col in numerical_columns if col in X_processed.columns]
-        if numeric_cols_present:
-            X_processed[numeric_cols_present] = preprocessors['scaler'].transform(X_processed[numeric_cols_present])
+                # Handle unseen labels by mapping them to a default value (e.g., -1 or a specific category)
+                # or by fitting the encoder on the new data as well (less ideal for test set)
+                unseen_mask = ~X_processed[col].isin(le.classes_)
+                if unseen_mask.any():
+                    print(f"Warning: Column {col} has unseen labels: {X_processed[col][unseen_mask].unique()}. Mapping to -1.")
+                    # Option 1: Map to a default like -1 (if your model can handle it or if it's okay to treat as missing/other)
+                    # X_processed.loc[unseen_mask, col] = -1 
+                    # Option 2: Map to the most frequent class (less disruptive if -1 is bad)
+                    most_frequent_class_val = 0 # Default if no known classes
+                    if len(le.classes_) > 0:
+                        # Get the encoded value of the most frequent class
+                        most_frequent_original_label = pd.Series(le.inverse_transform(X_processed[col][~unseen_mask].astype(int))).mode()
+                        if not most_frequent_original_label.empty:
+                             most_frequent_class_val = le.transform(most_frequent_original_label[:1])[0]
+                        else: # If all values were unseen, or no mode, use first known class
+                             most_frequent_class_val = 0 # Default to encoded 0
+                    
+                    X_processed.loc[unseen_mask, col] = str(le.classes_[most_frequent_class_val] if len(le.classes_) > most_frequent_class_val else le.classes_[0] if len(le.classes_)>0 else 'unknown_category_placeholder')
+
+
+                # Transform only known labels, leave others (or handle as above)
+                known_mask = X_processed[col].isin(le.classes_)
+                X_processed.loc[known_mask, col] = le.transform(X_processed.loc[known_mask, col])
+                # After transform, unseen (now -1 or placeholder) might need specific handling if model expects numeric
+                if (X_processed[col] == 'unknown_category_placeholder').any():
+                    # Convert to a numeric placeholder if necessary, e.g. if column must be int
+                    # This depends on how your model handles such cases. For now, assuming it might remain string/object
+                    # If conversion to int is needed:
+                    # X_processed[col] = pd.to_numeric(X_processed[col], errors='coerce').fillna(-1).astype(int)
+                    pass
+
+
+    if 'scaler' in preprocessors and preprocessors['scaler'] is not None and numerical_columns:
+        # Ensure only columns present in X_processed and meant for scaling are used
+        cols_to_scale = [col for col in numerical_columns if col in X_processed.columns]
+        if cols_to_scale:
+            X_processed[cols_to_scale] = preprocessors['scaler'].transform(X_processed[cols_to_scale])
     
     return X_processed.values
 
-def parallel_process(func, items, n_jobs=None, backend='multiprocessing', **kwargs):
+
+def parallel_process(
+    func: Callable, items: List[Any], n_jobs: Optional[int] = None,
+    backend: str = 'multiprocessing', **kwargs
+) -> List[Any]:
     """
-    并行执行函数以加速处理
-    
+    Executes a function in parallel to speed up processing.
+
     Args:
-        func: 要并行执行的函数
-        items: 要处理的项目列表
-        n_jobs: 并行任务数（None表示使用所有可用CPU核心）
-        backend: 并行后端 ('multiprocessing', 'threading', 'loky')
-        **kwargs: 传递给func的其他参数
+        func: The function to execute in parallel.
+        items: A list of items to process.
+        n_jobs: Number of parallel tasks (None uses all available CPU cores minus one).
+        backend: Parallel backend ('multiprocessing', 'threading', 'loky').
+        **kwargs: Additional arguments to pass to func.
         
     Returns:
-        处理结果列表
+        A list of processing results.
     """
     if n_jobs is None:
-        n_jobs = max(1, multiprocessing.cpu_count() - 1)  # 保留1个CPU核心给系统
+        n_jobs = max(1, multiprocessing.cpu_count() - 1) # Leave one core for the system
     
-    print(f"启动并行处理，使用{n_jobs}个工作线程")
+    print(f"Starting parallel processing with {n_jobs} worker(s) using {backend} backend.")
     results = Parallel(n_jobs=n_jobs, backend=backend)(
         delayed(func)(item, **kwargs) for item in items
     )
     return results
 
+
 def parallel_feature_selection(
-    data: pd.DataFrame,
-    target_column: str,
-    n_jobs: int = -1,
-    method: str = 'mutual_info',
-    top_k: int = 10
+    data: pd.DataFrame, target_column: str, n_jobs: int = -1,
+    method: str = 'mutual_info', top_k: int = 10
 ) -> List[str]:
     """
-    使用并行计算加速特征选择
-    
+    Accelerates feature selection using parallel computation.
+
     Args:
-        data: 输入数据
-        target_column: 目标列名
-        n_jobs: 并行任务数，-1表示使用所有可用CPU
-        method: 特征选择方法 ('mutual_info', 'f_test', 'chi2')
-        top_k: 选择的特征数量
+        data: Input DataFrame.
+        target_column: Name of the target column.
+        n_jobs: Number of parallel tasks (-1 uses all available CPUs).
+        method: Feature selection method ('mutual_info', 'f_test', 'chi2').
+        top_k: Number of top features to select.
         
     Returns:
-        选择的特征列表
+        List of selected feature names.
     """
-    from sklearn.feature_selection import (
-        SelectKBest, mutual_info_classif, f_classif, chi2, mutual_info_regression, f_regression
-    )
+    from sklearn.feature_selection import (SelectKBest, f_classif, f_regression,
+                                         chi2, mutual_info_classif,
+                                         mutual_info_regression)
     
-    # 准备数据
     X = data.drop(columns=[target_column])
     y = data[target_column]
     
-    # 确定问题类型和选择相应的评分函数
-    is_classification = isinstance(y.iloc[0], (str, bool)) or y.nunique() < 10
+    is_classification = y.dtype == 'object' or y.nunique() < 0.1 * len(y) # Heuristic
     
-    if method == 'mutual_info':
-        score_func = mutual_info_classif if is_classification else mutual_info_regression
-    elif method == 'f_test':
-        score_func = f_classif if is_classification else f_regression
-    elif method == 'chi2' and is_classification:
-        # chi2只适用于分类问题，且特征值必须非负
-        score_func = chi2
-        # 确保所有特征都是非负的
-        for col in X.columns:
-            if X[col].min() < 0:
-                X[col] = X[col] - X[col].min()
-    else:
-        raise ValueError(f"不支持的特征选择方法: {method}")
+    score_func_map = {
+        'mutual_info': mutual_info_classif if is_classification else mutual_info_regression,
+        'f_test': f_classif if is_classification else f_regression,
+        'chi2': chi2 if is_classification else None # chi2 only for classification
+    }
     
-    # 执行特征选择
-    selector = SelectKBest(score_func=score_func, k=min(top_k, X.shape[1]))
+    score_func_selected = score_func_map.get(method)
+    if score_func_selected is None:
+        raise ValueError(f"Unsupported feature selection method: {method} for this task type.")
+
+    if method == 'chi2' and is_classification:
+        # Ensure all features are non-negative for chi2
+        if (X < 0).any().any():
+            print("Warning: Negative values found in features for chi2. Applying offset.")
+            X = X - X.min().min() # Simple offset, might need more sophisticated handling
+
+    selector = SelectKBest(score_func=score_func_selected, k=min(top_k, X.shape[1]))
+    # Note: SelectKBest itself doesn't directly use n_jobs for fitting all scorers.
+    # Parallelism here would be if the score_func itself is parallelizable or if used within a parallel CV.
     selector.fit(X, y)
     
-    # 获取特征分数
-    scores = selector.scores_
-    
-    # 获取选中的特征
-    feature_scores = list(zip(X.columns, scores))
-    feature_scores.sort(key=lambda x: x[1], reverse=True)
-    
-    # 返回前k个特征
-    selected_features = [f[0] for f in feature_scores[:top_k]]
-    
-    return selected_features
+    feature_scores = sorted(list(zip(X.columns, selector.scores_)), key=lambda x: x[1], reverse=True)
+    return [f[0] for f in feature_scores[:top_k]]
+
 
 def parallel_train_model(
-    model_type: str,
-    data: pd.DataFrame,
-    target_column: str,
-    categorical_columns: List[str] = None,
-    numerical_columns: List[str] = None,
-    model_params: Dict[str, Any] = None,
-    n_jobs: int = -1,
-    cv: int = 5
+    model_type: str, data: pd.DataFrame, target_column: str,
+    categorical_columns: Optional[List[str]] = None,
+    numerical_columns: Optional[List[str]] = None,
+    model_params: Optional[Dict[str, Any]] = None,
+    n_jobs: int = -1, cv: int = 5, random_state: int = 42
 ) -> Dict[str, Any]:
     """
-    使用并行计算加速模型训练和交叉验证
-    
-    Args:
-        model_type: 模型类型
-        data: 输入数据
-        target_column: 目标列名
-        categorical_columns: 分类特征列表
-        numerical_columns: 数值特征列表
-        model_params: 模型参数
-        n_jobs: 并行任务数，-1表示使用所有可用CPU
-        cv: 交叉验证折数
-        
-    Returns:
-        训练好的模型和评估结果
+    Accelerates model training and cross-validation using parallel computation.
+    (Note: Cross-validation part is parallelized if model or CV supports n_jobs)
     """
-    from sklearn.model_selection import cross_val_score
+    from sklearn.model_selection import cross_val_score # Local import for this specific use
     
-    # 获取模型类
     if model_type not in MODEL_TYPES:
-        valid_types = list(MODEL_TYPES.keys())
-        raise ValueError(f"无效的模型类型: {model_type}。有效类型: {valid_types}")
+        raise ValueError(f"Invalid model type: {model_type}. Valid types: {list(MODEL_TYPES.keys())}")
     
-    # 预处理数据
-    X_train, X_test, y_train, y_test, preprocessors = preprocess_data(
-        data, target_column, categorical_columns, numerical_columns
+    X_train_np, X_test_np, y_train, y_test, preprocessors = preprocess_data(
+        data, target_column, categorical_columns, numerical_columns, random_state=random_state
     )
     
-    # 创建并行任务的模型
-    if model_params is None:
-        model_params = DEFAULT_MODEL_PARAMS.get(model_type, {})
-    
-    # 添加n_jobs参数（如果模型支持）
-    model_class = MODEL_TYPES[model_type]
-    model_signature = inspect.signature(model_class.__init__)
+    current_model_params = DEFAULT_MODEL_PARAMS.get(model_type, {}).copy()
+    if model_params: current_model_params.update(model_params)
+
+    model_class_ref = MODEL_TYPES[model_type]
+    model_signature = inspect.signature(model_class_ref.__init__)
+    if 'random_state' in model_signature.parameters and 'random_state' not in current_model_params:
+        current_model_params['random_state'] = random_state
+    # Pass n_jobs to model if it supports it (e.g., RandomForest)
     if 'n_jobs' in model_signature.parameters:
-        model_params['n_jobs'] = n_jobs
+        current_model_params['n_jobs'] = n_jobs 
+        
+    model_instance = model_class_ref(**current_model_params)
     
-    # 创建模型
-    model = model_class(**model_params)
+    print(f"Performing {cv}-fold cross-validation with {n_jobs if n_jobs != -1 else 'all'} CPU core(s).")
+    scoring_metric = 'accuracy' if "classifier" in model_type or "logreg" in model_type else 'neg_mean_squared_error'
     
-    # 使用并行计算进行交叉验证
-    print(f"执行{cv}折交叉验证，使用{n_jobs}个CPU核心")
+    # cross_val_score itself can use n_jobs for some estimators
+    cv_scores_array = cross_val_score(model_instance, X_train_np, y_train, cv=cv, scoring=scoring_metric, n_jobs=n_jobs)
     
-    # 根据模型类型选择评分标准
-    if any(t in model_type for t in ["regression", "svr", "lars"]):
-        scoring = 'neg_mean_squared_error'
-    else:
-        scoring = 'accuracy'
+    model_instance.fit(X_train_np, y_train) # Train final model on full training data
+    final_metrics = evaluate_model(model_instance, X_test_np, y_test, model_type)
     
-    cv_scores = cross_val_score(
-        model, X_train, y_train, cv=cv, scoring=scoring, n_jobs=n_jobs
-    )
+    if scoring_metric == 'neg_mean_squared_error':
+        final_metrics['cv_mean_neg_mse'] = cv_scores_array.mean()
+        final_metrics['cv_std_neg_mse'] = cv_scores_array.std()
+    else: # Assuming accuracy or other classification metric
+        final_metrics[f'cv_mean_{scoring_metric}'] = cv_scores_array.mean()
+        final_metrics[f'cv_std_{scoring_metric}'] = cv_scores_array.std()
     
-    # 训练最终模型
-    model.fit(X_train, y_train)
-    
-    # 评估模型
-    metrics = evaluate_model(model, X_test, y_test, model_type)
-    
-    # 添加交叉验证结果
-    if scoring == 'neg_mean_squared_error':
-        metrics['cv_mse'] = -cv_scores.mean()
-        metrics['cv_mse_std'] = cv_scores.std()
-    else:
-        metrics['cv_accuracy'] = cv_scores.mean()
-        metrics['cv_accuracy_std'] = cv_scores.std()
-    
-    return {
-        'model': model,
-        'preprocessors': preprocessors,
-        'metrics': metrics
-    }
+    return {'model': model_instance, 'preprocessors': preprocessors, 'metrics': final_metrics}
